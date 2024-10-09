@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "/configs": true,
+        "/assets": true,
+        "/logs": true
+    }
+}

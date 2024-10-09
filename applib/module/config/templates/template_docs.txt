@@ -1,0 +1,461 @@
+Templates provide a uniform way of creating and validating config files
+as well as constructing GUI elements matching the contents of the created config files.
+
+Template options may be split into two categories:
+    1. Creation/Validation.
+    2. GUI elements.
+Below is an explanation of each option in each category.
+
+
+Explanation of terms:
+    setting = A key which influences some decision in the program.
+              Equivalent to a line in the config file or the GUI element created from said config.
+              For instance, the setting for the line 'loglevel = "DEBUG"' in a config is 'loglevel'.
+
+    option  = A child key of a setting in the Template.
+              For instance, the setting "loglevel" contains a child key "default"
+              (specifying the default value for "loglevel").
+
+
+Syntax explanation:
+<> means the type of the value. I.e. <UITypes> means the value is a 'UITypes' enum.
+If multiple syntaxes are present for an option, it means they are interchangeable.
+'Callable' could be function pointer.
+
+
+┌─────────────────────────┐
+│   Creation/Validation   │
+└─────────────────────────┘
+* NOTE: some options listed here are also used for GUI elements. These are marked with (GUI).
+
+
+- default   (GUI)
+    The default value for a setting.
+
+    *********************
+    Syntax:
+    "default": Any
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_disable_self    (GUI)
+    The value which disables this setting.
+    This value is used in validation if it is the smallest of all other values (e.g. default, min)
+
+    *********************
+    For further information, please see the corresponding ui_disable_self option under GUI elements.
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_disable_other    (GUI)
+    The value which disables children of this setting.
+    This value is used in validation if it is the smallest of all other values (e.g. default, min)
+
+    *********************
+    For further information, please see the corresponding ui_disable_other option under GUI elements.
+
+───────────────────────────────────────────────────────────────────────────
+
+- min   (GUI)
+    The minimum value for a setting.
+
+    *********************
+    Syntax:
+    "min": int
+
+    *********************
+    Applicable settings:
+    - Any number ranges, e.g. slider or spinbox
+    # NOTE: Sliders do not support floats directly
+
+───────────────────────────────────────────────────────────────────────────
+
+- max
+    The maximum value for a setting.
+    If max is omitted or None, there is no limit (though upper limit is 999999 in the GUI).
+
+    *********************
+    Syntax:
+    "max": int
+
+    *********************
+    Applicable settings:
+    - Any number ranges, e.g. slider or spinbox
+    # NOTE: Sliders do not support floats directly
+
+───────────────────────────────────────────────────────────────────────────
+
+- type    (Optional)
+    The Python type for the value of a setting. For instance, 3 has type 'int'.
+
+    *********************
+    Syntax:
+    "type": <type>
+
+    *********************
+    Applicable settings:
+    - All   (Technically. However, types are also inferred from other options)
+    // TODO: Streamline type inferring
+    // TODO: Add all methods of type inferring here
+
+───────────────────────────────────────────────────────────────────────────
+
+- values    (GUI)
+    Possible values for a setting.
+
+    *********************
+    Syntax:
+    "values": [Any]
+
+    *********************
+    Applicable settings:
+    - Combobox
+
+───────────────────────────────────────────────────────────────────────────
+
+- validators    (Optional)
+    A list of functions used to validate the value of this setting
+    (in addition to default Pydantic validation).
+
+    *********************
+    Syntax:
+    "validators": [<Callable>]
+
+    *********************
+    Applicable settings:
+    - All
+
+
+┌──────────────────┐
+│   GUI elements   │
+└──────────────────┘
+
+- ui_title
+    The title of this setting.
+
+    *********************
+    Syntax:
+    "ui_title": ""
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_desc   (Optional)
+    Description of this setting.
+
+    *********************
+    Syntax:
+    "ui_desc": ""
+
+    *********************
+    Applicable settings:
+    - All
+
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_disable_self
+    The value which disables this setting.
+    Please ensure that the backend using this setting respects this value - otherwise it has no effect.
+    In the GUI, a button for disabling this setting is provided.
+
+    *********************
+    Syntax:
+    "ui_disable_self": Any
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_disable_other
+    The value which disables children of this setting.
+    Please ensure that the backend using this setting respects this value - otherwise it has no effect.
+
+    *********************
+    Syntax:
+    "ui_disable_other": Any
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
+- disable_button
+    Enable or disable the disable button for this setting.
+
+    *NOTE A disable button is generated by default if ui_disable_self is specified
+    *NOTE If ui_disable_self is unspecified, the disable button will only
+    disable the setting in the GUI.
+
+    *********************
+    Syntax:
+    "disable_button": bool
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_group
+    Designate a group ID which all options with this ID belongs to.
+    This makes various actions possible for settings, e.g. they can be visually grouped in the GUI.
+
+    A setting in a ui_group can have the ui_group_parent option present.
+    This makes the setting act as the parent of the group.
+    For more info about the group parent, please refer to ui_group_parent.
+
+    *********************
+    Syntax:
+    "ui_group": Any
+    "ui_group": Any, Any, ...
+    "ui_group": "str, str" ...
+
+    *********************
+    Applicable settings:
+    - All
+
+    *********************
+    Possible values:
+    - Any       (if this setting belongs to a single group)
+    - Any, Any  (if this setting belongs to multiple groups)
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_group_parent
+    Designate the parent setting of a group.
+    Only one setting in each group can be designated parent
+    (If more than one exist, the first found is used).
+
+    *********************
+    Syntax:
+    "ui_group_parent": <UIGroups>
+    "ui_group_parent": [<UIGroups>, <UIGroups>, ...]
+
+    *********************
+    Applicable settings:
+    - All
+
+    *********************
+    Possible values:
+     * NOTE: All values can be combined in a list unless a value states otherwise,
+             however, please use common sense when combining them.
+     # NOTE: If a setting can be disabled, you must specify its disable value (ui_disable_self).
+             Otherwise it will only be disabled in the GUI.
+     * NOTE: All values are specified here:
+             #LINK module\config\templates\template_enums.py
+
+    - CLUSTERED  (Applies to: All)
+        This setting and its children will be clustered together.
+        Essentially a 'flat' NESTED_CHILDREN (i.e. they're all nested on the same level).
+        - CLUSTERED and NESTED_CHILDREN are mutually exclusive!
+        - DISABLE_CHILDREN and DESYNC_DISABLE_CHILDREN have no effect when CLUSTERED is applied.
+
+    - NESTED_CHILDREN   (Applies to: All)
+        This setting's children will be nested under it.
+        However, the specifics of the nesting depend on the GUI config generator used.
+        NESTED_CHILDREN and CLUSTERED are mutually exclusive!
+
+    - DISABLE_CHILDREN  (Applies to: All)
+        This setting disables all child settings in its group when it changes state.
+        The group parent has a button to enable/disable input for the entire group.
+            All settings in the group will use their disable value if it is present.
+            If no ui_disable_self value is present for a particular child it will only show as disabled
+            in the GUI, but it's line in the config file remains unchanged.
+            Thus, if a setting has no disable value, using this configuration will not actually disable it.
+
+        This setting can be combined with the following options:
+            SYNC_CHILDREN, DESYNC_CHILDREN, DESYNC_TRUE_CHILDREN, and DESYNC_FALSE_CHILDREN
+        to disable children according to the combined option, e.g., if DESYNC_CHILDREN, the child will be
+        disabled when parent is True and enabled when parent is False.
+
+    - SYNC_CHILDREN     (Applies to: Switch, CheckBox)
+        This setting's children will change their value according to their parent.
+
+    - DESYNC_CHILDREN   (Applies to: Switch, CheckBox)
+        This setting's children will change their value opposite of their parent.
+
+    - DESYNC_TRUE_CHILDREN    (Applies to: Switch, CheckBox)
+        This setting's children will change their value according to the value of the parent.
+        If Parent is True, then Child is True.
+        Example:
+        Parent = True --> Child = True
+        Parent = False --> Child = <current_value>
+
+    - DESYNC_FALSE_CHILDREN    (Applies to: Switch, CheckBox)
+        This setting's children will change their value according to the value of the parent.
+        If Parent is True, then Child is False.
+        Example:
+        Parent = True --> Child = False
+        Parent = False --> Child = <current_value>
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_invalidmsg
+    Message informing the user that they typed invalid data into this setting.
+    Only relevant on free-form input, e.g. a line edit.
+
+    *********************
+    Syntax:
+    "ui_invalidmsg": {"title": "", "desc": ""}
+
+    *********************
+    Applicable settings:
+    - Any free-form input
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_type
+    The widget type to use for this setting.
+
+    *********************
+    Syntax:
+    "ui_type": <UITypes>
+
+    *********************
+    Applicable settings:
+    - All
+
+    *********************
+    Possible values:
+    - All values are specified here:
+      #LINK module\config\templates\template_enums.py
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_unit   (Optional, must be singular!)
+    The unit associated with this setting, e.g. kB, day.
+
+    *********************
+    Syntax:
+    "ui_unit": ""
+
+    *********************
+    Applicable settings:
+    - All                   // TODO: Ensure units can be used on all GUI elements
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_file_filter
+    The files considered valid for selection, e.g. "XML Files (*.xml)".
+
+    *********************
+    Syntax:
+    "ui_file_filter": ""
+
+    *********************
+    Applicable settings:
+    - File Selectors
+
+───────────────────────────────────────────────────────────────────────────
+
+- ui_flags
+    Special flags that apply to individual settings
+
+    *********************
+    Syntax:
+    "ui_flags": <UIFlags>
+    "ui_flags": [<UIFlags>, <UIFlags>, ...]
+
+    *********************
+    Applicable settings:
+    - All
+
+    Possible values:
+    - All values are specified here:
+      #LINK module\config\templates\template_enums.py
+
+───────────────────────────────────────────────────────────────────────────
+*SECTION Example of a valid template:
+
+        return {
+            "Network": {
+                "proxyAddress": {
+                    "ui_title": "Proxy server address",
+                    "ui_invalidmsg": {
+                        "title": "Invalid proxy address",
+                        "desc": "See HELP PAGE for format help",
+                    },
+                    "default": "",
+                    "validators": [
+                        validateProxyAddress
+                    ],
+                },
+            },
+            "Appearance": {
+                "appTheme": {
+                    "ui_type": UITypes.COMBOBOX,
+                    "ui_title": "Set application theme",
+                    "default": "System",
+                    "values": AppArgs.template_themes,
+                    "validators": [
+                        validateTheme
+                    ]
+                },
+                "appColor": {
+                    "ui_type": UITypes.COLOR_PICKER,
+                    "ui_title": "Set application color",
+                    "default": "#2abdc7"
+                },
+                "appBackground": {
+                    "ui_type": UITypes.FILE_SELECTION,
+                    "ui_title": "Select background image",
+                    "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
+                    "default": "",
+                    "validators": [
+                        validatePath
+                    ]
+                },
+                "backgroundBlur": {
+                    "ui_title": "Set background blur radius",
+                    "ui_desc": "A greater radius increases the blur effect",
+                    "default": 0,
+                    "min": 0,
+                    "max": 30
+                }
+            },
+            "Irfanview": {
+                "startIrfanView": {
+                    "ui_title": f"Start IrfanView with downloaded images when exiting {ModuleNames.pu_name}",
+                    "ui_desc": "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files",
+                    "default": False,
+                    "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
+                    "ui_group": "downloadList_1"
+                },
+                "startIrfanSlide": {
+                    "ui_title": f"Start IrfanView Slideshow with downloaded images when exiting {ModuleNames.pu_name}",
+                    "ui_desc": "This will create download-lists. Slideshow-options will be same as you have set in IrfanView before",
+                    "default": False,
+                    "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
+                    "ui_group": "downloadList_2"
+                },
+                "createDownloadLists": {
+                    "ui_title": "Automatically create download-lists",
+                    "default": False,
+                    "ui_group_parent": [UIGroups.NESTED_CHILDREN, UIGroups.DISABLE_CHILDREN],
+                    "ui_group": "downloadListFolder, downloadList_1, downloadList_2",
+                    "ui_disable_self": False
+                },
+            },
+            "Settings": {
+                "downloadListDirectory": {
+                    "ui_title": "Folder for download lists.",
+                    "default": f"{AppArgs.download_list_dir}",
+                    "validators": [
+                        validatePath
+                    ],
+                    "ui_group": "downloadListFolder"
+                }
+            }
+        }
+───────────────────────────────────────────────────────────────────────────

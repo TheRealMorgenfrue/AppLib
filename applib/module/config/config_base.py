@@ -1,0 +1,263 @@
+from time import time
+import traceback
+from typing import Any, Mapping, Optional
+
+from app.common.signal_bus import signalBus
+
+from module.config.internal.app_args import AppArgs
+from module.config.tools.config_tools import (
+    checkMissingFields,
+    loadConfig,
+    retrieveDictValue,
+    validateValue,
+    writeConfig,
+)
+from module.logger import logger
+from module.tools.types.general import Model, StrPath
+
+
+class ConfigBase:
+    """Base class for all configs"""
+
+    _logger = logger
+
+    def __init__(
+        self,
+        template_config: Optional[dict[str, Any]],
+        validation_model: Optional[Model],
+        config_name: str,
+        config_path: StrPath,
+        save_interval: int = 1,
+    ) -> None:
+        """Initiate config wrapper class
+
+        Remember to call setter for config !
+        ----
+        config : dict
+            The config dictionary (i.e. the "actual" config)
+
+        Parameters
+        ----------
+        config_name : str
+            The name of the config.
+
+        config_path : StrPath
+            The path where the config will be written to.
+
+        template_config : dict | None
+            The template which the *config* was created from
+
+        validation_model : Model
+            The model used to validate the config.
+            The type is a Pydantic model.
+
+        save_interval : int, optional
+            Time between config saves in seconds, by default 1.
+        """
+        self._load_failure = False  # The config failed to load
+        self._is_modified = False  # A modified config needs to be written to disk
+        self._save_interval = save_interval  # Time between config saves in seconds
+        self._lastSaveTime = (
+            time()
+        )  # Prevent excessive disk writing (with multiple write requests in a short time span)
+        self._config_name = config_name
+        self._config_path = config_path
+        self._config = None  # type: dict[str, Any]
+        self._template_config = template_config
+        self._validation_model = validation_model
+        self.__connectSignalToSlot()
+
+    def __connectSignalToSlot(self) -> None:
+        signalBus.configNameUpdated.connect(self.__onConfigNameUpdated)
+        signalBus.doSaveConfig.connect(self.__onSaveConfig)
+
+    def __onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
+        if old_name == self._config_name:
+            self._config_name = new_name
+
+    def __onSaveConfig(self, config_name: str) -> None:
+        if self._config_name == config_name:
+            self.saveConfig()
+
+    def _initConfig(self) -> dict[str, Any]:
+        """Loads the config from a file.
+
+        This is the default implementation.
+        To change its behavior, simply @override this method in a subclass.
+
+        Returns
+        -------
+        dict[str, Any]
+            The loaded config.
+        """
+        config, self._load_failure = loadConfig(
+            config_name=self._config_name,
+            config_path=self._config_path,
+            validator=self._validateLoad,
+            template_config=self._template_config,
+        )
+        return config
+
+    def _validateLoad(self, raw_config: Mapping) -> dict[str, Any]:
+        """Validates the config when loaded from a file.
+
+        This is the default implementation.
+        To change its behavior, simply @override this method in a subclass.
+
+        Parameters
+        ----------
+        raw_config : dict
+            The raw, unvalidated config loaded from a file.
+
+        Returns
+        -------
+        dict[str, Any]
+            The validated config.
+        """
+        validated_config = self._validation_model.model_validate(raw_config)
+        config = validated_config.model_dump()
+        checkMissingFields(raw_config, config)
+        return config
+
+    def _validate(self, save_config: dict[str, Any], *args) -> None:
+        """Validates the config when a value is changed,
+        ensuring only valid values exists at any given time.
+
+        This is the default implementation.
+        To change its behavior, simply @override this method in a subclass.
+
+        Parameters
+        ----------
+        config : dict[str, Any]
+            The config to validate
+        """
+        self._config = self._validation_model.model_validate(save_config).model_dump()
+
+    def _setConfig(self, config: dict[str, Any]) -> None:
+        self._config = config
+
+    def setTemplateConfig(self, template_config: dict[str, Any]) -> None:
+        self._template_config = template_config
+
+    def setValidationModel(self, validation_model: Model) -> None:
+        self._validation_model = validation_model
+
+    def getConfig(self) -> dict[str, Any]:
+        """Get the config dictionary object
+        (i.e. the "actual" config).
+
+        Returns
+        -------
+        dict[str, dict]
+            _description_
+        """
+        return self._config
+
+    def getConfigName(self) -> str:
+        return self._config_name
+
+    def getFailureStatus(self) -> bool:
+        """Returns whether the config failed to load.
+
+        Returns
+        -------
+        bool
+            True == failed (i.e. the config is not usable).
+        """
+        return self._load_failure
+
+    def setFailureStatus(self, status: bool) -> None:
+        self._load_failure = status
+
+    def getValue(
+        self, key: str, default: Any = None, use_template_config: bool = False
+    ) -> Any:
+        """Get a value from the config dictionary object.
+            Return first value found. If there is no item with that key, return
+            default.
+
+        This is the default implementation.
+        To change its behavior, simply @override this method in a subclass.
+
+        Note: the dictionary is usually nested. Thus, the "get" method of a Python dict
+        is insufficient to retrieve all values.
+
+        Parameters
+        ----------
+        key : str
+            The dictionary key to search for (i.e. the config setting)
+
+        default : Any, optional
+            Return default value if the key is not found. By default None.
+
+        use_template_config : bool, optional
+            Use the template config, by default False.
+            The template config is useful for getting e.g. default values of settings.
+
+        Returns
+        -------
+        Any
+            The value of the key if found, else the default value.
+        """
+        config = self._template_config if use_template_config else self._config
+        value = retrieveDictValue(d=config, key=key, default=default)
+        if value is None:
+            self._logger.warning(
+                f"Config '{self._config_name}': Could not find key '{key}' in the config. Returning default: '{default}'"
+            )
+        return value
+
+    def setValue(self, key: str, value: Any, config_name: str) -> bool:
+        """Update the config dictionary with *value*.
+
+        This is the default implementation.
+        To change its behavior, simply @override this method in a subclass.
+
+        Parameters
+        ----------
+        key : str
+            The dictionary key to search for (i.e. the config setting).
+
+        value : Any
+            The value to insert.
+
+        config_name : str
+            The name of the config.
+
+        Returns
+        -------
+        bool
+            Whether the config was validated successfully with the new *value*.
+            True == invalid (i.e. the value was NOT saved).
+        """
+        isError, isInvalid = validateValue(
+            config_name=config_name,
+            config=self._config,
+            validator=self._validate,
+            setting=key,
+            value=value,
+        )
+        if isError:
+            signalBus.configStateChange.emit(False, "Failed to save setting", "")
+        else:
+            signalBus.configUpdated.emit(config_name, key, (value,))
+            self._is_modified = True
+        return isInvalid
+
+    def saveConfig(self) -> None:
+        """Write config to disk"""
+        try:
+            if (
+                self._is_modified
+                and (self._lastSaveTime + self._save_interval) < time()
+            ):
+                self._lastSaveTime = time()
+                writeConfig(self._config, self._config_path)
+                self._is_modified = False
+        except Exception:
+            msg = "Failed to save the config"
+            self._logger.error(
+                f"Config '{self._config_name}': {msg}\n"
+                + traceback.format_exc(limit=AppArgs.traceback_limit)
+            )
+            signalBus.configStateChange.emit(False, msg, "")
