@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QWidget
 
 from typing import Optional, override
 
-from app.common.signal_bus import signalBus
+from applib.app.common.core_signalbus import core_signalbus
 from app.components.settings.base_setting import BaseSetting
 
 from module.tools.types.config import AnyConfig
@@ -111,9 +111,11 @@ class ConfigLineEdit(BaseSetting):
             if not self.isDisabled:
                 self.setWidgetValue(value)
         elif success is None:
-            signalBus.genericError.emit("Failed to save setting", "Config lock active")
+            core_signalbus.genericError.emit(
+                "Failed to save setting", "Config lock active"
+            )
         else:
-            signalBus.configValidationError.emit(
+            core_signalbus.configValidationError.emit(
                 self.configname, self.invalidmsg[0], self.invalidmsg[1]
             )
             self.setting.setText(self.currentValue)

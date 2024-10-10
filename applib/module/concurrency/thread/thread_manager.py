@@ -6,7 +6,7 @@ import traceback
 from module.concurrency.process.process_base import ProcessBase
 from module.concurrency.process.process_generator import ProcessGenerator
 from module.config.internal.app_args import AppArgs
-from module.logger import logger
+from module.logging import logger
 from module.tools.utilities import iterToString
 
 
@@ -19,15 +19,16 @@ class ThreadManager(QThread):
     The Thread Manager itself is running in a separate thread with its own QEvent loop.
     As such, all communication must be done using the signal/slot system.
     """
+
     _logger = logger
 
     updateMaxThreads = pyqtSignal(int)
-    threadsRemoved = pyqtSignal(list) # list of threadIDs safe for removal
+    threadsRemoved = pyqtSignal(list)  # list of threadIDs safe for removal
     currentProgress = pyqtSignal(int)
     totalProgress = pyqtSignal(int)
 
-    kill = pyqtSignal(bool) # Include self: True/False
-    threadClosed = pyqtSignal(int) # processID
+    kill = pyqtSignal(bool)  # Include self: True/False
+    threadClosed = pyqtSignal(int)  # processID
     allThreadsClosed = pyqtSignal()
 
     def __init__(self, maxThreads: int) -> None:
@@ -35,20 +36,20 @@ class ThreadManager(QThread):
         self.name = "thread manager"
         self.maxThreads = maxThreads
 
-        self._currentProgress = 0 # Amount of processes that finished succesfully
-        self._totalProgress = 0   # The total amount of processes which will be executed
+        self._currentProgress = 0  # Amount of processes that finished succesfully
+        self._totalProgress = 0  # The total amount of processes which will be executed
         self._processGen = None  # type: ProcessGenerator
-        self._genIter = None # type: Generator[ProcessBase, Any, Any]
-        self._processPool = [] # type: list[ProcessBase]
+        self._genIter = None  # type: Generator[ProcessBase, Any, Any]
+        self._processPool = []  # type: list[ProcessBase]
         self._threadPool = {}  # type: dict[int, QThread]
-        self._stop = False   # Don't create new processes
+        self._stop = False  # Don't create new processes
         self._killed = False
 
-        self.__connectSignalToSlot() # This will execute in the correct thread since this class is subclassing QThread
+        self.__connectSignalToSlot()  # This will execute in the correct thread since this class is subclassing QThread
 
     def __connectSignalToSlot(self) -> None:
         # TODO: Implement with a hideEvent() instead
-        #signalBus.appShutdown.connect(self._onAppShutdown)
+        # signalBus.appShutdown.connect(self._onAppShutdown)
         self.kill.connect(self._TerminateAllRequest)
         self.allThreadsClosed.connect(self._onAllThreadsClosed)
         self.updateMaxThreads.connect(self.__onMaxThreadsUpdated)
@@ -79,7 +80,9 @@ class ThreadManager(QThread):
                     still_alive.append(threadID)
             length = len(still_alive)
             if length > 0:
-                self._logger.warning(f"Process {iterToString(still_alive, separator=", ")} {'are' if length > 1 else ' is'} still alive")
+                self._logger.warning(
+                    f"Process {iterToString(still_alive, separator=", ")} {'are' if length > 1 else ' is'} still alive"
+                )
         except Exception:
             self._logger.critical("Process termination failed catastrophically!")
 
@@ -91,7 +94,10 @@ class ThreadManager(QThread):
                 process.terminate()
             return True
         except Exception:
-            self._logger.error(f"Failed to properly terminate process {processID}\n" + traceback.format_exc(limit=AppArgs.traceback_limit))
+            self._logger.error(
+                f"Failed to properly terminate process {processID}\n"
+                + traceback.format_exc(limit=AppArgs.traceback_limit)
+            )
             return False
 
     def _runProcesses(self) -> list[tuple[int, bool, ProcessBase]]:
@@ -118,7 +124,9 @@ class ThreadManager(QThread):
 
         if not isRunning:
             self._totalProgress = self._processGen.getTotalProgress()
-            self._logger.info(f"Initializing {self.name}. Processes to execute: {self._totalProgress}")
+            self._logger.info(
+                f"Initializing {self.name}. Processes to execute: {self._totalProgress}"
+            )
             self.currentProgress.emit(self.currentProgress)
             self.totalProgress.emit(self._totalProgress)
 
@@ -128,11 +136,15 @@ class ThreadManager(QThread):
 
         if not isRunning:
             threadPoolSize = len(self._threadPool)
-            self._logger.debug(f"Scheduled {self._totalProgress} {self._processGrammer(self._totalProgress)} "
-                            + f"in {threadPoolSize} {self._threadGrammar(threadPoolSize)}")
+            self._logger.debug(
+                f"Scheduled {self._totalProgress} {self._processGrammer(self._totalProgress)} "
+                + f"in {threadPoolSize} {self._threadGrammar(threadPoolSize)}"
+            )
         return new_processes
 
-    def _onProcessFinished(self, processID: int) -> list[tuple[int, bool, ProcessBase]] | None:
+    def _onProcessFinished(
+        self, processID: int
+    ) -> list[tuple[int, bool, ProcessBase]] | None:
         """Schedules an amount of processes to run in a thread based on available threads.
         New processes are taken from the process generator.
 
@@ -167,27 +179,33 @@ class ThreadManager(QThread):
             thread = self._threadPool[processID]
             thread.quit()
             thread.wait()
-            thread.deleteLater() # TODO: Recycle threads instead of deleting them for each process (figure out why signals/slots cause issues with recycled threads)
+            thread.deleteLater()  # TODO: Recycle threads instead of deleting them for each process (figure out why signals/slots cause issues with recycled threads)
             self._threadPool[processID] = None
 
             # Only attempt create new threads if allowed
             if not self._stop:
-                self._currentProgress += 1 # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
+                self._currentProgress += 1  # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
                 self.currentProgress.emit(self._currentProgress)
 
                 availableThreads = self._updateThreadPool(processID)
 
                 if availableThreads:
                     new_processes = self._createProcesses(availableThreads)
-                    if new_processes: return new_processes
+                    if new_processes:
+                        return new_processes
 
             # Thread is no longer in use (threadID and processID are identical here)
             self._closeThread(processID)
         except Exception:
-            self._logger.error(f"{self.name.title()} has failed\n" + traceback.format_exc(limit=AppArgs.traceback_limit))
+            self._logger.error(
+                f"{self.name.title()} has failed\n"
+                + traceback.format_exc(limit=AppArgs.traceback_limit)
+            )
             self.kill.emit(True)
 
-    def _createProcesses(self, availableThreads: list[tuple[int, bool]]) -> list[tuple[int, bool, ProcessBase]]:
+    def _createProcesses(
+        self, availableThreads: list[tuple[int, bool]]
+    ) -> list[tuple[int, bool, ProcessBase]]:
         """Creates a new process for each available thread in *availableThreads*.\n
         The processID of the newly created process matches the threadID of the thread.
 
@@ -212,7 +230,7 @@ class ThreadManager(QThread):
             tuple[2] : ProcessBase
                 A subclass of ProcessBase. This is the process that will run in the thread with threadID.
         """
-        new_processes = [] # type: list[tuple[QThread, ProcessBase]]
+        new_processes = []  # type: list[tuple[QThread, ProcessBase]]
         for threadID, isThreadNew in availableThreads:
             process = next(self._genIter, None)
             if process:
@@ -222,7 +240,9 @@ class ThreadManager(QThread):
                 process.setProcessID(threadID)
                 process.moveToThread(thread)
                 process.finished.connect(self._onProcessFinished)
-                process.failed.connect(self._onProcessFinished) # TODO: Track process' download progress and save upon failure, to allow easy recovery
+                process.failed.connect(
+                    self._onProcessFinished
+                )  # TODO: Track process' download progress and save upon failure, to allow easy recovery
                 thread.started.connect(process.start)
                 new_processes.append((threadID, isThreadNew, process))
         return new_processes
@@ -247,7 +267,9 @@ class ThreadManager(QThread):
         if not self._threadPool:
             self.allThreadsClosed.emit()
 
-    def _updateThreadPool(self, finishedProcessID: Optional[int]=None) -> list[tuple[int, bool]]:
+    def _updateThreadPool(
+        self, finishedProcessID: Optional[int] = None
+    ) -> list[tuple[int, bool]]:
         """Compute the active thread count and schedule threads accordingly
         by opening/closing threads in the thread pool.
 
@@ -274,7 +296,11 @@ class ThreadManager(QThread):
         justGettingStarted = self._currentProgress == 0
 
         if not aboutToFinish or justGettingStarted:
-            threadDifference = (self.maxThreads - len(self._threadPool)) if self.maxThreads <= self._totalProgress else self._totalProgress - len(self._threadPool)
+            threadDifference = (
+                (self.maxThreads - len(self._threadPool))
+                if self.maxThreads <= self._totalProgress
+                else self._totalProgress - len(self._threadPool)
+            )
 
             # Thread count is increased
             if threadDifference > 0:
@@ -284,25 +310,34 @@ class ThreadManager(QThread):
                     availableThreads.append((i, True))
                     self._threadPool |= {i: None}
                     self._processPool.append(None)
-                self._logger.debug(f"Added {threadDifference} {self._threadGrammar(threadDifference)} to the thread pool "
-                                   + f"(total size: {len(self._threadPool)})")
+                self._logger.debug(
+                    f"Added {threadDifference} {self._threadGrammar(threadDifference)} to the thread pool "
+                    + f"(total size: {len(self._threadPool)})"
+                )
 
             # Thread count is decreased
             elif threadDifference < 0:
                 removedThreadIDs = []
                 start = max(self._threadPool.keys())
-                stop = start + threadDifference # Addition cause the difference is negative
+                stop = (
+                    start + threadDifference
+                )  # Addition cause the difference is negative
                 step = -1
                 for threadID in range(start, stop, step):
                     # Ensure the threadID exists and is safe to remove
-                    if threadID in self._threadPool and self._threadPool[threadID] is None:
-                    #if self._threadPool[threadID] is None: # Thread removal testing only (will explode)!
+                    if (
+                        threadID in self._threadPool
+                        and self._threadPool[threadID] is None
+                    ):
+                        # if self._threadPool[threadID] is None: # Thread removal testing only (will explode)!
                         self._closeThread(threadID)
                         removedThreadIDs.append(threadID)
                 removedThreads = len(removedThreadIDs)
                 if removedThreads:
-                    self._logger.debug(f"Removed {removedThreads} {self._threadGrammar(removedThreads)} from the thread pool "
-                                       + f"(total size: {len(self._threadPool)})")
+                    self._logger.debug(
+                        f"Removed {removedThreads} {self._threadGrammar(removedThreads)} from the thread pool "
+                        + f"(total size: {len(self._threadPool)})"
+                    )
                     self.threadsRemoved.emit(removedThreadIDs)
                     addFinishedProcessID = finishedProcessID not in removedThreadIDs
 
@@ -313,14 +348,20 @@ class ThreadManager(QThread):
     def _onAllThreadsClosed(self) -> None:
         try:
             if self._stop:
-                self._logger.info(f"Termination successful. Finished {self._currentProgress} / {self._totalProgress} processes")
+                self._logger.info(
+                    f"Termination successful. Finished {self._currentProgress} / {self._totalProgress} processes"
+                )
                 return
 
             if self._currentProgress < self._totalProgress:
-                missing = self._totalProgress-self._currentProgress
-                self._logger.warning(f"Some processes did not complete. Missing {missing} / {self._totalProgress} processes")
+                missing = self._totalProgress - self._currentProgress
+                self._logger.warning(
+                    f"Some processes did not complete. Missing {missing} / {self._totalProgress} processes"
+                )
             else:
-                self._logger.info(f"{f"All {self._totalProgress} processes have" if self._totalProgress != 1 else "The process has"} finished!")
+                self._logger.info(
+                    f"{f"All {self._totalProgress} processes have" if self._totalProgress != 1 else "The process has"} finished!"
+                )
         finally:
             self.quit()
             if self._killed:
@@ -344,7 +385,10 @@ class ThreadManager(QThread):
             # Create event loop in subclassed QThread. Thread blocking
             self.exec()
         except Exception:
-            self._logger.critical(f"{self.name.title()} has failed\n" + traceback.format_exc(limit=AppArgs.traceback_limit))
+            self._logger.critical(
+                f"{self.name.title()} has failed\n"
+                + traceback.format_exc(limit=AppArgs.traceback_limit)
+            )
             # Call terminate method directly as the event loop is not running at this point
             self._TerminateAllRequest(suicide=True)
         finally:

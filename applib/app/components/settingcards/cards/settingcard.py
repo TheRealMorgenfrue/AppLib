@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
 )
 from typing import Any, Optional, Union, override
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.fluent_label import FluentLabel
 from app.components.settingcards.card_base import CardBase, DisableWrapper
 from module.tools.types.gui_settings import AnySetting
@@ -84,7 +84,7 @@ class SettingCardBase(CardBase, QFrame):
 
     def __setQss(self) -> None:
         self.contentLabel.setObjectName("contentLabel")
-        StyleSheet.SETTING_CARD.apply(self)
+        CoreStyleSheet.SETTING_CARD.apply(self)
 
 
 class SettingCardMixin:

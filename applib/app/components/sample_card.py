@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QGraphicsOpacityEffect
 
 from typing import Callable, Hashable, Optional, Union
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 
 
 class SampleCard(CardWidget):
@@ -119,7 +119,7 @@ class SampleCardView(QWidget):
             self.titleLabel.setObjectName("viewTitleLabel")
         self.vBoxLayout.addLayout(self.flowLayout, 1)
 
-        StyleSheet.SAMPLE_CARD.apply(self)
+        CoreStyleSheet.SAMPLE_CARD.apply(self)
 
     def addSampleCard(
         self,

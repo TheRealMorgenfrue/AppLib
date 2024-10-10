@@ -5,7 +5,7 @@ from PyQt6.QtCore import QSize, Qt, pyqtSignal
 
 from typing import Optional
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 
 
 class ConsoleView(QWidget):
@@ -53,7 +53,7 @@ class ConsoleView(QWidget):
     def __setQss(self) -> None:
         self.consoleLabel.setObjectName("Label")
         self.setObjectName("console")
-        StyleSheet.CONSOLE_VIEW.apply(self)
+        CoreStyleSheet.CONSOLE_VIEW.apply(self)
 
     def _connectSignalToSlot(self) -> None:
         self.terminateButton.clicked.connect(

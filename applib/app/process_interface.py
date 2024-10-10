@@ -10,8 +10,8 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
 import traceback
 
-from app.common.stylesheet import StyleSheet
-from app.common.signal_bus import signalBus
+from applib.app.common.core_stylesheet import CoreStyleSheet
+from applib.app.common.core_signalbus import core_signalbus
 from app.components.console_view import ConsoleView
 from app.components.infobar_test import InfoBar, InfoBarPosition
 
@@ -23,7 +23,7 @@ from module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from module.config.app_config import AppConfig
 from module.config.internal.app_args import AppArgs
 from module.config.internal.names import ModuleNames
-from module.logger import logger
+from module.logging import logger
 
 
 class ProcessSettings(ScrollArea):
@@ -45,16 +45,15 @@ class ProcessSettings(ScrollArea):
     def __setQss(self) -> None:
         self.setObjectName("processSettings")
         self.view.setObjectName("view")
-        StyleSheet.PROCESS_INTERFACE.apply(self)
+        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def __initLayout(self) -> None:
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         app_template = AppTemplate()
-        template_topkey = "PixivUtil2"
+        template_topkey = "Process"
         template_keys = [
             "maxThreads",
-            "idsPerProcess",
             "terminalSize",
         ]  # TODO: Create new template class for use here instead of pulling stuff out from app template
         template = AppTemplate.createSubTemplate(
@@ -97,7 +96,7 @@ class ProcessStatus(ScrollArea):
     def __setQss(self) -> None:
         self.setObjectName("processStatus")
         self.view.setObjectName("view")
-        StyleSheet.PROCESS_INTERFACE.apply(self)
+        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def __initLayout(self) -> None:
         self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
@@ -147,7 +146,7 @@ class FlowingConsoles(ScrollArea):
     def __setQss(self) -> None:
         self.setObjectName("flowConsoles")
         self.view.setObjectName("view")
-        StyleSheet.PROCESS_INTERFACE.apply(self)
+        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def __initLayout(self) -> None:
         self.flowLayout.setContentsMargins(0, 0, 0, 0)
@@ -185,7 +184,7 @@ class ProcessInterface(ScrollArea):
             self.__initLayout()
             self.__initConsole()
             self.__connectSignalToSlot()
-            signalBus.isProcessesRunning.emit(False)  # Set inital state
+            core_signalbus.isProcessesRunning.emit(False)  # Set inital state
         except Exception:
             self.deleteLater()
             raise
@@ -201,7 +200,7 @@ class ProcessInterface(ScrollArea):
         self.setObjectName("processInterface")
         self.view.setObjectName("view")
         self.titleLabel.setObjectName("Label")
-        StyleSheet.PROCESS_INTERFACE.apply(self)
+        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def __initLayout(self) -> None:
         self.terminateAllButton.setMaximumWidth(150)
@@ -274,8 +273,8 @@ class ProcessInterface(ScrollArea):
             self.__addConsoles(self.maxThreads)
 
     def __connectSignalToSlot(self) -> None:
-        signalBus.configUpdated.connect(self.__onConfigUpdated)
-        signalBus.isProcessesRunning.connect(self.__onProcessRunning)
+        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
+        core_signalbus.isProcessesRunning.connect(self.__onProcessRunning)
 
         self.terminateAllButton.clicked.connect(self.__onTerminateAllButtonClicked)
         self.startButton.clicked.connect(self.__onStartButtonClicked)
@@ -316,7 +315,7 @@ class ProcessInterface(ScrollArea):
 
     def __onTerminateAllButtonClicked(self) -> None:
         self.threadManager.kill.emit(False)  # Include self: True/False
-        signalBus.isProcessesRunning.emit(False)
+        core_signalbus.isProcessesRunning.emit(False)
         self.processSubinterface.getProgressCard().stop()
 
     def __onMissingInput(self) -> None:
@@ -335,7 +334,7 @@ class ProcessInterface(ScrollArea):
                 self.processSubinterface.getProgressCard().start()
                 self.threadManager.setProcessGenerator(self.processGen)
                 self.threadManager.start()
-                signalBus.isProcessesRunning.emit(True)
+                core_signalbus.isProcessesRunning.emit(True)
             else:
                 self.__onMissingInput()
         except Exception:
@@ -345,7 +344,7 @@ class ProcessInterface(ScrollArea):
             )
 
     def __onThreadManagerFinished(self) -> None:
-        signalBus.isProcessesRunning.emit(False)
+        core_signalbus.isProcessesRunning.emit(False)
 
     def __onConsoleTextReceived(self, processID: int, text: str) -> None:
         self.consoleWidgets[processID].append(text)

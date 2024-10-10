@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout
 
 from typing import Optional
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.cardstack import PivotCardStack
 from app.generators.card_generator import CardGenerator
 
@@ -36,7 +36,7 @@ class SettingsInterface_App(ScrollArea):
     def __setQss(self):
         self.view.setObjectName("view")
         self.setObjectName("settingsSubInterface")
-        StyleSheet.SETTINGS_SUBINTERFACE.apply(self)
+        CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(self)
 
     def __initLayout(self) -> None:
         generator = CardGenerator(
@@ -47,5 +47,5 @@ class SettingsInterface_App(ScrollArea):
             labeltext=self.tr(f"{ModuleNames.app_name} Settings"),
             parent=self,
         )
-        StyleSheet.SETTINGS_SUBINTERFACE.apply(cardStack)
+        CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(cardStack)
         self.vGeneralLayout.addWidget(cardStack)

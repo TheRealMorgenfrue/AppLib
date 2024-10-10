@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QStyle,
 )
 
-from module.logger import logger
+from module.logging import logger
 
 
 class FluentLabel(QLabel):

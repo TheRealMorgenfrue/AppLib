@@ -12,7 +12,7 @@ from PyQt6.QtGui import QColor
 
 from typing import Optional, Union
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 
 
 class ProgressCard(CardWidget):
@@ -39,7 +39,7 @@ class ProgressCard(CardWidget):
 
     def __setQss(self) -> None:
         self.titleLabel.setObjectName("progressTitleLabel")
-        StyleSheet.PROGRESS_BAR.apply(self)
+        CoreStyleSheet.PROGRESS_BAR.apply(self)
 
     def start(self) -> None:
         """Put progress card in started mode"""

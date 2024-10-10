@@ -12,11 +12,9 @@ from typing import Any, Callable, Mapping, Optional
 from module.config.internal.app_args import AppArgs
 from module.config.tools.ini_file_parser import IniFileParser
 from module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
-from module.logger import logger
+from module.logging import logger
 from module.tools.types.general import Model, NestedDict, StrPath
 from module.tools.utilities import formatValidationError
-
-_logger_ = logger
 
 
 def writeConfig(
@@ -69,9 +67,9 @@ def writeConfig(
         elif extension.lower() == "json":
             _generateJSONConfig(config, dst_path)
         else:
-            _logger_.warning(f"Cannot write unsupported file '{file}'")
+            logger.warning(f"Cannot write unsupported file '{file}'")
     except Exception:
-        _logger_.error(
+        logger.error(
             f"Failed to write {file} to '{dst_path}'\n"
             + traceback.format_exc(limit=AppArgs.traceback_limit)
         )
@@ -115,7 +113,7 @@ def _generateTOMLconfig(config: dict, dstPath: StrPath, comments: Any) -> None:
         doc.append(section, table)
 
     with open(dstPath, "w", encoding="utf-8") as file:
-        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
+        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
         tomlkit.dump(doc, file)
 
 
@@ -142,7 +140,7 @@ def _generateINIconfig(config: dict, dstPath: StrPath) -> None:
         iniConfig += f"[{section}]" + "\n" + table
 
     with open(dstPath, "w", encoding="utf-8") as file:
-        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
+        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
         file.write(iniConfig)
 
 
@@ -160,7 +158,7 @@ def _generateJSONConfig(config: dict, dstPath: StrPath) -> None:
     """
     fileName = os.path.split(dstPath)[1]
     with open(dstPath, "w", encoding="utf-8") as file:
-        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
+        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
         file.write(json.dumps(config, indent=4))
 
 
@@ -177,14 +175,14 @@ def backupConfig(srcPath: StrPath) -> None:
         file = os.path.split(srcPath)[1]
         if srcPath.exists():
             configDst = Path(f"{srcPath}.bak")
-            _logger_.debug(f"Creating backup of '{file}' to '{configDst}'")
+            logger.debug(f"Creating backup of '{file}' to '{configDst}'")
             shutil.copyfile(srcPath, configDst)
         else:
-            _logger_.warning(
+            logger.warning(
                 f"Cannot create backup of '{file}'. Path '{srcPath}' does not exist"
             )
     except TypeError:  # If input path is None
-        _logger_.error(
+        logger.error(
             f"Failed to create backup of '{srcPath}'\n"
             + traceback.format_exc(limit=AppArgs.traceback_limit)
         )
@@ -449,8 +447,8 @@ def loadConfig(
             config = raw_config
     except ValidationError as err:
         isError, isRecoverable = True, True
-        _logger_.warning(f"{config_name}: Could not validate '{filename}'")
-        _logger_.debug(formatValidationError(err))
+        logger.warning(f"{config_name}: Could not validate '{filename}'")
+        logger.debug(formatValidationError(err))
         if do_write_config:
             backupConfig(config_path)
             writeConfig(template_config, config_path)
@@ -459,9 +457,9 @@ def loadConfig(
         err_msg = f"{config_name}: Detected incorrect fields in '{filename}':\n"
         for item in err.args[0]:
             err_msg += f"  {item}\n"
-        _logger_.warning(err_msg)
+        logger.warning(err_msg)
         if do_write_config:
-            _logger_.info(f"{config_name}: Repairing config")
+            logger.info(f"{config_name}: Repairing config")
             repairedConfig = upgradeConfig(raw_config, template_config)
             backupConfig(config_path)
             writeConfig(repairedConfig, config_path)
@@ -473,7 +471,7 @@ def loadConfig(
             writeConfig(template_config, config_path)
     except (tomlkit.exceptions.ParseError, IniParseError) as err:
         isError, isRecoverable = True, True
-        _logger_.warning(
+        logger.warning(
             f"{config_name}: Failed to parse '{filename}':\n  {err.args[0]}\n"
         )
         if do_write_config:
@@ -481,12 +479,12 @@ def loadConfig(
             writeConfig(template_config, config_path)
     except FileNotFoundError:
         isError, isRecoverable = True, True
-        _logger_.info(f"{config_name}: Creating '{filename}'")
+        logger.info(f"{config_name}: Creating '{filename}'")
         if do_write_config:
             writeConfig(template_config, config_path)
     except Exception:
         isError, isRecoverable = True, False
-        _logger_.error(
+        logger.error(
             f"{config_name}: An unexpected error occurred while loading '{filename}'\n"
             + traceback.format_exc(limit=AppArgs.traceback_limit)
         )
@@ -496,7 +494,7 @@ def loadConfig(
                 reload_msg = f"{config_name}: Reloading '{filename}'"
                 if not use_validator_on_error:
                     reload_msg += " with compatibility mode"
-                _logger_.info(reload_msg)
+                logger.info(reload_msg)
                 config, reload_failure = loadConfig(
                     config_name=config_name,
                     config_path=config_path,
@@ -513,11 +511,11 @@ def loadConfig(
                 if template_config:
                     load_failure_msg += ". Switching to template config"
                     config = template_config  # Use template config if all else fails
-                    _logger_.warning(load_failure_msg)
+                    logger.warning(load_failure_msg)
                 else:
-                    _logger_.error(load_failure_msg)
+                    logger.error(load_failure_msg)
         else:
-            _logger_.info(f"{config_name}: Config '{filename}' loaded!")
+            logger.info(f"{config_name}: Config '{filename}' loaded!")
         return config, failure or reload_failure
 
 
@@ -558,7 +556,7 @@ def validateValue(
         * [0]: True if an error occured.
         * [1]: False if a validation error occurred.
     """
-    isError, isValid = False, True
+    is_error, is_valid = False, True
     try:
         old_value = insertDictValue(config, setting, value, parent_key=parent_key)
         if old_value is None:
@@ -566,20 +564,20 @@ def validateValue(
             raise KeyError(error_msg)
         validator(config, config_name)
     except ValidationError as err:
-        isError, isValid = True, False
+        is_error, is_valid = True, False
         insertDictValue(config, setting, old_value[0])  # Restore value
-        _logger_.warning(
+        logger.warning(
             f"Config '{config_name}': Unable to validate value '{value}' for setting '{setting}': "
             + formatValidationError(err)
         )
     except Exception:
-        isError = True
-        _logger_.error(
+        is_error = True
+        logger.error(
             f"Config '{config_name}': An unexpected error occurred while validating value '{value}' using key '{setting}'\n"
             + traceback.format_exc(limit=AppArgs.traceback_limit)
         )
     finally:
-        return isError, isValid
+        return is_error, is_valid
 
 
 # TODO: Each config should specify a method for upgrading it
@@ -604,17 +602,17 @@ def upgradeConfig(
         preserved from the *validated_config*.
     """
     # TODO: Add support for sectionless configs
-    newConfig = {}
+    new_config = {}
     for section_name, section in template_config.items():
-        newConfig |= {section_name: {}}
+        new_config |= {section_name: {}}
         for setting, options in section.items():
             if (
                 section_name in validated_config
                 and setting in validated_config[section_name]
             ):
-                newConfig[section_name] |= {
+                new_config[section_name] |= {
                     setting: validated_config[section_name][setting]
                 }
             else:
-                newConfig[section_name] |= {setting: options}
-    return newConfig
+                new_config[section_name] |= {setting: options}
+    return new_config

@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 
 from typing import Any, Optional, override
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.fluent_label import FluentLabel
 from app.components.settingcards.card_base import CardBase, DisableWrapper
 from module.tools.types.gui_settings import AnyBoolSetting, AnySetting
@@ -25,7 +25,7 @@ class SettingWidgetBase(CardBase, QWidget):
         self.hasDisableButton = hasDisableButton
         self.isDisabled = False
 
-        StyleSheet.SETTING_WIDGET.apply(self)
+        CoreStyleSheet.SETTING_WIDGET.apply(self)
 
     def _createToolTip(
         self,

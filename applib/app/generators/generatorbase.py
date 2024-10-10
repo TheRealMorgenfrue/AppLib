@@ -3,7 +3,7 @@ import traceback
 from PyQt6.QtWidgets import QWidget
 from typing import Any, Optional
 
-from app.common.signal_bus import signalBus
+from applib.app.common.core_signalbus import core_signalbus
 from app.components.settings.file_selection import ConfigFileSelect
 from app.components.settings.checkbox import ConfigCheckBox
 from app.components.settings.color_picker import ConfigColorPicker
@@ -23,7 +23,7 @@ from module.config.internal.app_args import AppArgs
 from module.config.templates.template_enums import UIFlags, UITypes
 from module.config.tools.template_options.groups import Group
 from module.config.tools.template_parser import TemplateParser
-from module.logger import logger
+from module.logging import logger
 from module.tools.types.config import AnyConfig
 from module.tools.types.gui_cardgroups import AnyCardGroup
 from module.tools.types.gui_cards import AnyCard, AnySettingCard
@@ -289,7 +289,7 @@ class GeneratorBase:
 
         if failed_cards:
             setting_grammar = "setting" if failed_cards == 1 else "settings"
-            signalBus.genericError.emit(
+            core_signalbus.genericError.emit(
                 f"Failed to create {failed_cards} {setting_grammar}",
                 "See log for details",
             )

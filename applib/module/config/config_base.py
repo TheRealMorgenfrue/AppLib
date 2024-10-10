@@ -2,7 +2,7 @@ from time import time
 import traceback
 from typing import Any, Mapping, Optional
 
-from app.common.signal_bus import signalBus
+from applib.app.common.core_signalbus import core_signalbus
 
 from module.config.internal.app_args import AppArgs
 from module.config.tools.config_tools import (
@@ -12,7 +12,7 @@ from module.config.tools.config_tools import (
     validateValue,
     writeConfig,
 )
-from module.logger import logger
+from module.logging import logger
 from module.tools.types.general import Model, StrPath
 
 
@@ -68,8 +68,8 @@ class ConfigBase:
         self.__connectSignalToSlot()
 
     def __connectSignalToSlot(self) -> None:
-        signalBus.configNameUpdated.connect(self.__onConfigNameUpdated)
-        signalBus.doSaveConfig.connect(self.__onSaveConfig)
+        core_signalbus.configNameUpdated.connect(self.__onConfigNameUpdated)
+        core_signalbus.doSaveConfig.connect(self.__onSaveConfig)
 
     def __onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
         if old_name == self._config_name:
@@ -238,9 +238,9 @@ class ConfigBase:
             value=value,
         )
         if isError:
-            signalBus.configStateChange.emit(False, "Failed to save setting", "")
+            core_signalbus.configStateChange.emit(False, "Failed to save setting", "")
         else:
-            signalBus.configUpdated.emit(config_name, key, (value,))
+            core_signalbus.configUpdated.emit(config_name, key, (value,))
             self._is_modified = True
         return isInvalid
 
@@ -260,4 +260,4 @@ class ConfigBase:
                 f"Config '{self._config_name}': {msg}\n"
                 + traceback.format_exc(limit=AppArgs.traceback_limit)
             )
-            signalBus.configStateChange.emit(False, msg, "")
+            core_signalbus.configStateChange.emit(False, msg, "")

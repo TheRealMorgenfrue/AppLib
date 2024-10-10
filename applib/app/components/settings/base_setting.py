@@ -5,7 +5,7 @@ from PyQt6.QtGui import QHideEvent
 from PyQt6.QtCore import pyqtSignal
 
 
-from app.common.signal_bus import signalBus
+from applib.app.common.core_signalbus import core_signalbus
 
 from app.components.infobar_test import InfoBar, InfoBarPosition
 from module.config.templates.template_enums import UIFlags
@@ -55,7 +55,7 @@ class BaseSetting(QWidget):
         self.setting = False
 
         self.__connectSignalToSlot()
-        signalBus.configUpdated.emit(
+        core_signalbus.configUpdated.emit(
             self.configname, self.configkey, (self.currentValue,)
         )
 
@@ -65,9 +65,9 @@ class BaseSetting(QWidget):
 
     def __connectSignalToSlot(self) -> None:
         self.notify.connect(self.__onParentNotification)
-        signalBus.updateConfigSettings.connect(self.__onUpdateConfigSettings)
-        signalBus.configNameUpdated.connect(self.__onConfigNameUpdated)
-        signalBus.configUpdated.connect(self.__onConfigUpdated)
+        core_signalbus.updateConfigSettings.connect(self.__onUpdateConfigSettings)
+        core_signalbus.configNameUpdated.connect(self.__onConfigNameUpdated)
+        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
 
     def __onConfigUpdated(
         self, config_name: str, configkey: str, value: tuple[Any,]

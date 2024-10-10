@@ -6,14 +6,14 @@ from qfluentwidgets import ScrollArea, qrouter, PopUpAniStackedWidget
 from PyQt6.QtCore import Qt, QEasingCurve
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.infobar_test import InfoBar, InfoBarPosition
 from app.components.sample_card import SampleCardView
 from app.settings_interface_app import SettingsInterface_App
 
 from module.config.internal.app_args import AppArgs
 from module.config.internal.names import ModuleNames
-from module.logger import logger
+from module.logging import logger
 
 
 class SettingsInterface(ScrollArea):
@@ -49,7 +49,7 @@ class SettingsInterface(ScrollArea):
     def __setQss(self):
         self.setObjectName("settingInterface")
         self.view.setObjectName("view")
-        StyleSheet.SETTINGS_INTERFACE.apply(self)
+        CoreStyleSheet.SETTINGS_INTERFACE.apply(self)
 
     def __initLayout(self):
         self.sampleCardView = SampleCardView()

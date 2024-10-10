@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 
 from typing import Optional
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 
 
 class CardWidgetGroup(QWidget):
@@ -20,7 +20,7 @@ class CardWidgetGroup(QWidget):
     def __setQss(self):
         self.titleLabel.setObjectName("titleLabel")
         self.setObjectName("view")
-        StyleSheet.SETTING_WIDGET.apply(self)
+        CoreStyleSheet.SETTING_WIDGET.apply(self)
 
     def addSettingCard(self, widget: QWidget) -> None:
         self.vBoxLayout.addWidget(widget)

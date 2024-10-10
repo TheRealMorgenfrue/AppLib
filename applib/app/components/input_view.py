@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt
 
 from typing import Optional
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 
 
 class InputView(QWidget):
@@ -49,7 +49,7 @@ class InputView(QWidget):
     def __setQss(self) -> None:
         self.label.setObjectName("Label")
         self.setObjectName("inputView")
-        StyleSheet.INPUT_VIEW.apply(self)
+        CoreStyleSheet.INPUT_VIEW.apply(self)
 
     def disableText(self, disable: bool) -> None:
         self.textEdit.setDisabled(disable)

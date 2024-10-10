@@ -6,13 +6,10 @@ from enum import Enum
 from module.config.internal.app_args import AppArgs
 
 
-class StyleSheet(StyleSheetBase, Enum):
-    """Style sheet"""
-
+class CoreStyleSheet(StyleSheetBase, Enum):
     # Interfaces
     MAIN_WINDOW = "main_window"
     HOME_INTERFACE = "home_interface"
-    BATCHJOB_INTERFACE = "batchjob_interface"
     PROCESS_INTERFACE = "process_interface"
     SETTINGS_INTERFACE = "settings_interface"
     SETTINGS_SUBINTERFACE = "settings_subinterface"

@@ -6,8 +6,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import Self
 
-from module.logger.coloredformatter import ColoredFormatter
-from module.logger.colorcodefilter import ColorCodeFilter
+from module.logging.coloredformatter import ColoredFormatter
+from module.logging.colorcodefilter import ColorCodeFilter
 from module.config.internal.app_args import AppArgs
 from module.config.internal.names import ModuleNames
 

@@ -1,7 +1,7 @@
 from PyQt6.QtCore import QObject, pyqtSignal
 
 
-class SignalBus(QObject):
+class CoreSignalBus(QObject):
     # ───────────────────────────────────────────────────────────────────────────#
     # Config updates
     # ───────────────────────────────────────────────────────────────────────────#
@@ -44,26 +44,12 @@ class SignalBus(QObject):
     configValidationError = pyqtSignal(str, str, str)
 
     # ───────────────────────────────────────────────────────────────────────────#
-    # PixivUtil2
+    # General
     # ───────────────────────────────────────────────────────────────────────────#
 
-    # job_type: str, ids: str, save: bool
-    # Notify process generator that Pixiv IDs are changed
-    # Send the *job_type* along with the *ids* (needs parsing first)
-    # Whether the process generator saves the parsed ids to config is determined by *save*
-    pixivIDChanged = pyqtSignal(str, str, bool)
-
-    # job_name: str, title: str, content: str, isSuccess: bool, save: bool
-    # Notify that the Pixiv IDs have been loaded from input
-    pixivIDsLoaded = pyqtSignal(str, str, str, bool, bool)
-
     # isRunning: bool
-    # Notify whether PixivUtil2 is running in a ThreadManager
+    # Notify whether processes are running in a ThreadManager
     isProcessesRunning = pyqtSignal(bool)
 
-    # compatMode: int
-    # 0 = None, 1 = Partial, 2 = Full
-    enablePUCompatMode = pyqtSignal(int)
 
-
-signalBus = SignalBus()
+core_signalbus = CoreSignalBus()

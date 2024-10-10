@@ -6,7 +6,7 @@ from qfluentwidgets import FluentIconBase
 from PyQt6.QtGui import QIcon
 
 from module.config.tools.config_tools import retrieveDictValue
-from module.logger import logger
+from module.logging import logger
 from module.tools.types.general import NestedDict
 
 

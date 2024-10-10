@@ -12,8 +12,8 @@ from PyQt6.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 
-from app.common.signal_bus import signalBus
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_signalbus import core_signalbus
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.link_card import LinkCardView
 
 from module.config.app_config import AppConfig
@@ -75,7 +75,7 @@ class BannerWidget(QWidget):
         self.__connectSignalToSlot()
 
     def __connectSignalToSlot(self) -> None:
-        signalBus.configUpdated.connect(self.__onConfigUpdated)
+        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
 
     def __onConfigUpdated(
         self, config_name: str, configkey: str, valuePack: tuple[Any,]
@@ -144,4 +144,4 @@ class HomeInterface(ScrollArea):
     def __setQss(self):
         self.view.setObjectName("view")
         self.setObjectName("homeInterface")
-        StyleSheet.HOME_INTERFACE.apply(self)
+        CoreStyleSheet.HOME_INTERFACE.apply(self)

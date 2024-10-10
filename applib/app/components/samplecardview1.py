@@ -1,8 +1,14 @@
-from qfluentwidgets import IconWidget, FlowLayout, CardWidget, TeachingTip, TeachingTipTailPosition
+from qfluentwidgets import (
+    IconWidget,
+    FlowLayout,
+    CardWidget,
+    TeachingTip,
+    TeachingTipTailPosition,
+)
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QGraphicsOpacityEffect
 
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.infobar_test import InfoBarIcon
 
 
@@ -37,44 +43,52 @@ class SampleCard(CardWidget):
         self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        self.hBoxLayout.addWidget(self.iconWidget, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.hBoxLayout.addWidget(
+            self.iconWidget, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         self.hBoxLayout.addLayout(self.vBoxLayout)
         self.vBoxLayout.addStretch(1)
-        self.vBoxLayout.addWidget(self.titleLabel, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.vBoxLayout.addWidget(
+            self.titleLabel, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         # self.vBoxLayout.addWidget(self.contentLabel)
         self.vBoxLayout.addStretch(1)
 
-        self.titleLabel.setObjectName('titleLabel')
+        self.titleLabel.setObjectName("titleLabel")
         # self.contentLabel.setObjectName('contentLabel')
 
     def showBottomTeachingTip(self):
         TeachingTip.create(
             target=self.iconWidget,
             icon=InfoBarIcon.SUCCESS,
-            title='Startup successful',
+            title="Startup successful",
             content="",
             isClosable=False,
             tailPosition=TeachingTipTailPosition.BOTTOM,
             duration=2000,
-            parent=self
+            parent=self,
         )
 
     def mouseReleaseEvent(self, e):
         super().mouseReleaseEvent(e)
         self.showBottomTeachingTip()
-        #start_task(self.action)
+        # start_task(self.action)
 
     def enterEvent(self, event):
         super().enterEvent(event)
         self.iconOpacityEffect.setOpacity(0.75)
         self.titleOpacityEffect.setOpacity(0.75)
-        self.setCursor(Qt.CursorShape.PointingHandCursor)  # Set the mouse pointer to hand shape
+        self.setCursor(
+            Qt.CursorShape.PointingHandCursor
+        )  # Set the mouse pointer to hand shape
 
     def leaveEvent(self, event):
         super().leaveEvent(event)
         self.iconOpacityEffect.setOpacity(1)
         self.titleOpacityEffect.setOpacity(1)
-        self.setCursor(Qt.CursorShape.ArrowCursor)  # Restore the default shape of the mouse pointer
+        self.setCursor(
+            Qt.CursorShape.ArrowCursor
+        )  # Restore the default shape of the mouse pointer
 
 
 class SampleCardView1(QWidget):
@@ -93,8 +107,8 @@ class SampleCardView1(QWidget):
         self.vBoxLayout.addWidget(self.titleLabel)
         self.vBoxLayout.addLayout(self.flowLayout, 1)
 
-        self.titleLabel.setObjectName('viewTitleLabel')
-        StyleSheet.SAMPLE_CARD.apply(self)
+        self.titleLabel.setObjectName("viewTitleLabel")
+        CoreStyleSheet.SAMPLE_CARD.apply(self)
 
     def addSampleCard(self, icon, title, action):
         card = SampleCard(icon, title, action, self)

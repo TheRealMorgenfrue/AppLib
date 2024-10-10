@@ -39,7 +39,7 @@ class UIGroups(Enum):
 
 
 class UITypes(Enum):
-    """Enums for UI type features"""
+    """Enums for specifying GUI widget types"""
 
     # True/False
     CHECKBOX = 0
@@ -67,6 +67,8 @@ class UITypes(Enum):
 
 
 class UIFlags(Enum):
+    """Special GUI flags that apply to individual settings"""
+
     # Setting requires a full reload of the app to take effect
     # The user is informed of this in the GUI
     REQUIRES_RELOAD = 0

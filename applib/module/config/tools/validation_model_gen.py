@@ -1,8 +1,6 @@
-from typing import Any, Literal, Self
+from typing import Literal, Self
 from pydantic import BaseModel, Field, field_validator, create_model
 
-from module.config.internal.pixivutil_args import PixivUtilArgs
-from module.config.templates.pixivutil_template import PixivUtilTemplate
 from module.config.tools.template_options.validation_info import ValidationInfo
 from module.config.tools.template_parser import TemplateParser
 
@@ -10,7 +8,7 @@ from module.config.tools.template_parser import TemplateParser
 class ValidationModelGenerator:
     _instance = None
     # Cache of all created models. Models of the same type are cached only once
-    _model_cache = {"generic": {}, "batch_job": {}}
+    _model_cache = {}
 
     def __new__(cls) -> Self:
         if cls._instance is None:
@@ -18,7 +16,8 @@ class ValidationModelGenerator:
         return cls._instance
 
     def getGenericModel(self, model_name: str, template: dict) -> type[BaseModel]:
-        """Generate a generic validation model of the supplied template.\n
+        """
+        Generate a generic validation model of the supplied template.\n
         This type of model can be used to validate all templates not requiring special care
 
         Parameters
@@ -34,10 +33,13 @@ class ValidationModelGenerator:
         type[BaseModel]
             A validation model of the template.
         """
+        if "generic" not in self._model_cache:
+            self._model_cache |= {"generic": {}}
+
         if model_name not in self._model_cache["generic"]:
-            self.templateParser = TemplateParser()
-            self.templateParser.parse(model_name, template)
-            validation_info = self.templateParser.getValidationInfo(model_name)
+            self.template_parser = TemplateParser()
+            self.template_parser.parse(model_name, template)
+            validation_info = self.template_parser.getValidationInfo(model_name)
 
             field_validators = self._createFieldValidators(
                 validation_info=validation_info
@@ -49,78 +51,6 @@ class ValidationModelGenerator:
             )
             self._model_cache["generic"] |= {model_name: model}
         return self._model_cache["generic"][model_name]
-
-    def getBatchJobModel(
-        self,
-        model_name: str,
-        job_template: dict[str, Any],
-        options_template: PixivUtilTemplate,
-    ) -> type[BaseModel]:
-        """Generate a batchjob validation model of the supplied templates.
-
-        Parameters
-        ----------
-        model_name : str
-            The name of the generated model.
-
-        job_template : dict[str, Any]
-            The template for settings specific to batch jobs.
-
-        options_template : PixivUtilTemplate
-            The template class containing settings which overrides the settings
-            defined in the global PixivUtil2 Config.
-
-        Returns
-        -------
-        type[BaseModel]
-            A validation model of the templates.
-        """
-        if model_name not in self._model_cache["batch_job"]:
-            # Remove options' section_names from the validation model
-            _options_template_ = {"nosection": {}}
-            for section_name, settings in options_template.getTemplate().items():
-                _options_template_["nosection"] |= settings
-
-            options_template_name = options_template.getName()
-            self.templateParser = TemplateParser()
-            self.templateParser.parse(model_name, job_template)
-            self.templateParser.parse(options_template_name, _options_template_)
-
-            job_validation_info = self.templateParser.getValidationInfo(model_name)
-            options_validation_info = self.templateParser.getValidationInfo(
-                options_template_name
-            )
-
-            job_field_validators = self._createFieldValidators(
-                validation_info=job_validation_info
-            )
-            options_field_validators = self._createFieldValidators(
-                validation_info=options_validation_info
-            )
-            options_model = self._generateModel(
-                model_name=options_template_name,
-                fields=options_validation_info.getFields(),
-                field_validators=options_field_validators,
-            )
-
-            # Convert the options model to a field
-            constructed_options_model = options_model.model_construct()
-            options_field = {
-                PixivUtilArgs.options_key: (
-                    type(constructed_options_model),
-                    Field(default=constructed_options_model),
-                )
-            }
-
-            # Add the field to the job model
-            job_validation_info.addField(section_name="nosection", field=options_field)
-            job_model = self._generateModel(
-                model_name=model_name,
-                fields=job_validation_info.getFields(),
-                field_validators=job_field_validators,
-            )
-            self._model_cache["batch_job"] |= {model_name: job_model}
-        return self._model_cache["batch_job"][model_name]
 
     def _createFieldValidators(
         self,

@@ -4,55 +4,67 @@ from typing import Any, Self, Union
 from module.config.templates.template_enums import UIFlags, UIGroups
 from module.config.tools.template_options.groups import Group
 from module.config.tools.template_options.validation_info import ValidationInfo
-from module.logger import logger
+from module.logging import logger
 from module.tools.utilities import getDictNestingLevel, iterToString
 
 
-class TemplateParser():
+class TemplateParser:
     _instance = None
     _logger = logger
 
-    _parsed_templates: list[str] = [] # Remember templates already parsed
-    _validation_infos: dict[str, ValidationInfo] = {} # Store information used to generate validation models
-    _orphan_groups: dict[str, list[str]] = {} # These groups have no parent assigned to them which is an error
+    # Remember templates already parsed
+    _parsed_templates: list[str] = []
+    # Store information used to generate validation models
+    _validation_infos: dict[str, ValidationInfo] = {}
+    # These groups have no parent assigned to them which is an error
+    _orphan_groups: dict[str, list[str]] = {}
 
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def _parseContent(self, section_name: str, section: dict,
-                       template_name: str, validation_info: ValidationInfo):
+    def _parseContent(
+        self,
+        section_name: str,
+        section: dict,
+        template_name: str,
+        validation_info: ValidationInfo,
+    ):
         for setting, options in section.items():
             # Gather UI groups
             self._parseGroup(
-                setting=setting,
-                options=options,
-                template_name=template_name
+                setting=setting, options=options, template_name=template_name
             )
             # Gather UI flags
-            self._parseFlags(setting=setting, options=options, template_name=template_name)
+            self._parseFlags(
+                setting=setting, options=options, template_name=template_name
+            )
             # Gather validation info for the validation model
             self._parseValidationInfo(
                 section_name=section_name,
                 setting=setting,
                 options=options,
-                validation_info=validation_info
+                validation_info=validation_info,
             )
 
-    def _parseGroup(self, setting: str, options: dict[str, Any], template_name: str) -> None:
-        """ Parse *ui_group* and *ui_group_parent* information from supplied template """
+    def _parseGroup(
+        self, setting: str, options: dict[str, Any], template_name: str
+    ) -> None:
+        """Parse *ui_group* and *ui_group_parent* information from supplied template"""
         # Check if this setting belongs to a ui_group
         if "ui_group" in options:
             # Make ui_group option a formatted list of strings
             groups = self.formatGroup(template_name, options["ui_group"])
 
             # This group is a child of these groups
-            parent_groups = groups[1:len(groups)] if len(groups) > 1 else None
+            parent_groups = groups[1 : len(groups)] if len(groups) > 1 else None
 
             for i, group_name in enumerate(groups):
                 if group_name == "":
-                    self._logger.warning(f"Template '{template_name}': Missing group ID in setting '{setting}'")
+                    self._logger.warning(
+                        f"Template '{template_name}': Missing group ID in setting '{setting}'"
+                    )
                     continue
 
                 # Create a strong reference to the Group class (prevent accidental garbage collection)
@@ -66,9 +78,11 @@ class TemplateParser():
                 if i == 0 and "ui_group_parent" in options:
                     # Check if a parent is defined for this group
                     if group.getParentName():
-                        self._logger.warning(f"Template '{template_name}': Can't assign ui_group_parent to setting '{setting}'. "
-                                          + f"The setting '{group.getParentName()}' is already designated as parent for "
-                                          + f"group '{group.getGroupName()}'")
+                        self._logger.warning(
+                            f"Template '{template_name}': Can't assign ui_group_parent to setting '{setting}'. "
+                            + f"The setting '{group.getParentName()}' is already designated as parent for "
+                            + f"group '{group.getGroupName()}'"
+                        )
                     else:
                         # Convert the value of ui_group_parent to a list if it isn't one already
                         if not isinstance(options["ui_group_parent"], list):
@@ -77,10 +91,14 @@ class TemplateParser():
                         # Check that the values of the ui_group_parent list are "UIGroups" enums
                         for i, value in enumerate(options["ui_group_parent"]):
                             if not value.name in UIGroups._member_names_:
-                                self._logger.error(f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
-                                                   + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
-                                                   + f"Removing value")
-                                del options["ui_group_parent"][i] # Remove the invalid value
+                                self._logger.error(
+                                    f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
+                                    + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
+                                    + f"Removing value"
+                                )
+                                del options["ui_group_parent"][
+                                    i
+                                ]  # Remove the invalid value
 
                         # Add this setting as the parent setting of its ui_group
                         group.setParentName(setting)
@@ -94,23 +112,33 @@ class TemplateParser():
                     group.addChildName(setting)
 
                     # This group has no parent associated
-                    if group.getParentName() is None and group.getGroupName() not in self._orphan_groups[template_name]:
+                    if (
+                        group.getParentName() is None
+                        and group.getGroupName()
+                        not in self._orphan_groups[template_name]
+                    ):
                         self._orphan_groups[template_name].append(group_name)
         # This setting has wrong options; it is not in a group yet is still a group parent
         elif "ui_group_parent" in options:
-            self._logger.warning(f"Template '{template_name}': Group parent setting '{setting}' is not in a group. Skipping")
+            self._logger.warning(
+                f"Template '{template_name}': Group parent setting '{setting}' is not in a group. Skipping"
+            )
 
-    def _parseFlags(self, setting: str, options: dict[str, Any], template_name: str) -> None:
+    def _parseFlags(
+        self, setting: str, options: dict[str, Any], template_name: str
+    ) -> None:
         if "ui_flags" in options:
             if not isinstance(options["ui_flags"], list):
                 options["ui_flags"] = [options["ui_flags"]]
 
             for i, value in enumerate(options["ui_flags"]):
                 if not value.name in UIFlags._member_names_:
-                    self._logger.error(f"Template '{template_name}': Setting '{setting}' has invalid flag '{value}'. "
-                                        + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
-                                        + f"Removing value")
-                    del options["ui_group_parent"][i] # Remove the invalid value
+                    self._logger.error(
+                        f"Template '{template_name}': Setting '{setting}' has invalid flag '{value}'. "
+                        + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
+                        + f"Removing value"
+                    )
+                    del options["ui_group_parent"][i]  # Remove the invalid value
 
     def _checkGroups(self, template_name: str) -> None:
         self._checkOrphanGroups(template_name)
@@ -119,7 +147,9 @@ class TemplateParser():
     def _checkOrphanGroups(self, template_name: str) -> None:
         if self._orphan_groups[template_name]:
             for orphan_group in self._orphan_groups[template_name]:
-                self._logger.warning(f"Template '{template_name}': Group '{orphan_group}' does not have a group parent associated. Removing from group list")
+                self._logger.warning(
+                    f"Template '{template_name}': Group '{orphan_group}' does not have a group parent associated. Removing from group list"
+                )
                 Group.removeGroup(template_name, orphan_group)
 
     def _checkChildlessParentGroups(self, template_name: str) -> None:
@@ -127,7 +157,9 @@ class TemplateParser():
         if groups:
             for group in groups:
                 if not group.getChildNames():
-                    self._logger.warning(f"Template '{template_name}': Group '{group.getGroupName()}' is nesting children, but has no children assigned to it")
+                    self._logger.warning(
+                        f"Template '{template_name}': Group '{group.getGroupName()}' is nesting children, but has no children assigned to it"
+                    )
 
     def _getFieldType(self, setting: str, options: dict) -> Any:
         field_type = None
@@ -139,15 +171,27 @@ class TemplateParser():
         elif "default" in options:
             field_type = type(options["default"])
         else:
-            self._logger.warning(f"Could not determine object type for setting '{setting}'. This will cause validation issues")
+            self._logger.warning(
+                f"Could not determine object type for setting '{setting}'. This will cause validation issues"
+            )
         return field_type
 
-    def _parseValidationInfo(self, section_name: str, setting: str, options: dict, validation_info: ValidationInfo):
+    def _parseValidationInfo(
+        self,
+        section_name: str,
+        setting: str,
+        options: dict,
+        validation_info: ValidationInfo,
+    ):
         if "validators" in options:
             for validator in options["validators"]:
                 validation_info.addSettingValidation(section_name, setting, validator)
         field_type = self._getFieldType(setting, options)
-        field_default = options["default"] if "default" in options else self._logger.warning(f"Missing default value for setting '{setting}'")
+        field_default = (
+            options["default"]
+            if "default" in options
+            else self._logger.warning(f"Missing default value for setting '{setting}'")
+        )
 
         # The minimum value should be the smallest value available for a given setting
         min_values = []
@@ -163,11 +207,16 @@ class TemplateParser():
         field_min = min(min_values, default=None)
         field_max = options["max"] if "max" in options else None
 
-        field = {setting: (field_type, Field(default=field_default, ge=field_min, le=field_max, required=True))}
+        field = {
+            setting: (
+                field_type,
+                Field(default=field_default, ge=field_min, le=field_max, required=True),
+            )
+        }
         validation_info.addField(section_name, field)
 
-    def parse(self, template_name: str, template: dict, force: bool=False):
-        """Parse the supplied template (this is the first pass of the template).
+    def parse(self, template_name: str, template: dict, force: bool = False):
+        """Parse the supplied template.
 
         Parameters
         ----------
@@ -192,14 +241,14 @@ class TemplateParser():
                         section_name=section_name,
                         section=section,
                         template_name=template_name,
-                        validation_info=validation_info
+                        validation_info=validation_info,
                     )
             else:
                 self._parseContent(
-                    section_name="nosection", # TODO: Remove hardcoded need for sections in validation
+                    section_name="nosection",  # TODO: Remove hardcoded need for sections in validation
                     section=template,
                     template_name=template_name,
-                    validation_info=validation_info
+                    validation_info=validation_info,
                 )
             self._checkGroups(template_name)
             self._validation_infos |= {template_name: validation_info}

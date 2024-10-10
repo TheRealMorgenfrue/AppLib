@@ -27,13 +27,13 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QSize, Qt
 
-from app.common.signal_bus import signalBus
-from app.common.stylesheet import StyleSheet
+from applib.app.common.core_signalbus import core_signalbus
+from applib.app.common.core_stylesheet import CoreStyleSheet
 from app.components.infobar_test import InfoBar, InfoBarPosition
 
 from module.config.internal.app_args import AppArgs
 from module.config.internal.names import ModuleNames
-from module.logger import logger
+from module.logging import logger
 
 
 class MainWindow(MSFluentWindow):
@@ -95,7 +95,7 @@ class MainWindow(MSFluentWindow):
         except Exception:
             self.errorLog.append(traceback.format_exc(limit=AppArgs.traceback_limit))
 
-        StyleSheet.MAIN_WINDOW.apply(self)
+        CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
 
         if self.errorLog:
@@ -165,14 +165,14 @@ class MainWindow(MSFluentWindow):
         QApplication.processEvents()
 
     def __connectSignalToSlot(self) -> None:
-        signalBus.configUpdated.connect(self.__onConfigUpdated)
-        signalBus.configValidationError.connect(
+        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
+        core_signalbus.configValidationError.connect(
             lambda configname, title, content: self.__onConfigValidationFailed(
                 title, content
             )
         )
-        signalBus.configStateChange.connect(self.__onConfigStateChange)
-        signalBus.genericError.connect(self.__onGenericError)
+        core_signalbus.configStateChange.connect(self.__onConfigStateChange)
+        core_signalbus.genericError.connect(self.__onGenericError)
 
     def __onConfigUpdated(
         self, config_name: str, configkey: str, valuePack: tuple[Any,]
@@ -281,10 +281,10 @@ class MainWindow(MSFluentWindow):
 
     def toggleTheme(self) -> None:
         toggleTheme(lazy=True)
-        signalBus.updateConfigSettings.emit(
+        core_signalbus.updateConfigSettings.emit(
             self._app_config.getConfigName(), "appTheme", (theme().value,)
         )
-        signalBus.doSaveConfig.emit(self._app_config.getConfigName())
+        core_signalbus.doSaveConfig.emit(self._app_config.getConfigName())
 
     def paintEvent(self, e: QPaintEvent) -> None:
         super().paintEvent(e)

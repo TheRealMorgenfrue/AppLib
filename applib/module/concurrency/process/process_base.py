@@ -6,7 +6,7 @@ import traceback
 from PyQt6.QtCore import pyqtSignal, QObject
 
 from module.config.internal.app_args import AppArgs
-from module.logger import logger
+from module.logging import logger
 
 
 # Signals must not be connected to slots in __init__
