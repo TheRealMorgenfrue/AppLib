@@ -1,0 +1,17 @@
+#view {
+    background-color: transparent;
+}
+
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+
+BannerWidget>#galleryLabel {
+    font: 30px 'Segoe UI SemiBold';
+    background-color: transparent;
+    color: white;
+    padding-left: 28px;
+    font-weight: 600;
+}

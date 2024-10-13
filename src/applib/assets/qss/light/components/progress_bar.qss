@@ -1,0 +1,5 @@
+#progressTitleLabel {
+    font: 18px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    font-weight: 600;
+    background-color: transparent;
+}
