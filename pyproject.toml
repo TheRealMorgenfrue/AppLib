@@ -1,0 +1,10 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = ""
+dynamic = ["version", "authors"]
+description = "A small example package"
+readme = "README.md"
+requires-python = "==3.12"
