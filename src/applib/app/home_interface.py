@@ -18,7 +18,6 @@ from .components.link_card import LinkCardView
 
 from module.config.app_config import AppConfig
 from module.config.internal.app_args import AppArgs
-from module.config.internal.names import ModuleNames
 
 
 class BannerWidget(QWidget):
@@ -33,9 +32,7 @@ class BannerWidget(QWidget):
         )
 
         self.vBoxLayout = QVBoxLayout(self)
-        self.galleryLabel = QLabel(
-            f"{ModuleNames.app_name}\nv{AppArgs.app_version}", self
-        )
+        self.galleryLabel = QLabel(f"{AppArgs.app_name}\nv{AppArgs.app_version}", self)
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)

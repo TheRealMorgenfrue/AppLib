@@ -44,7 +44,6 @@ def getAssetsPath() -> Path:
     return Path.cwd()
 
 
-# TODO: Make decorator which is to be used on custom app args. It will take all attributes on custom app args and inject into the internal app args.
 class AppArgs:
     # General
     app_version = "0.0.0"
@@ -55,6 +54,11 @@ class AppArgs:
 
     # Files
     app_toml = "app_config.toml"
+
+    # Names
+    app_name = "AppLib"
+    app_template_name = app_name
+    app_config_name = app_template_name
 
     # Logging
     log_dir = Path(app_dir, "logs")

@@ -12,7 +12,6 @@ from .components.sample_card import SampleCardView
 from .settings_interface_app import SettingsInterface_App
 
 from module.config.internal.app_args import AppArgs
-from module.config.internal.names import ModuleNames
 from module.logging import logger
 
 
@@ -85,15 +84,15 @@ class SettingsInterface(ScrollArea):
             self.app_settings = SettingsInterface_App()
         except Exception:
             self._logger.error(
-                f"Could not load {ModuleNames.app_name} settings panel\n"
+                f"Could not load {AppArgs.app_name} settings panel\n"
                 + traceback.format_exc(limit=AppArgs.traceback_limit)
             )
             self.app_settings = None
         self._createSampleCard(
-            widget_id=ModuleNames.app_name,
+            widget_id=AppArgs.app_name,
             # REVIEW: Set your own icon!
             icon=f"{AppArgs.logo_dir}/logo.png",
-            title=ModuleNames.app_name,
+            title=AppArgs.app_name,
             widget=self.app_settings,
         )
 

@@ -8,8 +8,8 @@ from .common.core_stylesheet import CoreStyleSheet
 from .components.cardstack import PivotCardStack
 from .generators.card_generator import CardGenerator
 
+from module.config.internal.app_args import AppArgs
 from module.config.app_config import AppConfig
-from module.config.internal.names import ModuleNames
 from module.config.templates.app_template import AppTemplate
 
 
@@ -44,7 +44,7 @@ class SettingsInterface_App(ScrollArea):
         )
         cardStack = PivotCardStack(
             generator=generator,
-            labeltext=self.tr(f"{ModuleNames.app_name} Settings"),
+            labeltext=self.tr(f"{AppArgs.app_name} Settings"),
             parent=self,
         )
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(cardStack)

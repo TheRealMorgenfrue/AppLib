@@ -7,7 +7,6 @@ from typing import Self
 from .coloredformatter import ColoredFormatter
 from .colorcodefilter import ColorCodeFilter
 from ..config.internal.app_args import AppArgs
-from ..config.internal.names import ModuleNames
 from ..config.tools.ini_file_parser import IniFileParser
 from ..tools.utilities import retrieveDictValue
 
@@ -15,7 +14,7 @@ from ..tools.utilities import retrieveDictValue
 class Logger:
     _instance = None
 
-    _logger_name = ModuleNames.app_name
+    _logger_name = AppArgs.app_name
     _config_path = AppArgs.app_config_path
     _log_dir = AppArgs.log_dir
     _log_format = AppArgs.log_format

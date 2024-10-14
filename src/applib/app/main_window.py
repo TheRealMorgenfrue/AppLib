@@ -33,7 +33,6 @@ from .components.infobar_test import InfoBar, InfoBarPosition
 
 from module.config.internal.app_args import AppArgs
 from module.config.internal.testargs import TestArgs
-from module.config.internal.names import ModuleNames
 from module.logging import logger
 
 
@@ -146,7 +145,7 @@ class MainWindow(MSFluentWindow):
         self.resize(1280, 720)
         # REVIEW: Set your own icon!
         self.setWindowIcon(QIcon(f"{AppArgs.logo_dir}/logo.png"))
-        self.setWindowTitle(f"{ModuleNames.app_name} {TestArgs.app_version}")
+        self.setWindowTitle(f"{AppArgs.app_name} {TestArgs.app_version}")
 
         # Create splash screen
         self.splashScreen = SplashScreen(self.windowIcon(), self)

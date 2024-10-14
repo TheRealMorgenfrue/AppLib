@@ -22,7 +22,6 @@ from module.config.templates.app_template import AppTemplate
 from module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from module.config.app_config import AppConfig
 from module.config.internal.app_args import AppArgs
-from module.config.internal.names import ModuleNames
 from module.logging import logger
 
 
@@ -162,7 +161,7 @@ class ProcessInterface(ScrollArea):
         try:
             super().__init__(parent)
             self.view = QWidget(self)
-            self.titleLabel = QLabel(self.tr(f"{ModuleNames.app_name} Process Manager"))
+            self.titleLabel = QLabel(self.tr(f"{AppArgs.app_name} Process Manager"))
             self.terminateAllButton = PushButton(self.tr("Terminate All"))
             self.startButton = PrimaryPushButton(self.tr("Start All"))
             self.flowConsoles = FlowingConsoles()

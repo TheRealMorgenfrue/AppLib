@@ -2,7 +2,6 @@ from typing import Self
 
 from .config_base import ConfigBase
 from .internal.app_args import AppArgs
-from .internal.names import ConfigNames
 from .tools.validation_model_gen import ValidationModelGenerator
 from .templates.app_template import AppTemplate
 
@@ -25,7 +24,7 @@ class AppConfig(ConfigBase):
             super().__init__(
                 template_config=validation_model.model_construct().model_dump(),
                 validation_model=validation_model,
-                config_name=ConfigNames.app_config_name,
+                config_name=AppArgs.app_config_name,
                 config_path=AppArgs.app_config_path,
             )
             self._setConfig(self._initConfig())

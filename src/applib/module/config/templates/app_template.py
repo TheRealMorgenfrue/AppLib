@@ -1,7 +1,6 @@
 from typing import Self, override
 
 from ..internal.app_args import AppArgs
-from ..internal.names import ModuleNames, TemplateNames
 from ..templates.template_base import BaseTemplate
 from ..templates.template_enums import UIGroups, UITypes
 from ..validators import validateLoglevel, validateTheme
@@ -21,7 +20,7 @@ class AppTemplate(BaseTemplate):
     def __init__(self) -> None:
         if not self._created:
             super().__init__(
-                template_name=TemplateNames.app_template_name,
+                template_name=AppArgs.app_template_name,
                 template=self._createTemplate(),
                 icons=None,
             )
@@ -33,7 +32,7 @@ class AppTemplate(BaseTemplate):
             "General": {
                 "loglevel": {
                     "ui_type": UITypes.COMBOBOX,
-                    "ui_title": f"Set log level for {ModuleNames.app_name}",
+                    "ui_title": f"Set log level for {AppArgs.app_name}",
                     "default": "INFO" if AppArgs.is_release else "DEBUG",
                     "values": AppArgs.template_loglevels,
                     "validators": [validateLoglevel],
