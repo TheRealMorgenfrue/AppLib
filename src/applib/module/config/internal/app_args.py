@@ -2,6 +2,8 @@ import os
 import sys
 from pathlib import Path
 
+from ...tools.version import VERSION
+
 
 def getRuntimeMode() -> str:
     """Returns whether we are frozen via PyInstaller, Nuitka or similar
@@ -46,7 +48,7 @@ def getAssetsPath() -> Path:
 
 class AppArgs:
     # General
-    app_version = "0.0.0"
+    app_version = VERSION
     link_github = ""
     is_release = False
     traceback_limit = 0 if is_release else None
