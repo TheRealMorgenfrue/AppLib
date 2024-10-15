@@ -1,7 +1,7 @@
-from ...tools.decorators import mainArgs
+from ...tools.decorators import makeAppArgs
 
 
-@mainArgs
+@makeAppArgs
 class TestArgs:
     # General
     app_version = "1.6.7"
