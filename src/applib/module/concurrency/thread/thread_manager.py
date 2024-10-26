@@ -52,15 +52,15 @@ class ThreadManager(QThread):
         # signalBus.appShutdown.connect(self._onAppShutdown)
         self.kill.connect(self._TerminateAllRequest)
         self.allThreadsClosed.connect(self._onAllThreadsClosed)
-        self.updateMaxThreads.connect(self.__onMaxThreadsUpdated)
+        self.updateMaxThreads.connect(self._onMaxThreadsUpdated)
 
-    def __onMaxThreadsUpdated(self, maxThreads: int) -> None:
+    def _onMaxThreadsUpdated(self, maxThreads: int) -> None:
         self.maxThreads = maxThreads
         if self._totalProgress != 0:
             # Update thread/process pool
             self._runProcesses()
 
-    def __onAppShutdown(self) -> None:
+    def _onAppShutdown(self) -> None:
         self._TerminateAllRequest(suicide=True)
 
     def _threadGrammar(self, amount: int) -> str:

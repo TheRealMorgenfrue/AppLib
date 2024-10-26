@@ -68,14 +68,14 @@ class ConfigBase:
         self.__connectSignalToSlot()
 
     def __connectSignalToSlot(self) -> None:
-        core_signalbus.configNameUpdated.connect(self.__onConfigNameUpdated)
-        core_signalbus.doSaveConfig.connect(self.__onSaveConfig)
+        core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
+        core_signalbus.doSaveConfig.connect(self._onSaveConfig)
 
-    def __onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
+    def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
         if old_name == self._config_name:
             self._config_name = new_name
 
-    def __onSaveConfig(self, config_name: str) -> None:
+    def _onSaveConfig(self, config_name: str) -> None:
         if self._config_name == config_name:
             self.saveConfig()
 
