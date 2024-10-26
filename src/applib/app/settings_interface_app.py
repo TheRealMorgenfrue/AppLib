@@ -20,25 +20,25 @@ class SettingsInterface_App(ScrollArea):
             self.view = QWidget(self)
             self.vGeneralLayout = QVBoxLayout(self.view)
 
-            self.__initWidget()
-            self.__initLayout()
+            self._initWidget()
+            self._initLayout()
         except Exception:
             self.deleteLater()
             raise
 
-    def __initWidget(self):
+    def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self):
+    def _setQss(self):
         self.view.setObjectName("view")
         self.setObjectName("settingsSubInterface")
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         generator = CardGenerator(
             config=AppConfig(), template=AppTemplate(), parent=self
         )

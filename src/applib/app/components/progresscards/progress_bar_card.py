@@ -15,9 +15,9 @@ class ProgressBarCard(ProgressCard):
         super().__init__(title, ProgressBar(), parent)
         self.hBoxLayout = QHBoxLayout(self)
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.progressWidget.setFixedHeight(8)
 
         self.hBoxLayout.setSpacing(20)

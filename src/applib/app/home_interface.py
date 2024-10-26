@@ -69,12 +69,12 @@ class BannerWidget(QWidget):
             self.tr(""),
             AppArgs.link_github,
         )
-        self.__connectSignalToSlot()
+        self._connectSignalToSlot()
 
-    def __connectSignalToSlot(self) -> None:
-        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
+    def _connectSignalToSlot(self) -> None:
+        core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
-    def __onConfigUpdated(
+    def _onConfigUpdated(
         self, config_name: str, configkey: str, valuePack: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
@@ -124,9 +124,9 @@ class HomeInterface(ScrollArea):
         self.banner = BannerWidget(self)
         self.view = QWidget(self)
         self.vBoxLayout = QVBoxLayout(self.view)
-        self.__initWidget()
+        self._initWidget()
 
-    def __initWidget(self):
+    def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
@@ -136,9 +136,9 @@ class HomeInterface(ScrollArea):
         self.vBoxLayout.addWidget(self.banner, stretch=2)
         self.vBoxLayout.addStretch(1)
         self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self):
+    def _setQss(self):
         self.view.setObjectName("view")
         self.setObjectName("homeInterface")
         CoreStyleSheet.HOME_INTERFACE.apply(self)

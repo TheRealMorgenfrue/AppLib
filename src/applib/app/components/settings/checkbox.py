@@ -58,12 +58,12 @@ class ConfigCheckBox(BoolSetting):
             # Add Switch to layout
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.setting.stateChanged.connect(lambda state: self.setValue(bool(state)))
 
     def getCheckedSignal(self) -> pyqtBoundSignal:

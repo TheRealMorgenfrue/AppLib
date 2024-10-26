@@ -68,12 +68,12 @@ class ConfigComboBox(BaseSetting):
             self.setting.setCurrentText(self.currentValue)
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.setting.currentIndexChanged.connect(
             lambda index: self.setValue(self.setting.itemData(index))
         )

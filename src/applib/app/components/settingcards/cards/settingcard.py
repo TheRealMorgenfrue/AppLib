@@ -47,10 +47,10 @@ class SettingCardBase(CardBase, QFrame):
         self.hideOption = True
         self.isDisabled = False
 
-        self.__initLayout()
-        self.__setQss()
+        self._initLayout()
+        self._setQss()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.iconLabel.setFixedSize(16, 16)
 
         self.titleLabel.setSizePolicy(
@@ -82,7 +82,7 @@ class SettingCardBase(CardBase, QFrame):
         self.hBoxLayout.addSpacing(16)
         self.hBoxLayout.addStretch(1)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.contentLabel.setObjectName("contentLabel")
         CoreStyleSheet.SETTING_CARD.apply(self)
 
@@ -105,14 +105,14 @@ class SettingCardMixin:
         self.disableButton = None  # type: PillPushButton | None
         self.resetbutton = None  # type: PrimaryPushButton | None
 
-        self.__initLayout()
-        self.__connectSignalToSlot()
+        self._initLayout()
+        self._connectSignalToSlot()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.buttonLayout.setContentsMargins(0, 0, 0, 0)
         self.buttonLayout.setSpacing(20)
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
 
@@ -338,9 +338,9 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
             self.deleteLater()
             raise
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.titleLabel.setWordWrap(True)
         self.contentLabel.setWordWrap(True)
 
@@ -397,9 +397,9 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
             self.deleteLater()
             raise
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.titleLabel.setWordWrap(True)
         self.contentLabel.setWordWrap(True)
 

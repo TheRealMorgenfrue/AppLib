@@ -198,11 +198,11 @@ class ExpandSettingCard(CardBase, QScrollArea):
         # Expand animation
         self.expandAni = QPropertyAnimation(self.verticalScrollBar(), b"value", self)
 
-        self.__initWidget()
-        self.__initLayout()
-        self.__connectSignalToSlot()
+        self._initWidget()
+        self._initLayout()
+        self._connectSignalToSlot()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.setWidget(self.scrollWidget)
         self.setWidgetResizable(True)
         sh = self.card.sizeHint().height()
@@ -215,23 +215,23 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self.expandAni.setEasingCurve(QEasingCurve.Type.OutQuad)
         self.expandAni.setDuration(200)
 
-        self.__setQss()
+        self._setQss()
         self.card.installEventFilter(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.scrollLayout.setContentsMargins(0, 0, 0, 0)
         self.scrollLayout.setSpacing(0)
         self.scrollLayout.addWidget(self.view)
         self.scrollLayout.addWidget(self.spaceWidget)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.view.setObjectName("view")
         self.scrollWidget.setObjectName("scrollWidget")
         self.setProperty("isExpand", False)
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self.card)
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self)
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.expandAni.valueChanged.connect(self._onExpandValueChanged)
         self.card.expandButton.clicked.connect(self.toggleExpand)
 
@@ -357,17 +357,17 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
                 hasDisableButton=hasDisableButton,
                 parent=parent,
             )
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
-        self.notifyCard.connect(self.__onParentNotified)
+    def _connectSignalToSlot(self) -> None:
+        self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
         self.card.disableCard.connect(self.disableCard.emit)
 
-    def __onParentNotified(self, values: tuple[str, Any]) -> None:
+    def _onParentNotified(self, values: tuple[str, Any]) -> None:
         # Parent does not have an option directly attached and only needs "updateState"
         type, value = values
         if type == "updateState":

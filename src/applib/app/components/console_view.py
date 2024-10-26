@@ -27,19 +27,19 @@ class ConsoleView(QWidget):
         self.vBoxLayout = QVBoxLayout(self)
         self.buttonLayout = QHBoxLayout()
 
-        self.__initWidget()
-        self.__initLayout()
+        self._initWidget()
+        self._initLayout()
         self._connectSignalToSlot()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.textEdit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.textEdit.setReadOnly(True)
         # Block count == Line count. NOTE: Also disables undo/redo history.
         self.textEdit.document().setMaximumBlockCount(1000)
         self.terminateButton.setDisabled(True)
-        self.__setQss()
+        self._setQss()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.buttonLayout.setSpacing(20)
         self.buttonLayout.addWidget(self.terminateButton)
@@ -50,7 +50,7 @@ class ConsoleView(QWidget):
         self.vBoxLayout.addWidget(self.textEdit, stretch=1)
         self.vBoxLayout.addLayout(self.buttonLayout)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.consoleLabel.setObjectName("Label")
         self.setObjectName("console")
         CoreStyleSheet.CONSOLE_VIEW.apply(self)

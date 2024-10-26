@@ -50,13 +50,13 @@ class MainWindow(MSFluentWindow):
         setTheme(Theme.AUTO, lazy=True)
 
         try:
-            self.__initWindow()
+            self._initWindow()
 
             from module.config.app_config import AppConfig
 
             self._app_config = AppConfig()
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
 
             # The rest of the modules imported here to make sure
             # the splash screen is loaded before anything else
@@ -90,7 +90,7 @@ class MainWindow(MSFluentWindow):
                 )
                 self.processInterface = None
 
-            self.__initNavigation()
+            self._initNavigation()
             self._initBackground()
         except Exception:
             self.errorLog.append(traceback.format_exc(limit=TestArgs.traceback_limit))
@@ -115,7 +115,7 @@ class MainWindow(MSFluentWindow):
             self._app_config.getValue("backgroundBlur", 0.0)
         )
 
-    def __initNavigation(self):
+    def _initNavigation(self):
         if self.homeInterface:
             self.addSubInterface(self.homeInterface, FIF.HOME, self.tr("Home"))
         if self.processInterface:
@@ -136,7 +136,7 @@ class MainWindow(MSFluentWindow):
                 position=NavigationItemPosition.BOTTOM,
             )
 
-    def __initWindow(self):
+    def _initWindow(self):
         # self.titleBar.maxBtn.setHidden(True)
         # self.titleBar.maxBtn.setDisabled(True)
         # self.titleBar.setDoubleClickEnabled(False)
@@ -164,17 +164,17 @@ class MainWindow(MSFluentWindow):
         self.show()
         QApplication.processEvents()
 
-    def __connectSignalToSlot(self) -> None:
-        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
+    def _connectSignalToSlot(self) -> None:
+        core_signalbus.configUpdated.connect(self._onConfigUpdated)
         core_signalbus.configValidationError.connect(
-            lambda configname, title, content: self.__onConfigValidationFailed(
+            lambda configname, title, content: self._onConfigValidationFailed(
                 title, content
             )
         )
-        core_signalbus.configStateChange.connect(self.__onConfigStateChange)
-        core_signalbus.genericError.connect(self.__onGenericError)
+        core_signalbus.configStateChange.connect(self._onConfigStateChange)
+        core_signalbus.genericError.connect(self._onGenericError)
 
-    def __onConfigUpdated(
+    def _onConfigUpdated(
         self, config_name: str, configkey: str, valuePack: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
@@ -183,7 +183,7 @@ class MainWindow(MSFluentWindow):
                 self.background = QPixmap(value) if value else None
                 self.update()
             elif configkey == "appTheme":
-                self.__onThemeChanged(value)
+                self._onThemeChanged(value)
             elif configkey == "appColor":
                 setThemeColor(value, lazy=True)
             elif configkey == "backgroundOpacity":
@@ -193,7 +193,7 @@ class MainWindow(MSFluentWindow):
                 self.backgroundBlurRadius = float(value)
                 self.update()
 
-    def __onThemeChanged(self, value: str):
+    def _onThemeChanged(self, value: str):
         if value == "Light":
             setTheme(Theme.LIGHT, lazy=True)
         elif value == "Dark":
@@ -201,7 +201,7 @@ class MainWindow(MSFluentWindow):
         else:
             setTheme(Theme.AUTO, lazy=True)
 
-    def __onGenericError(self, title: str, content: str) -> None:
+    def _onGenericError(self, title: str, content: str) -> None:
         InfoBar.error(
             title=self.tr(title),
             content=(self.tr(content) if content else self.logmsg),
@@ -212,7 +212,7 @@ class MainWindow(MSFluentWindow):
             parent=self,
         )
 
-    def __onConfigValidationFailed(self, title: str, content: str) -> None:
+    def _onConfigValidationFailed(self, title: str, content: str) -> None:
         if not title:
             title = "Invalid value (no information given)"  # Placeholder message when no message is given
             InfoBar.warning(
@@ -227,7 +227,7 @@ class MainWindow(MSFluentWindow):
                 parent=self,
             )
 
-    def __onConfigStateChange(self, state: bool, title: str, content: str) -> None:
+    def _onConfigStateChange(self, state: bool, title: str, content: str) -> None:
         if state:
             InfoBar.success(
                 title=self.tr(title),

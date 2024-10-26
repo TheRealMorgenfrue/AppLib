@@ -26,18 +26,18 @@ class InputView(QWidget):
         self.textEdit = TextEdit(parent=self)
         self.clearButton = None
 
-        self.__initWidget()
-        self.__initLayout()
+        self._initWidget()
+        self._initLayout()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.label.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         self.label.setWordWrap(True)
         self.textEdit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.textEdit.setReadOnly(False)
         self.textEdit.setUndoRedoEnabled(True)
-        self.__setQss()
+        self._setQss()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.buttonLayout.setSpacing(20)
 
@@ -46,7 +46,7 @@ class InputView(QWidget):
         self.vBoxLayout.addLayout(self.buttonLayout)
         self.vBoxLayout.addStretch(1)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.label.setObjectName("Label")
         self.setObjectName("inputView")
         CoreStyleSheet.INPUT_VIEW.apply(self)

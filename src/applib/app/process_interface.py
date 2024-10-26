@@ -31,22 +31,22 @@ class ProcessSettings(ScrollArea):
         self.view = QWidget(self)
         self.vBoxLayout = QVBoxLayout(self.view)
 
-        self.__initWidget()
-        self.__initLayout()
+        self._initWidget()
+        self._initLayout()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.setObjectName("processSettings")
         self.view.setObjectName("view")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         app_template = AppTemplate()
@@ -82,22 +82,22 @@ class ProcessStatus(ScrollArea):
 
         self.vBoxLayout = QVBoxLayout(self.view)
 
-        self.__initWidget()
-        self.__initLayout()
+        self._initWidget()
+        self._initLayout()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.setObjectName("processStatus")
         self.view.setObjectName("view")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
         self.vBoxLayout.addWidget(
             self.progressRingCard,
@@ -113,9 +113,9 @@ class ProcessSubinterface(QWidget):
         self.processStatus = ProcessStatus()
         self.processSettings = ProcessSettings()
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         # self.setMinimumWidth(400)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setSpacing(10)
@@ -132,22 +132,22 @@ class FlowingConsoles(ScrollArea):
         self.view = QWidget(self)
         self.flowLayout = FlowLayout(self.view, needAni=True)
 
-        self.__initWidget()
-        self.__initLayout()
+        self._initWidget()
+        self._initLayout()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         # self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.setObjectName("flowConsoles")
         self.view.setObjectName("view")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.flowLayout.setContentsMargins(0, 0, 0, 0)
         self.flowLayout.setHorizontalSpacing(30)
         self.flowLayout.setVerticalSpacing(30)
@@ -179,29 +179,29 @@ class ProcessInterface(ScrollArea):
             self.processGen = None  # ProcessGenerator()
             self.processRunning = False
 
-            self.__initWidget()
-            self.__initLayout()
-            self.__initConsole()
-            self.__connectSignalToSlot()
+            self._initWidget()
+            self._initLayout()
+            self._initConsole()
+            self._connectSignalToSlot()
             core_signalbus.isProcessesRunning.emit(False)  # Set inital state
         except Exception:
             self.deleteLater()
             raise
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.setObjectName("processInterface")
         self.view.setObjectName("view")
         self.titleLabel.setObjectName("Label")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.terminateAllButton.setMaximumWidth(150)
         self.startButton.setMaximumWidth(150)
 
@@ -221,7 +221,7 @@ class ProcessInterface(ScrollArea):
         self.vGeneralLayout.addSpacing(20)
         self.vGeneralLayout.addLayout(self.hMainLayout)
 
-    def __addConsoles(self, amount: int) -> None:
+    def _addConsoles(self, amount: int) -> None:
         ids = []
         start = len(self.consoleWidgets)
         sizeHint = QSize(self.terminalSize, self.terminalSize)
@@ -246,9 +246,7 @@ class ProcessInterface(ScrollArea):
             ids.append(i)
         self.threadManager.consoleCountChanged.emit(ids)
 
-    def __removeConsoles(
-        self, amount: int, indices: Optional[list[int]] = None
-    ) -> None:
+    def _removeConsoles(self, amount: int, indices: Optional[list[int]] = None) -> None:
         iterator = indices if indices else reversed(self.consoleWidgets)
         for i in iterator:
             console = self.consoleWidgets[i]
@@ -259,24 +257,24 @@ class ProcessInterface(ScrollArea):
                 self.consoleWidgets[i] = None
         self.flowConsoles.flowLayout.update()
 
-    def __initConsole(self, allowRemoval: bool = True) -> None:
+    def _initConsole(self, allowRemoval: bool = True) -> None:
         if self.consoleWidgets:
             availableConsoles = len(
                 [console for console in self.consoleWidgets.values() if console]
             )
             if availableConsoles < self.maxThreads:
-                self.__addConsoles(self.maxThreads - availableConsoles)
+                self._addConsoles(self.maxThreads - availableConsoles)
             elif allowRemoval and availableConsoles > self.maxThreads:
-                self.__removeConsoles(availableConsoles - self.maxThreads)
+                self._removeConsoles(availableConsoles - self.maxThreads)
         else:
-            self.__addConsoles(self.maxThreads)
+            self._addConsoles(self.maxThreads)
 
-    def __connectSignalToSlot(self) -> None:
-        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
-        core_signalbus.isProcessesRunning.connect(self.__onProcessRunning)
+    def _connectSignalToSlot(self) -> None:
+        core_signalbus.configUpdated.connect(self._onConfigUpdated)
+        core_signalbus.isProcessesRunning.connect(self._onProcessRunning)
 
-        self.terminateAllButton.clicked.connect(self.__onTerminateAllButtonClicked)
-        self.startButton.clicked.connect(self.__onStartButtonClicked)
+        self.terminateAllButton.clicked.connect(self._onTerminateAllButtonClicked)
+        self.startButton.clicked.connect(self._onStartButtonClicked)
 
         self.threadManager.currentProgress.connect(
             self.processSubinterface.getProgressCard().progressWidget.setValue
@@ -287,20 +285,20 @@ class ProcessInterface(ScrollArea):
             )
         )
         self.threadManager.threadsRemoved.connect(
-            lambda threadIDs: self.__removeConsoles(len(threadIDs), threadIDs)
+            lambda threadIDs: self._removeConsoles(len(threadIDs), threadIDs)
         )
-        self.threadManager.finished.connect(self.__onThreadManagerFinished)
-        self.threadManager.consoleTextStream.connect(self.__onConsoleTextReceived)
-        self.threadManager.clearConsole.connect(self.__onClearConsole)
+        self.threadManager.finished.connect(self._onThreadManagerFinished)
+        self.threadManager.consoleTextStream.connect(self._onConsoleTextReceived)
+        self.threadManager.clearConsole.connect(self._onClearConsole)
 
-    def __onConfigUpdated(
+    def _onConfigUpdated(
         self, config_name: str, configkey: str, valuePack: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
             (value,) = valuePack
             if configkey == "maxThreads":
                 self.maxThreads = value
-                self.__initConsole(allowRemoval=not self.processRunning)
+                self._initConsole(allowRemoval=not self.processRunning)
                 self.threadManager.updateMaxThreads.emit(self.maxThreads)
             elif configkey == "terminalSize":
                 for console in self.consoleWidgets.values():
@@ -308,16 +306,16 @@ class ProcessInterface(ScrollArea):
                         self.terminalSize = value
                         console.updateSizeHint(QSize(value, value))
 
-    def __onProcessRunning(self, isRunning: bool) -> None:
+    def _onProcessRunning(self, isRunning: bool) -> None:
         self.terminateAllButton.setEnabled(isRunning)
         self.processRunning = isRunning
 
-    def __onTerminateAllButtonClicked(self) -> None:
+    def _onTerminateAllButtonClicked(self) -> None:
         self.threadManager.kill.emit(False)  # Include self: True/False
         core_signalbus.isProcessesRunning.emit(False)
         self.processSubinterface.getProgressCard().stop()
 
-    def __onMissingInput(self) -> None:
+    def _onMissingInput(self) -> None:
         InfoBar.warning(
             title=self.tr("No input!"),
             content=self.tr("Please enter input before proceeding"),
@@ -327,7 +325,7 @@ class ProcessInterface(ScrollArea):
             parent=self,
         )
 
-    def __onStartButtonClicked(self) -> None:
+    def _onStartButtonClicked(self) -> None:
         try:
             if self.processGen.canStart():
                 self.processSubinterface.getProgressCard().start()
@@ -335,18 +333,18 @@ class ProcessInterface(ScrollArea):
                 self.threadManager.start()
                 core_signalbus.isProcessesRunning.emit(True)
             else:
-                self.__onMissingInput()
+                self._onMissingInput()
         except Exception:
             self._logger.error(
                 f"Process Manager failed\n"
                 + traceback.format_exc(limit=AppArgs.traceback_limit)
             )
 
-    def __onThreadManagerFinished(self) -> None:
+    def _onThreadManagerFinished(self) -> None:
         core_signalbus.isProcessesRunning.emit(False)
 
-    def __onConsoleTextReceived(self, processID: int, text: str) -> None:
+    def _onConsoleTextReceived(self, processID: int, text: str) -> None:
         self.consoleWidgets[processID].append(text)
 
-    def __onClearConsole(self, processID: int) -> None:
+    def _onClearConsole(self, processID: int) -> None:
         self.consoleWidgets[processID].clear()

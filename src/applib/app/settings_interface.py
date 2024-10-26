@@ -29,35 +29,35 @@ class SettingsInterface(ScrollArea):
             self.app_settings = None
             self.pu_settings = None
 
-            self.__initWidget()
+            self._initWidget()
 
             self._loadAppInterface()
         except Exception:
             self.deleteLater()
             raise
 
-    def __initWidget(self):
+    def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self.view)
         self.setWidgetResizable(True)
 
-        self.__setQss()
-        self.__initLayout()
+        self._setQss()
+        self._initLayout()
 
-    def __setQss(self):
+    def _setQss(self):
         self.setObjectName("settingInterface")
         self.view.setObjectName("view")
         CoreStyleSheet.SETTINGS_INTERFACE.apply(self)
 
-    def __initLayout(self):
+    def _initLayout(self):
         self.sampleCardView = SampleCardView()
         self.vBoxLayout.addWidget(self.sampleCardView)
         self.vBoxLayout.addWidget(self.stackedWidget, stretch=1)
         self.vBoxLayout.setSpacing(20)
         self.stackedWidget.setHidden(True)
 
-    def __onCurrentIndexChanged(self, pack: tuple):
+    def _onCurrentIndexChanged(self, pack: tuple):
         (widget_id,) = pack
         widget = self._widgets.get(widget_id, None)
         if widget:
@@ -108,7 +108,7 @@ class SettingsInterface(ScrollArea):
             icon=icon,
             title=title,
             widget_id=widget_id,
-            onClick=self.__onCurrentIndexChanged,
+            onClick=self._onCurrentIndexChanged,
         )
 
     def _addSampleCardWidget(self, widget_id: Hashable, widget: QWidget) -> None:

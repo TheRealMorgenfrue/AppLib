@@ -21,7 +21,7 @@ class Ui_MessageBox:
     yesSignal = pyqtSignal()
     cancelSignal = pyqtSignal()
 
-    def _setUpUi(self, title: str, content: str, parent: Optional[QWidget] = None):
+    def _setUpUI(self, title: str, content: str, parent: Optional[QWidget] = None):
         self.content = content
         self.titleLabel = QLabel(title, parent)
         self.contentLabel = BodyLabel(content, parent)
@@ -35,11 +35,11 @@ class Ui_MessageBox:
         self.widgetLayout = QVBoxLayout()
         self.buttonLayout = QHBoxLayout(self.buttonGroup)
 
-        self.__initWidget()
+        self._initWidget()
 
-    def __initWidget(self):
-        self.__setQss()
-        self.__initLayout()
+    def _initWidget(self):
+        self._setQss()
+        self._initLayout()
 
         # fixes https://github.com/zhiyiYo/PyQt-Fluent-Widgets/issues/19
         self.yesButton.setAttribute(Qt.WidgetAttribute.WA_LayoutUsesWidgetRect)
@@ -52,8 +52,8 @@ class Ui_MessageBox:
         self.contentLabel.setHidden(not bool(self.content))
         self._adjustText()
 
-        self.yesButton.clicked.connect(self.__onYesButtonClicked)
-        self.cancelButton.clicked.connect(self.__onCancelButtonClicked)
+        self.yesButton.clicked.connect(self._onYesButtonClicked)
+        self.cancelButton.clicked.connect(self._onCancelButtonClicked)
 
     def _adjustText(self):
         if self.content:
@@ -69,7 +69,7 @@ class Ui_MessageBox:
 
             self.contentLabel.setText(TextWrap.wrap(self.content, chars, False)[0])
 
-    def __initLayout(self):
+    def _initLayout(self):
         self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.addLayout(self.textLayout)
@@ -87,15 +87,15 @@ class Ui_MessageBox:
         self.buttonLayout.addWidget(self.yesButton, 1, Qt.AlignmentFlag.AlignVCenter)
         self.buttonLayout.addWidget(self.cancelButton, 1, Qt.AlignmentFlag.AlignVCenter)
 
-    def __onCancelButtonClicked(self):
+    def _onCancelButtonClicked(self):
         self.reject()
         self.cancelSignal.emit()
 
-    def __onYesButtonClicked(self):
+    def _onYesButtonClicked(self):
         self.accept()
         self.yesSignal.emit()
 
-    def __setQss(self):
+    def _setQss(self):
         self.titleLabel.setObjectName("titleLabel")
         self.contentLabel.setObjectName("contentLabel")
         self.buttonGroup.setObjectName("buttonGroup")
@@ -146,7 +146,7 @@ class Dialog(FramelessDialog, Ui_MessageBox):
 
     def __init__(self, title: str, content: str, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
-        self._setUpUi(title, content, self)
+        self._setUpUI(title, content, self)
 
         self.windowTitleLabel = QLabel(title, self)
 
@@ -180,7 +180,7 @@ class MessageBoxBase(MaskDialogBase, Ui_MessageBox):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent)
-        self._setUpUi(title, content, self.widget)
+        self._setUpUI(title, content, self.widget)
 
         self.setShadowEffect(60, (0, 10), QColor(0, 0, 0, 50))
         self.setMaskColor(QColor(0, 0, 0, 76))

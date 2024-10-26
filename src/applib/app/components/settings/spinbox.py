@@ -73,12 +73,12 @@ class ConfigSpinBox(RangeSetting):
             # Add SpinBox to layout
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.setting.valueChanged.connect(self.setValue)
 
     def setValue(self, value: int) -> None:

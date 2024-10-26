@@ -15,9 +15,9 @@ class CardWidgetGroup(QWidget):
         self.vBoxLayout.addWidget(
             self.titleLabel, alignment=Qt.AlignmentFlag.AlignHCenter
         )
-        self.__setQss()
+        self._setQss()
 
-    def __setQss(self):
+    def _setQss(self):
         self.titleLabel.setObjectName("titleLabel")
         self.setObjectName("view")
         CoreStyleSheet.SETTING_WIDGET.apply(self)

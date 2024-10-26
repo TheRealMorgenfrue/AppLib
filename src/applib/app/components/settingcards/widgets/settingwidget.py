@@ -66,19 +66,19 @@ class SettingWidget(SettingWidgetBase):
             self.option = None  # type: AnySetting | None
             self.disableButton = None  # type: CheckBox | None
 
-            self.__initLayout()
-            self.__connectSignalToSlot()
+            self._initLayout()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.hBoxLayout.addWidget(self.titleLabel)
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.disableCard.connect(self.setDisableAll)
 
-    def __onParentNotified(self, values: tuple[str, Any]) -> None:
+    def _onParentNotified(self, values: tuple[str, Any]) -> None:
         type, value = values
         if type == "disable":
             self.disableCard.emit(DisableWrapper(value[0], save=value[1]))
@@ -90,7 +90,7 @@ class SettingWidget(SettingWidgetBase):
         elif type == "updateState":
             self.disableChildren.emit(DisableWrapper(self.isDisabled))
 
-    def __createDisableButton(self) -> None:
+    def _createDisableButton(self) -> None:
         self.disableButton = CheckBox(self._title)
         self.disableButton.setObjectName("ui_disable")
         self.disableButton.setChecked(not self.isDisabled)
@@ -98,12 +98,12 @@ class SettingWidget(SettingWidgetBase):
             0, self.disableButton, alignment=Qt.AlignmentFlag.AlignLeft
         )
 
-        self._createToolTip(self.disableButton, self.__getDisableMsg(), 5000)
+        self._createToolTip(self.disableButton, self._getDisableMsg(), 5000)
         self.disableButton.stateChanged.connect(
             lambda state: self.disableCard.emit(DisableWrapper(not state))
         )
 
-    def __getDisableMsg(self) -> str:
+    def _getDisableMsg(self) -> str:
         return (
             self.tr(f"{self._title} is disabled")
             if self.isDisabled
@@ -124,7 +124,7 @@ class SettingWidget(SettingWidgetBase):
 
             if self.disableButton:
                 self.disableButton.setChecked(not isDisabled)
-                self.disableButton.setToolTip(self.__getDisableMsg())
+                self.disableButton.setToolTip(self._getDisableMsg())
 
     @override
     def getOption(self) -> AnySetting | None:
@@ -142,12 +142,12 @@ class SettingWidget(SettingWidgetBase):
         self.option = option
 
         # Setup communication between option and card
-        self.option.notifyParent.connect(self.__onParentNotified)
+        self.option.notifyParent.connect(self._onParentNotified)
         self.option.notify.emit(("content", None))
 
         if self.hasDisableButton:
             # The disable button contains the title as well
-            self.__createDisableButton()
+            self._createDisableButton()
             self.titleLabel.setHidden(True)
 
             # The disable button does the same thing as a bool setting

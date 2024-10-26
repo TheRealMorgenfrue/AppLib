@@ -53,20 +53,20 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
             parent=self,
         )
 
-        self.__initLayout()
-        self.__connectSignalToSlot()
+        self._initLayout()
+        self._connectSignalToSlot()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.vGeneralLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.vGeneralLayout.setContentsMargins(0, 0, 0, 0)
         self.vGeneralLayout.addWidget(self._cardWidget)
 
-    def __connectSignalToSlot(self) -> None:
-        self.notifyCard.connect(self.__onParentNotified)
+    def _connectSignalToSlot(self) -> None:
+        self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
         self.settingWidget.disableCard.connect(self.disableCard.emit)
 
-    def __onParentNotified(self, values: tuple[str, Any]) -> None:
+    def _onParentNotified(self, values: tuple[str, Any]) -> None:
         type, value = values
         if type == "updateState":
             self.disableChildren.emit(DisableWrapper(self.isDisabled))
@@ -98,9 +98,9 @@ class NestedSettingWidget(ParentSettingWidget):
         )
         self.hBoxLayout = QHBoxLayout()
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.settingWidget.titleLabel.setObjectName("nestedTitleLabel")
 
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -142,10 +142,10 @@ class ClusteredSettingWidget(ParentSettingWidget):
             parent=parent,
         )
 
-        self.__connectSignalToSlot()
+        self._connectSignalToSlot()
         self.addChild(self.settingWidget)
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self.settingWidget.notifyCard.emit)
 
     def addChild(self, child: QWidget):

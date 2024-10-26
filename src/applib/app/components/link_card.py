@@ -33,9 +33,9 @@ class LinkCard(QFrame):
         self.contentLabel.setStyleSheet("font-size: 14px; font-weight: 600;")
         self.urlWidget = IconWidget(FluentIcon.LINK, self)
 
-        self.__initWidget()
+        self._initWidget()
 
-    def __initWidget(self) -> None:
+    def _initWidget(self) -> None:
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
         self.iconWidget.setFixedSize(54, 54)

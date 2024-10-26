@@ -64,12 +64,12 @@ class BaseSetting(QWidget):
         self.config.saveConfig()
 
     def __connectSignalToSlot(self) -> None:
-        self.notify.connect(self.__onParentNotification)
-        core_signalbus.updateConfigSettings.connect(self.__onUpdateConfigSettings)
-        core_signalbus.configNameUpdated.connect(self.__onConfigNameUpdated)
-        core_signalbus.configUpdated.connect(self.__onConfigUpdated)
+        self.notify.connect(self._onParentNotification)
+        core_signalbus.updateConfigSettings.connect(self._onUpdateConfigSettings)
+        core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
+        core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
-    def __onConfigUpdated(
+    def _onConfigUpdated(
         self, config_name: str, configkey: str, value: tuple[Any,]
     ) -> None:
         if (
@@ -79,15 +79,15 @@ class BaseSetting(QWidget):
         ):
             self.setWidgetValue(value[0])
 
-    def __onUpdateConfigSettings(self, configkey: str, value: tuple[Any,]) -> None:
+    def _onUpdateConfigSettings(self, configkey: str, value: tuple[Any,]) -> None:
         if self.setting and self.configkey == configkey:
             self.setValue(value[0])
 
-    def __onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
+    def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
         if old_name == self.configname:
             self.configname = new_name
 
-    def __onParentNotification(self, values: tuple) -> None:
+    def _onParentNotification(self, values: tuple) -> None:
         type, value = values
         if type == "disable":
             self.notifyDisabled = False
@@ -96,7 +96,7 @@ class BaseSetting(QWidget):
         elif type == "updateState":
             self.updateDisabledStatus()
 
-    def __onReloadRequired(self) -> None:
+    def _onReloadRequired(self) -> None:
         title = "Change requires reload to take effect"
         content = ""
         InfoBar.info(
@@ -173,7 +173,7 @@ class BaseSetting(QWidget):
         else:
             success = True  # The value is already present in config
         if success and self.reload_required:
-            self.__onReloadRequired()
+            self._onReloadRequired()
         return success
 
     def resetValue(self) -> None:

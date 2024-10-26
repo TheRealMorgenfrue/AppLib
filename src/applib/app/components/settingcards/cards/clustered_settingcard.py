@@ -39,14 +39,14 @@ class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
             content=content,
             hasDisableButton=hasDisableButton,
         )
-        self.__setQss()
-        self.__connectSignalToSlot()
+        self._setQss()
+        self._connectSignalToSlot()
         self.addChild(self.card)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self)
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self.card.notifyCard.emit)
         self.disableCard.connect(self.setDisableAll)
 

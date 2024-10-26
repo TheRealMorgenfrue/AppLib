@@ -68,22 +68,22 @@ class ConfigFileSelect(BaseSetting):
             # Add file selection to layout
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
-        self.setting.clicked.connect(self.__onSelectClicked)
-        self.notify.connect(self.__onParentNotification)
+    def _connectSignalToSlot(self) -> None:
+        self.setting.clicked.connect(self._onSelectClicked)
+        self.notify.connect(self._onParentNotification)
 
-    def __onParentNotification(self, values: tuple) -> None:
+    def _onParentNotification(self, values: tuple) -> None:
         type = values[0]
         value = values[1]
         if type == "content":
             self.notifyParent.emit(("content", self.currentValue))
 
-    def __onSelectClicked(self) -> None:
+    def _onSelectClicked(self) -> None:
         file = QFileDialog.getOpenFileName(
             parent=self.parent() if self.parent() else self,
             caption=self.caption,

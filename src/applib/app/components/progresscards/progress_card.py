@@ -31,13 +31,13 @@ class ProgressCard(CardWidget):
         self.titleLabel = QLabel(title)
         self.progressWidget = progressWidget
 
-        self.__initLayout()
-        self.__setQss()
+        self._initLayout()
+        self._setQss()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.setContentsMargins(10, 10, 10, 10)
 
-    def __setQss(self) -> None:
+    def _setQss(self) -> None:
         self.titleLabel.setObjectName("progressTitleLabel")
         CoreStyleSheet.PROGRESS_BAR.apply(self)
 

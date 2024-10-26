@@ -18,23 +18,23 @@ class ThreadUIStreamer(ThreadManager):
         self.__connectSignalToSlot()
 
     def __connectSignalToSlot(self) -> None:
-        self.consoleCountChanged.connect(self.__onConsoleCountChanged)
-        self.threadClosed.connect(self.__onThreadClosed)
+        self.consoleCountChanged.connect(self._onConsoleCountChanged)
+        self.threadClosed.connect(self._onThreadClosed)
 
-    def __onThreadClosed(self, processID: int) -> None:
+    def _onThreadClosed(self, processID: int) -> None:
         try:
             self.consoleWidgets[processID].activated.emit(False)
         except AttributeError:
             # The console widget with this PID was nuked
             pass
 
-    def __onConsoleCountChanged(self, amount: list[int]) -> None:
+    def _onConsoleCountChanged(self, amount: list[int]) -> None:
         while amount:
             i = amount.pop()
             console = self.consoleWidgets[i]
             console.terminationRequest.connect(self._TerminateProcessRequest)
 
-    def __setupProcessStream(
+    def _setupProcessStream(
         self, processID: int, process: ProcessBase, setupConsole: bool
     ) -> None:
         if setupConsole:
@@ -52,7 +52,7 @@ class ThreadUIStreamer(ThreadManager):
         new_processes = super()._runProcesses()
         if new_processes:
             for threadID, isThreadNew, process in new_processes:
-                self.__setupProcessStream(threadID, process, isThreadNew)
+                self._setupProcessStream(threadID, process, isThreadNew)
                 thread = self._threadPool[threadID]
                 thread.start()
 
@@ -61,6 +61,6 @@ class ThreadUIStreamer(ThreadManager):
         new_processes = super()._onProcessFinished(processID)
         if new_processes:
             for threadID, isThreadNew, process in new_processes:
-                self.__setupProcessStream(threadID, process, isThreadNew)
+                self._setupProcessStream(threadID, process, isThreadNew)
                 thread = self._threadPool[threadID]
                 thread.start()

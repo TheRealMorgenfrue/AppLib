@@ -80,12 +80,12 @@ class ConfigLineEdit(BaseSetting):
             # Add LineEdit to layout
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.setting.editingFinished.connect(lambda: self.setValue(self.setting.text()))
         self.setting.textChanged.connect(self._resizeTextBox)
 

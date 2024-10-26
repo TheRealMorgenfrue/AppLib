@@ -62,12 +62,12 @@ class ConfigColorPicker(BaseSetting):
             # Add colorpicker to layout
             self.buttonlayout.addWidget(self.setting)
 
-            self.__connectSignalToSlot()
+            self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def __connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self) -> None:
         self.setting.colorChanged.connect(self.setValue)
 
     def setValue(self, color: QColor | str) -> None:

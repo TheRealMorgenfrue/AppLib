@@ -15,9 +15,9 @@ class ProgressRingCard(ProgressCard):
         super().__init__(title, ProgressRing(), parent)
         self.vBoxLayout = QVBoxLayout(self)
 
-        self.__initLayout()
+        self._initLayout()
 
-    def __initLayout(self) -> None:
+    def _initLayout(self) -> None:
         self.titleLabel.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
         setFont(self.progressWidget, 28, 400)

@@ -21,7 +21,7 @@ class FluentLabel(QLabel):
     ) -> None:
         super().__init__(text, parent)
 
-    def __documentRect(self) -> QRect:
+    def _documentRect(self) -> QRect:
         """
         Compute document rect which sometimes is more accurate than
         boundingRect() (which has a tendency to underestimate the rect)
@@ -68,7 +68,7 @@ class FluentLabel(QLabel):
         else:
             shW = super().sizeHint().width()
             rctW = self.fontMetrics().boundingRect(self.text()).width()
-            docW = self.__documentRect().width()
+            docW = self._documentRect().width()
             w = max(rctW, docW, shW)
 
         # Compute height
