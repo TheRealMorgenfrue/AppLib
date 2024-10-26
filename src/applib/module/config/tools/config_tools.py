@@ -1,3 +1,5 @@
+from collections import deque
+from configparser import ConfigParser
 import os
 import shutil
 import tomlkit
@@ -7,21 +9,19 @@ import traceback
 
 from pathlib import Path
 from pydantic import ValidationError
-from typing import Any, Callable, Mapping, Optional
+from typing import Any, Callable, Literal, Mapping, Optional
 
 from ..internal.app_args import AppArgs
 from ..tools.ini_file_parser import IniFileParser
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...logging import logger
-from ...tools.types.general import Model, NestedDict, StrPath
+from ...tools.types.general import Model, StrPath
 from ...tools.utilities import formatValidationError, insertDictValue
 
 
 def writeConfig(
     config: dict | Model,
     dst_path: StrPath,
-    comments: Optional[Any] = None,
-    sort: bool = False,
 ) -> None:
     """
     Convert and write a Python config object to config files of different types.
@@ -36,16 +36,6 @@ def writeConfig(
     dst_path : StrPath
         Path-like object pointing to a supported config file.
         Note: the file does not have to exist.
-
-    comments : Any, optional
-        Comments associated with the settings in the config which will
-        be written to the config file alongside the config.
-        Note: Does not currently work.
-        By default None.
-
-    sort : bool, optional
-        Sort the Python config object by section name before writing.
-        By default False.
     """
     dst_dir = Path(os.path.dirname(dst_path))
     file = os.path.split(dst_path)[1]
@@ -55,13 +45,9 @@ def writeConfig(
 
         if isinstance(config, Model):
             config = config.model_dump()
-        if sort and isinstance(config, dict):
-            config = dict(
-                sorted(config.items())
-            )  # Sort the dictionary by section, i.e. top-level keys
 
         if extension.lower() == "toml":
-            _generateTOMLconfig(config, dst_path, comments)
+            _generateTOMLconfig(config, dst_path)
         elif extension.lower() == "ini":
             _generateINIconfig(config, dst_path)
         elif extension.lower() == "json":
@@ -76,7 +62,8 @@ def writeConfig(
         raise
 
 
-def _generateTOMLconfig(config: dict, dstPath: StrPath, comments: Any) -> None:
+# TODO: Make recursive
+def _generateTOMLconfig(config: dict, dstPath: StrPath) -> None:
     """Convert a Python config object to the '.toml'-format and write it to a '.toml' file.
 
     Parameters
@@ -87,30 +74,13 @@ def _generateTOMLconfig(config: dict, dstPath: StrPath, comments: Any) -> None:
     dstPath : StrPath
         Path-like object pointing to a toml file.
         Note: the file does not have to exist.
-
-    comments : Any
-        Comments associated with the settings in the config.
     """
     fileName = os.path.split(dstPath)[1]
     doc = tomlkit.document()
-    prevWasComment = False
-    for section, keys in config.items():
+    for key, value in config.items():
         table = tomlkit.table()
-        for i, key in enumerate(keys):
-            if comments:
-                if hasattr(comments, key):
-                    prevWasComment = True
-                    if i != 0:  # Do not make newline right after section
-                        table.add(tomlkit.nl())
-                    for comment in comments.__getattribute__(
-                        key
-                    ):  # Write multi-line comments
-                        table.add(tomlkit.comment(comment))
-                elif prevWasComment:
-                    table.add(tomlkit.nl())
-            prevWasComment = False
-            table.append(key, keys[key])
-        doc.append(section, table)
+        table.append(key, value)
+        doc.append(key, table)
 
     with open(dstPath, "w", encoding="utf-8") as file:
         logger.debug(f"Writing '{fileName}' to '{dstPath}'")
@@ -129,19 +99,30 @@ def _generateINIconfig(config: dict, dstPath: StrPath) -> None:
         Path-like object pointing to a ini file.
         Note: the file does not have to exist.
     """
-    iniConfig = ""
-    fileName = os.path.split(dstPath)[1]
-    for section in config:
-        keys = config[section]
-        table = ""
-        for key in keys:
-            table += f"{key} = {keys[key]}\n"
-        table += "\n"
-        iniConfig += f"[{section}]" + "\n" + table
+    document = ""
+    q = deque()  # type: deque[dict]
+    q.append(config)
+    parents = deque()  # type: deque[str]
 
+    while q:
+        table = ""
+        current_parent = f"{parents[0]}." if parents else ""
+        for key, value in q.popleft().items():
+            if isinstance(value, dict):
+                parents.append(f"{current_parent}{key}")
+                q.append(value)
+            else:
+                table += f"{key} = {value}\n"
+        else:
+            if table:
+                section_header = f"[{parents.popleft()}]" if parents else ""
+                document += section_header + "\n"
+                document += table + "\n\n"
+
+    fileName = os.path.split(dstPath)[1]
     with open(dstPath, "w", encoding="utf-8") as file:
         logger.debug(f"Writing '{fileName}' to '{dstPath}'")
-        file.write(iniConfig)
+        file.write("".join(document))
 
 
 def _generateJSONConfig(config: dict, dstPath: StrPath) -> None:
@@ -188,61 +169,89 @@ def backupConfig(srcPath: StrPath) -> None:
         )
 
 
-def checkMissingFields(raw_config: dict, template_config: dict) -> None:
-    """Compare the raw_config against the template_config for missing
+def checkMissingFields(config: dict, template: dict) -> None:
+    """Compare the config against the template for missing
     sections/settings and vice versa.
 
     Parameters
     ----------
-    raw_config : dict
-        A config read from a file.
+    config : dict
+        The config loaded from a file.
 
-    template_config : dict
-        The template version of the raw config file.
+    template : dict
+        The template used to create `config`.
 
     Raises
     ------
     MissingFieldError
         If any missing or unknown sections/settings are found.
     """
-    allErrors, sectionErrors, fieldErrors = [], [], []
-    for section in template_config:  # Check sections
-        sectionExistsInConfig = section in raw_config
-        if not sectionExistsInConfig:
-            sectionErrors.append(f"Missing section '{section}'")
-        else:
-            for setting in template_config[section]:  # Check settings in a section
-                if sectionExistsInConfig and setting not in raw_config[section]:
-                    fieldErrors.append(
-                        f"Missing setting '{setting}' in section '{section}'"
-                    )
+    all_errors, section_errors, field_errors = [], [], []
+    parents = []
 
-    for section in raw_config:  # Check sections
-        sectionShouldExist = section in template_config
-        if not sectionShouldExist:
-            if isinstance(raw_config[section], dict):
-                sectionErrors.append(f"Unknown section '{section}'")
-            else:
-                # NOTE: Sectionless settings are interpreted as sections by the parser
-                fieldErrors.append(f"Setting '{section}' does not belong to a section")
-        else:
-            for setting in raw_config[section]:  # Check settings in a section
-                if sectionShouldExist and setting not in template_config[section]:
-                    fieldErrors.append(
-                        f"Unknown setting '{setting}' in section '{section}'"
+    def searchFields(
+        config: dict, template: dict, search_mode: Literal["missing", "unknown"]
+    ) -> None:
+        """Helper function to keep track of parents while traversing.
+        Use `search_mode` to select which type of field to search for.
+
+        Parameters
+        ----------
+        config : dict
+            The config loaded from a file.
+
+        template : dict
+            The template used to create `config`.
+
+        search_mode : Literal["missing", "unknown"]
+            Specify which type of field to search for.
+        """
+        # The dict to search depth-first in. Should be opposite of validation dict
+        search_dict = template if search_mode == "missing" else config
+        # The dict to compare the search dict against. Should be opposite of search dict
+        validation_dict = config if search_mode == "missing" else template
+        for key, value in search_dict.items():
+            # The template is still nested (dict key/value pairs, i.e., sections)
+            if isinstance(value, dict):
+                if key in validation_dict:  # section exists
+                    parents.append(key)
+                    next_search = (
+                        (config[key], value)
+                        if search_mode == "missing"
+                        else (value, template[key])
                     )
+                    searchFields(*next_search, search_mode=search_mode)
+                else:
+                    section_errors.append(
+                        f"{search_mode.capitalize()} {f"subsection '{".".join(parents)}.{key}'" if parents else f"section '{key}'"}"
+                    )
+            # We've reached the bottom of the nesting (non-dict key/value pairs)
+            elif key not in validation_dict:
+                if parents:
+                    field_errors.append(
+                        f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{".".join(parents)}'"}"
+                    )
+                else:
+                    field_errors.append(f"{search_mode.capitalize()} setting '{key}'")
+        else:
+            if parents:
+                parents.pop()
+
+    searchFields(config, template, search_mode="missing")
+    searchFields(config, template, search_mode="unknown")
+
     # Ensure all section errors are displayed first
-    allErrors.extend(sectionErrors)
-    allErrors.extend(fieldErrors)
-    if len(allErrors) > 0:
-        raise MissingFieldError(allErrors)
+    all_errors.extend(section_errors)
+    all_errors.extend(field_errors)
+    if len(all_errors) > 0:
+        raise MissingFieldError(all_errors)
 
 
 def loadConfig(
     config_name: str,
     config_path: StrPath,
     validator: Optional[Callable[[Mapping], dict[str, Any]]] = None,
-    template_config: Optional[dict[str, Any]] = None,
+    template: Optional[dict[str, Any]] = None,
     do_write_config: bool = True,
     use_validator_on_error: bool = True,
     retries: int = 1,
@@ -261,9 +270,9 @@ def loadConfig(
         A callable that validates the specific config.
         Must take the raw config as input and return a validated dict instance.
 
-    template_config : dict[str, Any] | None, optional
+    template : dict[str, Any] | None, optional
         A validated config created by the supplied validation model.
-        NOTE: Must be supplied if *do_write_config* is True.
+        NOTE: Must be supplied if `do_write_config` is True.
         By default None.
 
     do_write_config : bool, optional
@@ -277,14 +286,14 @@ def loadConfig(
 
     retries : int, optional
         Reload the config X times if soft errors occur.
-        Note: This has no effect if *doWriteConfig* is False.
+        Note: This has no effect if `do_write_config` is False.
         By default 1.
 
     Returns
     -------
     tuple[dict[str, Any] | None, bool]
         Returns a tuple of values:
-        * [0]: The config file converted to a Python object (dict)
+        * [0]: The config file converted to a dict
         * [1]: True if the config failed to load. Otherwise, False
 
     Raises
@@ -318,7 +327,7 @@ def loadConfig(
         logger.debug(formatValidationError(err))
         if do_write_config:
             backupConfig(config_path)
-            writeConfig(template_config, config_path)
+            writeConfig(template, config_path)
     except MissingFieldError as err:
         isError, isRecoverable = True, True
         err_msg = f"{config_name}: Detected incorrect fields in '{filename}':\n"
@@ -327,7 +336,7 @@ def loadConfig(
         logger.warning(err_msg)
         if do_write_config:
             logger.info(f"{config_name}: Repairing config")
-            repairedConfig = upgradeConfig(raw_config, template_config)
+            repairedConfig = repairConfig(raw_config, template)
             backupConfig(config_path)
             writeConfig(repairedConfig, config_path)
     except (InvalidMasterKeyError, AssertionError) as err:
@@ -335,20 +344,23 @@ def loadConfig(
         logger.warning(f"{config_name}: {err.args[0]}")
         if do_write_config:
             backupConfig(config_path)
-            writeConfig(template_config, config_path)
-    except (tomlkit.exceptions.ParseError, IniParseError) as err:
+            writeConfig(template, config_path)
+    except (
+        tomlkit.exceptions.ParseError,
+        IniParseError,
+    ) as err:  # TODO: Add separate except with JSONDecodeError
         isError, isRecoverable = True, True
         logger.warning(
             f"{config_name}: Failed to parse '{filename}':\n  {err.args[0]}\n"
         )
         if do_write_config:
             backupConfig(config_path)
-            writeConfig(template_config, config_path)
+            writeConfig(template, config_path)
     except FileNotFoundError:
         isError, isRecoverable = True, True
         logger.info(f"{config_name}: Creating '{filename}'")
         if do_write_config:
-            writeConfig(template_config, config_path)
+            writeConfig(template, config_path)
     except Exception:
         isError, isRecoverable = True, False
         logger.error(
@@ -366,7 +378,7 @@ def loadConfig(
                     config_name=config_name,
                     config_path=config_path,
                     validator=validator if use_validator_on_error else None,
-                    template_config=template_config,
+                    template=template,
                     do_write_config=do_write_config,
                     retries=retries - 1,
                 )
@@ -375,9 +387,9 @@ def loadConfig(
             else:
                 failure = True
                 load_failure_msg = f"{config_name}: Failed to load '{filename}'"
-                if template_config:
+                if template:
                     load_failure_msg += ". Switching to template config"
-                    config = template_config  # Use template config if all else fails
+                    config = template  # Use template config if all else fails
                     logger.warning(load_failure_msg)
                 else:
                     logger.error(load_failure_msg)
@@ -394,27 +406,27 @@ def validateValue(
     value: Any,
     parent_key: Optional[str] = None,
 ) -> tuple[bool, bool]:
-    """Validate a value in the supplied config.
+    """Validate a value in `config`.
 
     Parameters
     ----------
     config_name : str
-        The name of the *config*.
+        The name of `config`.
 
     config : dict
-        A Python config object.
+        Dict to validate.
 
     validator : Callable[[dict], dict]
-        The validator callable which validates the config.
+        The validator callable that validates `config`.
 
     key : str
         The key whose value should be updated.
 
     value : Any
-        The value whose should be saved.
+        The new value to save using `key`.
 
     parent_key : str | None, optional
-        *key* must exists with the scope of this key.
+        If not None, `key` must exists within the scope of `parent_key`.
 
     Returns
     -------
@@ -432,7 +444,9 @@ def validateValue(
         validator(config, config_name)
     except ValidationError as err:
         is_error, is_valid = True, False
-        insertDictValue(config, setting, old_value[0])  # Restore value
+        insertDictValue(
+            config, setting, old_value[0], parent_key=parent_key
+        )  # Restore value
         logger.warning(
             f"Config '{config_name}': Unable to validate value '{value}' for setting '{setting}': "
             + formatValidationError(err)
@@ -447,39 +461,33 @@ def validateValue(
         return is_error, is_valid
 
 
-# TODO: Each config should specify a method for upgrading it
-def upgradeConfig(
-    validated_config: NestedDict, template_config: NestedDict
-) -> NestedDict:
-    """Preserve all valid values in the config when some fields are determined invalid.
-    Note: does not support sectionless configs.
+def repairConfig(config: dict, template: dict) -> dict:
+    """Preserve all valid values in `config` when some of its fields are determined invalid.
+    Fields are taken from `template` if they could not be preserved from `config`.
 
     Parameters
     ----------
-    validated_config : NestedDict
-        The config, loaded from disk and validated, which contains invalid fields.
+    config : dict
+        The config loaded from a file.
 
-    template_config : NestedDict
-        The template of the *validated_config*.
+    template : dict
+        The template used to create `config`.
 
     Returns
     -------
-    NestedDict
-        The config where all values are valid with as many as possible
-        preserved from the *validated_config*.
+    dict
+        A new config where all values are valid with as many as possible
+        preserved from `config`.
     """
-    # TODO: Add support for sectionless configs
-    new_config = {}
-    for section_name, section in template_config.items():
-        new_config |= {section_name: {}}
-        for setting, options in section.items():
-            if (
-                section_name in validated_config
-                and setting in validated_config[section_name]
-            ):
-                new_config[section_name] |= {
-                    setting: validated_config[section_name][setting]
-                }
-            else:
-                new_config[section_name] |= {setting: options}
-    return new_config
+    repaired_config = {}
+    for template_key, value in template.items():
+        if isinstance(value, dict) and template_key in config:
+            # Search config/template recursively, depth-first
+            repaired_config |= {template_key: repairConfig(config[template_key], value)}
+        elif template_key in config:
+            # Preserve value from config
+            repaired_config |= {template_key: config[template_key]}
+        else:
+            # Use value from template
+            repaired_config |= {template_key: value}
+    return repaired_config
