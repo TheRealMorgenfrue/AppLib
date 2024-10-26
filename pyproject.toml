@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = ""
+name = "App Component Library"
 dynamic = ["version", "authors"]
-description = "A small example package"
+description = "The Application Component Library for all my GUI apps"
 readme = "README.md"
 requires-python = "==3.12"
