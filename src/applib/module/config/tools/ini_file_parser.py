@@ -7,7 +7,7 @@ from ...tools.utilities import decodeInput
 
 class IniFileParser:
     @classmethod
-    def _getBool(self, value: str):
+    def _getBool(cls, value: str):
         if value.lower() == "true":
             return True
         elif value.lower() == "false":
@@ -15,7 +15,7 @@ class IniFileParser:
         return None
 
     @classmethod
-    def _getNumber(self, value: str) -> Union[float, int, str]:
+    def _getNumber(cls, value: str) -> Union[float, int, str]:
         """Returns value if not number"""
         try:
             if value.count(".") == 1:
@@ -27,7 +27,7 @@ class IniFileParser:
         return value
 
     @classmethod
-    def load(self, fp: IO[str] | IO[bytes]) -> dict:
+    def load(cls, fp: IO[str] | IO[bytes]) -> dict:
         """Read a .ini file and convert it to a Python object.
 
         Parameters
@@ -44,8 +44,8 @@ class IniFileParser:
         config = {}
         kv_list, sections, keys, values = [], [], [], []
         current_section = None
-        #                         Contains 3 capture groups: Section, Key, Value
-        pattern = re.compile(r"(?<!.)\[(\w*)\]|(?<!.)(\w+)\s{0,1}=(?(2)\s{0,1}(.*))")
+        #                     Contains 3 capture groups: Section, Key, Value
+        pattern = re.compile(r"(?<!.)\[(.*)\]|(?<!.)(.+)=(?(2)(.*))")
         for i, line in enumerate(file_content):
             if line == "":
                 continue
@@ -57,15 +57,13 @@ class IniFileParser:
                 raise IniParseError(err_msg)
 
             found_section = match.group(1)
-            key = match.group(2)
-            value = match.group(3)
+            key = match.group(2).strip()
+            value = match.group(3).strip()
 
             if key is not None:
                 keys.append(key)
-                boolVal = self._getBool(value)
-                values.append(
-                    boolVal if boolVal is not None else self._getNumber(value)
-                )
+                boolVal = cls._getBool(value)
+                values.append(boolVal if boolVal is not None else cls._getNumber(value))
 
             if found_section is not None:
                 # Save the current section's key/value pairs
