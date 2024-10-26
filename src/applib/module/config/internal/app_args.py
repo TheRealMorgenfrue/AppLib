@@ -55,7 +55,7 @@ class AppArgs:
     app_dir = getAppPath()
 
     # Files
-    app_toml = "app_config.toml"
+    app_config_file = "app_config.toml"
 
     # Names
     app_name = "AppLib"
@@ -78,7 +78,7 @@ class AppArgs:
 
     # Configs
     config_dir = Path(app_dir, "configs")
-    app_config_path = Path(config_dir, app_toml).resolve()
+    app_config_path = Path(config_dir, app_config_file).resolve()
 
     # Assets
     assets_dir = Path(getAssetsPath(), "assets")

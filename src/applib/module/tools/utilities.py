@@ -286,7 +286,7 @@ def insertDictValue(
                 parentKeys.append(k)
                 traverseDict(v, _key, _value, _parent_key)
             elif k == _key:
-                if parent_key:
+                if parent_key is not None:
                     if _parent_key in parentKeys:
                         _input[k] = _value
                         old_value.append(v)

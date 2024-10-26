@@ -94,7 +94,7 @@ class ConfigBase:
             config_name=self._config_name,
             config_path=self._config_path,
             validator=self._validateLoad,
-            template_config=self._template_config,
+            template=self._template_config,
         )
         return config
 
