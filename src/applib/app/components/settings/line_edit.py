@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import LineEdit
 from PyQt6.QtWidgets import QWidget
 
@@ -5,11 +6,10 @@ from typing import Optional, override
 
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
-
 from module.tools.types.config import AnyConfig
 
 
-class ConfigLineEdit(BaseSetting):
+class CoreLineEdit(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -25,7 +25,7 @@ class ConfigLineEdit(BaseSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

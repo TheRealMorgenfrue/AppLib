@@ -1,17 +1,18 @@
+from __future__ import annotations
 from abc import abstractmethod
 import traceback
 from PyQt6.QtWidgets import QWidget
 from typing import Any, Optional
 
 from ..common.core_signalbus import core_signalbus
-from ..components.settings.file_selection import ConfigFileSelect
-from ..components.settings.checkbox import ConfigCheckBox
-from ..components.settings.color_picker import ConfigColorPicker
-from ..components.settings.combobox import ConfigComboBox
-from ..components.settings.line_edit import ConfigLineEdit
-from ..components.settings.slider import ConfigSlider
-from ..components.settings.spinbox import ConfigSpinBox
-from ..components.settings.switch import ConfigSwitch
+from ..components.settings.file_selection import CoreFileSelect
+from ..components.settings.checkbox import CoreCheckBox
+from ..components.settings.color_picker import CoreColorPicker
+from ..components.settings.combobox import CoreComboBox
+from ..components.settings.line_edit import CoreLineEdit
+from ..components.settings.slider import CoreSlider
+from ..components.settings.spinbox import CoreSpinBox
+from ..components.settings.switch import CoreSwitch
 from .generator_tools import (
     UIGrouping,
     inferType,
@@ -104,7 +105,7 @@ class GeneratorBase:
             The setting widget object if created succesfully, else `None`.
         """
         if card_type == UITypes.CHECKBOX:
-            widget = ConfigCheckBox(
+            widget = CoreCheckBox(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -112,7 +113,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.COLOR_PICKER:
-            widget = ConfigColorPicker(
+            widget = CoreColorPicker(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -120,7 +121,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.COMBOBOX:
-            widget = ConfigComboBox(
+            widget = CoreComboBox(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -129,7 +130,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.FILE_SELECTION:
-            widget = ConfigFileSelect(
+            widget = CoreFileSelect(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -141,7 +142,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.LINE_EDIT:
-            widget = ConfigLineEdit(
+            widget = CoreLineEdit(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -154,7 +155,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.SLIDER:
-            widget = ConfigSlider(
+            widget = CoreSlider(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -165,7 +166,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.SPINBOX:
-            widget = ConfigSpinBox(
+            widget = CoreSpinBox(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,
@@ -174,7 +175,7 @@ class GeneratorBase:
                 parent=parent,
             )
         elif card_type == UITypes.SWITCH:
-            widget = ConfigSwitch(
+            widget = CoreSwitch(
                 config=self._config,
                 configkey=setting_name,
                 configname=self._config_name,

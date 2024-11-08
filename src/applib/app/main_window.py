@@ -36,7 +36,7 @@ from module.config.internal.testargs import TestArgs
 from module.logging import logger
 
 
-class MainWindow(MSFluentWindow):
+class CoreMainWindow(MSFluentWindow):
     _logger = logger
 
     def __init__(self):
@@ -55,15 +55,14 @@ class MainWindow(MSFluentWindow):
             from module.config.app_config import AppConfig
 
             self._app_config = AppConfig()
-
             self._connectSignalToSlot()
 
             # The rest of the modules imported here to make sure
             # the splash screen is loaded before anything else
             try:
-                from .settings_interface import SettingsInterface
+                from .settings_interface import CoreSettingsInterface
 
-                self.settingsInterface = SettingsInterface(self)
+                self.settingsInterface = CoreSettingsInterface(self)
             except Exception:
                 self.errorLog.append(
                     traceback.format_exc(limit=TestArgs.traceback_limit)
@@ -71,9 +70,9 @@ class MainWindow(MSFluentWindow):
                 self.settingsInterface = None
 
             try:
-                from .home_interface import HomeInterface
+                from .home_interface import CoreHomeInterface
 
-                self.homeInterface = HomeInterface(self)
+                self.homeInterface = CoreHomeInterface(self)
             except Exception:
                 self.errorLog.append(
                     traceback.format_exc(limit=TestArgs.traceback_limit)
@@ -81,9 +80,9 @@ class MainWindow(MSFluentWindow):
                 self.homeInterface = None
 
             try:
-                from .process_interface import ProcessInterface
+                from .process_interface import CoreProcessInterface
 
-                self.processInterface = ProcessInterface(self)
+                self.processInterface = CoreProcessInterface(self)
             except Exception:
                 self.errorLog.append(
                     traceback.format_exc(limit=TestArgs.traceback_limit)

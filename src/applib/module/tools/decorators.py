@@ -1,7 +1,5 @@
 import sys
 
-from ..config.internal.app_args import AppArgs
-
 
 def export(func):
     """Function decorator for adding function to __all__ automatically.
@@ -27,6 +25,8 @@ def makeAppArgs(cls):
 
     Must only be used once!
     """
+    from ..config.internal.app_args import AppArgs
+
     for k, v in cls.__dict__.items():
         # Ensure in-built attributes are not copied (i.e. prefix or postfix is not "__")
         if k[:2].count("_") != 2 and k[-2:].count("_") != 2:

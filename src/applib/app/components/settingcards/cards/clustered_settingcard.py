@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import (
     FluentIconBase,
     FluentStyleSheet,

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import os
 from qfluentwidgets import PushButton
 from PyQt6.QtWidgets import QWidget, QFileDialog
@@ -6,11 +7,12 @@ from typing import Optional, override
 
 from .base_setting import BaseSetting
 
-from module.tools.types.config import AnyConfig
+
 from module.tools.types.general import StrPath
+from module.tools.types.config import AnyConfig
 
 
-class ConfigFileSelect(BaseSetting):
+class CoreFileSelect(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -27,7 +29,7 @@ class ConfigFileSelect(BaseSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

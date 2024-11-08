@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import CheckBox, ToolTipFilter, ToolTipPosition, TextWrap
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from PyQt6.QtCore import Qt

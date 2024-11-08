@@ -118,7 +118,7 @@ class BannerWidget(QWidget):
             painter.fillPath(path, QBrush(pixmap))
 
 
-class HomeInterface(ScrollArea):
+class CoreHomeInterface(ScrollArea):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
         self.banner = BannerWidget(self)

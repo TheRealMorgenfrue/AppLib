@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import SpinBox, DoubleSpinBox
 from PyQt6.QtWidgets import QWidget
 
@@ -7,7 +8,7 @@ from .range_setting import RangeSetting
 from module.tools.types.config import AnyConfig
 
 
-class ConfigSpinBox(RangeSetting):
+class CoreSpinBox(RangeSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -21,7 +22,7 @@ class ConfigSpinBox(RangeSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

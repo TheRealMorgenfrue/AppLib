@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import FluentIconBase
 from qfluentwidgets import FluentIcon as FIF
 from PyQt6.QtWidgets import QWidget
@@ -57,7 +58,7 @@ class CardGenerator(GeneratorBase):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             The config object from which cards receive/store their values.
 
         template : AnyTemplate

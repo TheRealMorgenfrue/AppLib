@@ -1,3 +1,4 @@
+from __future__ import annotations
 from PyQt6.QtWidgets import QWidget
 from typing import Any, Optional, override
 
@@ -46,7 +47,7 @@ class CardWidgetGenerator(GeneratorBase):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             The config object from which cards receive/store their values.
 
         template : AnyTemplate

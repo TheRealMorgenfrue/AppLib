@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import ColorPickerButton
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QColor
@@ -5,11 +6,10 @@ from PyQt6.QtGui import QColor
 from typing import Optional, override
 
 from .base_setting import BaseSetting
-
 from module.tools.types.config import AnyConfig
 
 
-class ConfigColorPicker(BaseSetting):
+class CoreColorPicker(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -22,7 +22,7 @@ class ConfigColorPicker(BaseSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting
 
         configkey : str

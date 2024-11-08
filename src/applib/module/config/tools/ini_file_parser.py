@@ -57,13 +57,15 @@ class IniFileParser:
                 raise IniParseError(err_msg)
 
             found_section = match.group(1)
-            key = match.group(2).strip()
-            value = match.group(3).strip()
+            key = match.group(2)
+            value = match.group(3)
 
             if key is not None:
-                keys.append(key)
+                keys.append(key.strip())
                 boolVal = cls._getBool(value)
-                values.append(boolVal if boolVal is not None else cls._getNumber(value))
+                values.append(
+                    boolVal if boolVal is not None else cls._getNumber(value.strip())
+                )
 
             if found_section is not None:
                 # Save the current section's key/value pairs

@@ -1,7 +1,5 @@
 """The `version` module holds the version information for the app."""
 
-from __future__ import annotations as _annotations
-
 __all__ = "VERSION"
 
 VERSION = "0.0.1"

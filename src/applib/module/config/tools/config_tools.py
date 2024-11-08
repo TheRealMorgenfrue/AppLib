@@ -77,10 +77,11 @@ def _generateTOMLconfig(config: dict, dstPath: StrPath) -> None:
     """
     fileName = os.path.split(dstPath)[1]
     doc = tomlkit.document()
-    for key, value in config.items():
+    for section, keys in config.items():
         table = tomlkit.table()
-        table.append(key, value)
-        doc.append(key, table)
+        for key in keys:
+            table.append(key, keys[key])
+        doc.append(section, table)
 
     with open(dstPath, "w", encoding="utf-8") as file:
         logger.debug(f"Writing '{fileName}' to '{dstPath}'")

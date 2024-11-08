@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import Slider
 from PyQt6.QtWidgets import QWidget, QLabel
 from PyQt6.QtCore import Qt
@@ -6,11 +7,12 @@ from typing import Optional, override
 
 from .range_setting import RangeSetting
 from module.config.internal.app_args import AppArgs
-from module.tools.types.config import AnyConfig
+
 from module.tools.utilities import dictLookup
+from module.tools.types.config import AnyConfig
 
 
-class ConfigSlider(RangeSetting):
+class CoreSlider(RangeSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -26,7 +28,7 @@ class ConfigSlider(RangeSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

@@ -1,4 +1,5 @@
-from typing import Any, Optional, override
+from __future__ import annotations
+from typing import Optional, override
 from qfluentwidgets import CheckBox
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtBoundSignal
@@ -7,7 +8,7 @@ from .bool_setting import BoolSetting
 from module.tools.types.config import AnyConfig
 
 
-class ConfigCheckBox(BoolSetting):
+class CoreCheckBox(BoolSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -20,7 +21,7 @@ class ConfigCheckBox(BoolSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

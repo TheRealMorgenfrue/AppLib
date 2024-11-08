@@ -1,21 +1,21 @@
 from typing import TypeAlias
 
-from app.components.settings.checkbox import ConfigCheckBox
-from app.components.settings.color_picker import ConfigColorPicker
-from app.components.settings.combobox import ConfigComboBox
-from app.components.settings.line_edit import ConfigLineEdit
-from app.components.settings.slider import ConfigSlider
-from app.components.settings.spinbox import ConfigSpinBox
-from app.components.settings.switch import ConfigSwitch
+from app.components.settings.checkbox import CoreCheckBox
+from app.components.settings.color_picker import CoreColorPicker
+from app.components.settings.combobox import CoreComboBox
+from app.components.settings.line_edit import CoreLineEdit
+from app.components.settings.slider import CoreSlider
+from app.components.settings.spinbox import CoreSpinBox
+from app.components.settings.switch import CoreSwitch
 
 AnySetting: TypeAlias = (
-    ConfigColorPicker
-    | ConfigComboBox
-    | ConfigLineEdit
-    | ConfigSlider
-    | ConfigSpinBox
-    | ConfigSwitch
-    | ConfigCheckBox
+    CoreColorPicker
+    | CoreComboBox
+    | CoreLineEdit
+    | CoreSlider
+    | CoreSpinBox
+    | CoreSwitch
+    | CoreCheckBox
 )
 
-AnyBoolSetting: TypeAlias = ConfigSwitch | ConfigCheckBox
+AnyBoolSetting: TypeAlias = CoreSwitch | CoreCheckBox

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import abstractmethod
 from qfluentwidgets import (
     FluentIconBase,
@@ -47,10 +48,10 @@ class SettingCardBase(CardBase, QFrame):
         self.hideOption = True
         self.isDisabled = False
 
-        self._initLayout()
+        self.__initLayout()
         self._setQss()
 
-    def _initLayout(self) -> None:
+    def __initLayout(self) -> None:
         self.iconLabel.setFixedSize(16, 16)
 
         self.titleLabel.setSizePolicy(

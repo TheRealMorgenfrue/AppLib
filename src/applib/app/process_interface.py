@@ -153,7 +153,7 @@ class FlowingConsoles(ScrollArea):
         self.flowLayout.setVerticalSpacing(30)
 
 
-class ProcessInterface(ScrollArea):
+class CoreProcessInterface(ScrollArea):
     _logger = logger
     _app_config = AppConfig()
 

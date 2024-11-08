@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Iterable
 
 from ..components.settingcards.card_base import DisableWrapper

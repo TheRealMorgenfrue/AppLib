@@ -1,14 +1,14 @@
+from __future__ import annotations
 from qfluentwidgets import ComboBox
 from PyQt6.QtWidgets import QWidget
 
 from typing import Optional, Union, override
 
 from .base_setting import BaseSetting
-
 from module.tools.types.config import AnyConfig
 
 
-class ConfigComboBox(BaseSetting):
+class CoreComboBox(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -22,7 +22,7 @@ class ConfigComboBox(BaseSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str

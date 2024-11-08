@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import CardWidget
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from PyQt6.QtCore import Qt
@@ -12,7 +13,7 @@ from .settingwidget import (
 from module.tools.types.gui_settings import AnySetting
 
 
-class CardWidget_(CardWidget):
+class AppLibCardWidget(CardWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.vCardLayout = QVBoxLayout(self)
@@ -43,7 +44,7 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
             parent=parent,
         )
         self.vGeneralLayout = QVBoxLayout(self)
-        self._cardWidget = CardWidget_()
+        self._cardWidget = AppLibCardWidget()
 
         self.settingWidget = SettingWidget(
             setting=setting,

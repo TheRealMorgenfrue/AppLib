@@ -3,8 +3,6 @@ Git utilities, adopted from mypy's git utilities (https://github.com/python/mypy
 This file is courtesy of Pydantic's _git module.
 """
 
-from __future__ import annotations
-
 import os
 import subprocess
 

@@ -1,10 +1,10 @@
 import traceback
-import os
-from typing import Any, Hashable, Optional
+from typing import Any, Hashable, Optional, Union
 
-from qfluentwidgets import ScrollArea, qrouter, PopUpAniStackedWidget
+from qfluentwidgets import ScrollArea, qrouter, PopUpAniStackedWidget, FluentIconBase
 from PyQt6.QtCore import Qt, QEasingCurve
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtGui import QIcon
 
 from .common.core_stylesheet import CoreStyleSheet
 from .components.infobar_test import InfoBar, InfoBarPosition
@@ -15,7 +15,7 @@ from module.config.internal.app_args import AppArgs
 from module.logging import logger
 
 
-class SettingsInterface(ScrollArea):
+class CoreSettingsInterface(ScrollArea):
     _logger = logger
 
     def __init__(self, parent: Optional[QWidget] = None):
@@ -26,15 +26,29 @@ class SettingsInterface(ScrollArea):
             self.vBoxLayout = QVBoxLayout(self.view)
             self.stackedWidget = PopUpAniStackedWidget()
 
-            self.app_settings = None
-            self.pu_settings = None
-
             self._initWidget()
-
-            self._loadAppInterface()
+            self.__loadAppInterface()  # For testing purposes
         except Exception:
             self.deleteLater()
             raise
+
+    def __loadAppInterface(self) -> None:
+        # For testing purposes
+        try:
+            self.app_settings = SettingsInterface_App()
+        except Exception:
+            self._logger.error(
+                f"Could not load {AppArgs.app_name} settings panel\n"
+                + traceback.format_exc(limit=AppArgs.traceback_limit)
+            )
+            self.app_settings = None
+        self._createSampleCard(
+            widget_id=AppArgs.app_name,
+            # REVIEW: Set your own icon!
+            icon=f"{AppArgs.logo_dir}/logo.png",
+            title=AppArgs.app_name,
+            widget=self.app_settings,
+        )
 
     def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -79,25 +93,12 @@ class SettingsInterface(ScrollArea):
                 parent=self,
             )
 
-    def _loadAppInterface(self) -> None:
-        try:
-            self.app_settings = SettingsInterface_App()
-        except Exception:
-            self._logger.error(
-                f"Could not load {AppArgs.app_name} settings panel\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
-            )
-            self.app_settings = None
-        self._createSampleCard(
-            widget_id=AppArgs.app_name,
-            # REVIEW: Set your own icon!
-            icon=f"{AppArgs.logo_dir}/logo.png",
-            title=AppArgs.app_name,
-            widget=self.app_settings,
-        )
-
     def _createSampleCard(
-        self, widget_id: Hashable, icon, title: str, widget: QWidget | None
+        self,
+        widget_id: Hashable,
+        icon: Union[str, QIcon, FluentIconBase],
+        title: str,
+        widget: QWidget | None,
     ):
         if widget:
             self._addSampleCardWidget(widget_id, widget)

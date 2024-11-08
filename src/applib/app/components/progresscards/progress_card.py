@@ -31,10 +31,10 @@ class ProgressCard(CardWidget):
         self.titleLabel = QLabel(title)
         self.progressWidget = progressWidget
 
-        self._initLayout()
+        self.__initLayout()
         self._setQss()
 
-    def _initLayout(self) -> None:
+    def __initLayout(self) -> None:
         self.setContentsMargins(10, 10, 10, 10)
 
     def _setQss(self) -> None:

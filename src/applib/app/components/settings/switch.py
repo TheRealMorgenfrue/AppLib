@@ -1,3 +1,4 @@
+from __future__ import annotations
 from qfluentwidgets import SwitchButton
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtBoundSignal
@@ -8,7 +9,7 @@ from .bool_setting import BoolSetting
 from module.tools.types.config import AnyConfig
 
 
-class ConfigSwitch(BoolSetting):
+class CoreSwitch(BoolSetting):
     def __init__(
         self,
         config: AnyConfig,
@@ -21,7 +22,7 @@ class ConfigSwitch(BoolSetting):
 
         Parameters
         ----------
-        config : AnyConfig
+        config : ConfigBase
             Config from which to get values used for this setting.
 
         configkey : str
