@@ -61,6 +61,8 @@ from .app.components.sample_card import SampleCard, SampleCardView
 from .app.generators.card_generator import CardGenerator
 from .app.generators.cardwidget_generator import CardWidgetGenerator
 from .app.generators.generatorbase import GeneratorBase
+
+from .app.core_app import CoreApp
 from .app.home_interface import CoreHomeInterface
 from .app.main_window import CoreMainWindow
 from .app.process_interface import CoreProcessInterface
