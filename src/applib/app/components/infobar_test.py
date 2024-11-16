@@ -1,6 +1,5 @@
 # This is a temporary fix for the stack overflow mentioned in
 # https://github.com/zhiyiYo/PyQt-Fluent-Widgets/issues/929
-from contextlib import redirect_stdout
 from enum import Enum
 from typing import Optional, Self, Type, Union
 import weakref
