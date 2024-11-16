@@ -9,6 +9,13 @@ Documentation is available in the docstrings.
 :license: BSD 3-Clause
 """
 
+import contextlib as __ctxl
+
+with __ctxl.redirect_stdout(None):
+    # Dirty fix to silence noisy software
+    from qfluentwidgets import QConfig as __silence
+
+
 from .app.common.auto_wrap import AutoTextWrap
 from .app.common.core_signalbus import core_signalbus
 from .app.common.core_stylesheet import CoreStyleSheet
