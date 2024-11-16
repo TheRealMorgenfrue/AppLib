@@ -27,19 +27,17 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QGraphicsOpacityEffect,
 )
-
-with redirect_stdout(None):
-    from qfluentwidgets import (
-        TextWrap,
-        FluentStyleSheet,
-        themeColor,
-        FluentIconBase,
-        Theme,
-        isDarkTheme,
-        drawIcon,
-        TransparentToolButton,
-    )
-    from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (
+    TextWrap,
+    FluentStyleSheet,
+    themeColor,
+    FluentIconBase,
+    Theme,
+    isDarkTheme,
+    drawIcon,
+    TransparentToolButton,
+)
+from qfluentwidgets import FluentIcon as FIF
 
 
 class InfoBarIcon(FluentIconBase, Enum):
