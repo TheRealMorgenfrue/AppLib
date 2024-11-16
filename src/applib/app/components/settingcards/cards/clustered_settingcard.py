@@ -17,7 +17,7 @@ from ..card_base import (
 )
 from .expanding_settingcard import GroupSeparator
 from .settingcard import FluentSettingCard
-from module.tools.types.gui_settings import AnySetting
+from .....module.tools.types.gui_settings import AnySetting
 
 
 class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):

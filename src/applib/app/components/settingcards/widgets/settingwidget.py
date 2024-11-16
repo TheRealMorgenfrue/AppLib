@@ -8,7 +8,7 @@ from typing import Any, Optional, override
 from ....common.core_stylesheet import CoreStyleSheet
 from ...fluent_label import FluentLabel
 from ..card_base import CardBase, DisableWrapper
-from module.tools.types.gui_settings import AnyBoolSetting, AnySetting
+from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 
 
 class SettingWidgetBase(CardBase, QWidget):

@@ -6,7 +6,7 @@ from PyQt6.QtCore import pyqtBoundSignal
 from typing import Optional, override
 
 from .bool_setting import BoolSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreSwitch(BoolSetting):

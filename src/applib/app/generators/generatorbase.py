@@ -20,17 +20,17 @@ from .generator_tools import (
     updateCardGrouping,
 )
 
-from module.config.internal.app_args import AppArgs
-from module.config.templates.template_enums import UIFlags, UITypes
-from module.config.tools.template_options.groups import Group
-from module.config.tools.template_parser import TemplateParser
-from module.logging import logger
-from module.tools.types.config import AnyConfig
-from module.tools.types.gui_cardgroups import AnyCardGroup
-from module.tools.types.gui_cards import AnyCard, AnySettingCard
-from module.tools.types.gui_settings import AnySetting
-from module.tools.types.templates import AnyTemplate
-from module.tools.utilities import iterToString
+from ...module.config.internal.app_args import AppArgs
+from ...module.config.templates.template_enums import UIFlags, UITypes
+from ...module.config.tools.template_options.groups import Group
+from ...module.config.tools.template_parser import TemplateParser
+from ...module.logging import logger
+from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.gui_cardgroups import AnyCardGroup
+from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
+from ...module.tools.types.gui_settings import AnySetting
+from ...module.tools.types.templates import AnyTemplate
+from ...module.tools.utilities import iterToString
 
 
 class GeneratorBase:

@@ -16,8 +16,8 @@ from .common.core_signalbus import core_signalbus
 from .common.core_stylesheet import CoreStyleSheet
 from .components.link_card import LinkCardView
 
-from module.config.app_config import AppConfig
-from module.config.internal.app_args import AppArgs
+from ..module.config.app_config import AppConfig
+from ..module.config.internal.app_args import AppArgs
 
 
 class BannerWidget(QWidget):

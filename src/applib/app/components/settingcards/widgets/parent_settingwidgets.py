@@ -10,7 +10,7 @@ from .settingwidget import (
     SettingWidget,
     SettingWidgetBase,
 )
-from module.tools.types.gui_settings import AnySetting
+from .....module.tools.types.gui_settings import AnySetting
 
 
 class AppLibCardWidget(CardWidget):

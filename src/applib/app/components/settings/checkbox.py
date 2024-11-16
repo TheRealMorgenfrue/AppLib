@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtBoundSignal
 
 from .bool_setting import BoolSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreCheckBox(BoolSetting):

@@ -2,7 +2,7 @@ from time import time
 import traceback
 from typing import Any, Mapping, Optional
 
-from app.common.core_signalbus import core_signalbus
+from ...app.common.core_signalbus import core_signalbus
 
 from .internal.app_args import AppArgs
 from .tools.config_tools import (

@@ -1,7 +1,7 @@
 from PyQt6.QtCore import pyqtSignal
 from typing import override
 
-from app.components.console_view import ConsoleView
+from ....app.components.console_view import ConsoleView
 from ..process.process_base import ProcessBase
 from ..thread.thread_manager import ThreadManager
 

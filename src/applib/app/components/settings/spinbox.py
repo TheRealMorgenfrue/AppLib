@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget
 from typing import Optional, override
 
 from .range_setting import RangeSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreSpinBox(RangeSetting):

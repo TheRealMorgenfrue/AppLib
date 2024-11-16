@@ -11,8 +11,8 @@ from .components.infobar_test import InfoBar, InfoBarPosition
 from .components.sample_card import SampleCardView
 from .settings_interface_app import SettingsInterface_App
 
-from module.config.internal.app_args import AppArgs
-from module.logging import logger
+from ..module.config.internal.app_args import AppArgs
+from ..module.logging import logger
 
 
 class CoreSettingsInterface(ScrollArea):

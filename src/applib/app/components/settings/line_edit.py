@@ -6,7 +6,7 @@ from typing import Optional, override
 
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreLineEdit(BaseSetting):

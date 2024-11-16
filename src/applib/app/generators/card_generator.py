@@ -20,11 +20,11 @@ from ..components.settingcards.cards.settingcard import (
 )
 from .generatorbase import GeneratorBase
 
-from module.config.templates.template_enums import UIGroups, UITypes
-from module.config.tools.template_options.groups import Group
-from module.tools.types.config import AnyConfig
-from module.tools.types.gui_cards import AnySettingCard
-from module.tools.types.templates import AnyTemplate
+from ...module.config.templates.template_enums import UIGroups, UITypes
+from ...module.config.tools.template_options.groups import Group
+from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.gui_cards import AnySettingCard
+from ...module.tools.types.templates import AnyTemplate
 
 """
 Explanation of terms:

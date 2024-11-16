@@ -3,7 +3,7 @@ from abc import abstractmethod
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
 
-from module.tools.types.gui_settings import AnySetting
+from ....module.tools.types.gui_settings import AnySetting
 
 
 class DisableWrapper:

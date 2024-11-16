@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QWidget
 from typing import Optional, Union, override
 
 from .base_setting import BaseSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreComboBox(BaseSetting):

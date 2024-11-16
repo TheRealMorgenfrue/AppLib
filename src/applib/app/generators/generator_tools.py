@@ -2,14 +2,14 @@ from __future__ import annotations
 from typing import Iterable
 
 from ..components.settingcards.card_base import DisableWrapper
-from module.config.internal.app_args import AppArgs
-from module.config.templates.template_enums import UIGroups, UITypes
-from module.config.tools.template_options.groups import Group
-from module.logging import logger
-from module.tools.types.gui_cardgroups import AnyCardGroup
-from module.tools.types.gui_cards import AnyCard, AnyParentCard
-from module.tools.types.gui_settings import AnyBoolSetting
-from module.tools.utilities import iterToString
+from ...module.config.internal.app_args import AppArgs
+from ...module.config.templates.template_enums import UIGroups, UITypes
+from ...module.config.tools.template_options.groups import Group
+from ...module.logging import logger
+from ...module.tools.types.gui_cardgroups import AnyCardGroup
+from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
+from ...module.tools.types.gui_settings import AnyBoolSetting
+from ...module.tools.utilities import iterToString
 
 
 class UIGrouping:

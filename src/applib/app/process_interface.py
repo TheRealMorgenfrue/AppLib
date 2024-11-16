@@ -17,12 +17,12 @@ from .components.infobar_test import InfoBar, InfoBarPosition
 from .components.progresscards.progress_ring_card import ProgressRingCard
 from .generators.cardwidget_generator import CardWidgetGenerator
 
-from module.concurrency.process.process_generator import ProcessGenerator
-from module.config.templates.app_template import AppTemplate
-from module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
-from module.config.app_config import AppConfig
-from module.config.internal.app_args import AppArgs
-from module.logging import logger
+from ..module.concurrency.process.process_generator import ProcessGenerator
+from ..module.config.templates.app_template import AppTemplate
+from ..module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
+from ..module.config.app_config import AppConfig
+from ..module.config.internal.app_args import AppArgs
+from ..module.logging import logger
 
 
 class ProcessSettings(ScrollArea):

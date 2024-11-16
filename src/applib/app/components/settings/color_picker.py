@@ -6,7 +6,7 @@ from PyQt6.QtGui import QColor
 from typing import Optional, override
 
 from .base_setting import BaseSetting
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreColorPicker(BaseSetting):

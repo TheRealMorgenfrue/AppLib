@@ -6,10 +6,10 @@ from PyQt6.QtCore import Qt
 from typing import Optional, override
 
 from .range_setting import RangeSetting
-from module.config.internal.app_args import AppArgs
+from ....module.config.internal.app_args import AppArgs
 
-from module.tools.utilities import dictLookup
-from module.tools.types.config import AnyConfig
+from ....module.tools.utilities import dictLookup
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreSlider(RangeSetting):

@@ -16,7 +16,7 @@ from PyQt6.QtGui import QIcon
 
 from typing import Optional, TypeAlias, Union, override
 
-from module.tools.types.gui_generators import AnyCardGenerator
+from ...module.tools.types.gui_generators import AnyCardGenerator
 
 # InQuad                   // Straight
 # QEasingCurve.Type.InBack      // Bounce up

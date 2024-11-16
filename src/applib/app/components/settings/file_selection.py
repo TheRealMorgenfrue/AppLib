@@ -8,8 +8,8 @@ from typing import Optional, override
 from .base_setting import BaseSetting
 
 
-from module.tools.types.general import StrPath
-from module.tools.types.config import AnyConfig
+from ....module.tools.types.general import StrPath
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreFileSelect(BaseSetting):

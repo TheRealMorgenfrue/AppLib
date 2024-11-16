@@ -3,7 +3,7 @@ import os
 from qfluentwidgets import FluentIconBase, getIconColor, Theme
 from enum import Enum
 
-from module.config.internal.app_args import AppArgs
+from ...module.config.internal.app_args import AppArgs
 
 # Example of creating custom widgets
 

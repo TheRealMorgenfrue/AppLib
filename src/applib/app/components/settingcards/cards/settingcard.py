@@ -24,7 +24,7 @@ from typing import Any, Optional, Union, override
 from ....common.core_stylesheet import CoreStyleSheet
 from ...fluent_label import FluentLabel
 from ..card_base import CardBase, DisableWrapper
-from module.tools.types.gui_settings import AnySetting
+from .....module.tools.types.gui_settings import AnySetting
 
 
 class SettingCardBase(CardBase, QFrame):

@@ -31,9 +31,9 @@ from .common.core_signalbus import core_signalbus
 from .common.core_stylesheet import CoreStyleSheet
 from .components.infobar_test import InfoBar, InfoBarPosition
 
-from module.config.internal.app_args import AppArgs
-from module.config.internal.testargs import TestArgs
-from module.logging import logger
+from ..module.config.internal.app_args import AppArgs
+from ..module.config.internal.testargs import TestArgs
+from ..module.logging import logger
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -52,7 +52,7 @@ class CoreMainWindow(MSFluentWindow):
         try:
             self._initWindow()
 
-            from module.config.app_config import AppConfig
+            from ..module.config.app_config import AppConfig
 
             self._app_config = AppConfig()
             self._connectSignalToSlot()

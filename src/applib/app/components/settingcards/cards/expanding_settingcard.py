@@ -44,7 +44,7 @@ from ..card_base import (
     ParentCardBase,
 )
 from .settingcard import FluentSettingCard
-from module.tools.types.gui_settings import AnyBoolSetting, AnySetting
+from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 
 
 class GroupSeparator(QWidget):
