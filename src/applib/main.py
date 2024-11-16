@@ -23,7 +23,6 @@ import sys
 from pathlib import Path
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget
-from app.main_window import CoreMainWindow
 
 
 class CoreApp:
@@ -96,4 +95,6 @@ class CoreApp:
 
 
 if __name__ == "__main__":
+    from app.main_window import CoreMainWindow
+
     app = CoreApp(CoreMainWindow)

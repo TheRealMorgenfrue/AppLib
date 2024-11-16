@@ -337,7 +337,7 @@ def loadConfig(
         logger.warning(err_msg)
         if do_write_config:
             logger.info(f"{config_name}: Repairing config")
-            repairedConfig = repairConfig(raw_config, template)
+            repairedConfig = upgradeConfig(raw_config, template)
             backupConfig(config_path)
             writeConfig(repairedConfig, config_path)
     except (InvalidMasterKeyError, AssertionError) as err:
@@ -462,7 +462,7 @@ def validateValue(
         return is_error, is_valid
 
 
-def repairConfig(config: dict, template: dict) -> dict:
+def upgradeConfig(config: dict, template: dict) -> dict:
     """Preserve all valid values in `config` when some of its fields are determined invalid.
     Fields are taken from `template` if they could not be preserved from `config`.
 
@@ -484,7 +484,9 @@ def repairConfig(config: dict, template: dict) -> dict:
     for template_key, value in template.items():
         if isinstance(value, dict) and template_key in config:
             # Search config/template recursively, depth-first
-            repaired_config |= {template_key: repairConfig(config[template_key], value)}
+            repaired_config |= {
+                template_key: upgradeConfig(config[template_key], value)
+            }
         elif template_key in config:
             # Preserve value from config
             repaired_config |= {template_key: config[template_key]}
