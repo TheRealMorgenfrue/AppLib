@@ -1,8 +1,8 @@
 from typing import Self, override
 
 from ..internal.app_args import AppArgs
-from ..templates.template_base import BaseTemplate
-from ..templates.template_enums import UIGroups, UITypes
+from .base_template import BaseTemplate
+from .template_enums import UIGroups, UITypes, UIFlags
 from ..validators import validateLoglevel, validateTheme
 from ..validators.generic_validator import validatePath
 from ...tools.types.general import NestedDict
@@ -77,20 +77,22 @@ class AppTemplate(BaseTemplate):
                 "maxThreads": {
                     "ui_title": f"Maxmimum number of threads to run concurrently",
                     "ui_desc": "Going beyond CPU core count will hurt performance for CPU-bound tasks",
-                    "default": 3,
+                    "default": 1,
                     "min": 1,
                     "max": None,
                     "ui_group_parent": UIGroups.CLUSTERED,
                     "ui_group": "pu_threads",
+                    "ui_flags": UIFlags.EXCLUDE,
                 },
                 "terminalSize": {
                     "ui_title": "Terminal size",
                     "ui_desc": "Set the size of the terminal in pixels",
-                    "default": 400,
+                    "default": 600,
                     "min": 400,
                     "max": None,
                     "ui_type": UITypes.SPINBOX,
                     "ui_group": "pu_threads",
+                    "ui_flags": UIFlags.EXCLUDE,
                 },
             },
         }

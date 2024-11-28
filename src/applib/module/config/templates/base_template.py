@@ -8,7 +8,7 @@ from PyQt6.QtGui import QIcon
 
 from ...logging import logger
 from ...tools.types.general import NestedDict
-from ...tools.utilities import retrieveDictValue
+from ...tools.utilities import retrieveDictValue, insertDictValue
 
 
 class BaseTemplate:
@@ -39,9 +39,11 @@ class BaseTemplate:
         instance._icons = icons
         return instance
 
-    def getValue(self, key: str, parent_key: str = None, default: Any = None) -> Any:
-        """Return first value found. If there is no item with that key, return
-        default.
+    def getValue(
+        self, key: str, parent_key: Optional[str] = None, default: Any = None
+    ) -> Any:
+        """
+        Return first value found. If there is no item with that key, return default.
 
         Has support for defining search scope with the parent key.
         A value will only be returned if it is within parent key's scope.
@@ -58,6 +60,18 @@ class BaseTemplate:
                     f"Could not find key '{key}' in the template. Returning default: '{default}'"
                 )
         return default if value is None else value
+
+    def setValue(self, key: str, value: Any, parent_key: Optional[str] = None) -> None:
+        value = insertDictValue(
+            input=self._template, key=key, value=value, parent_key=parent_key
+        )
+        if value is None:
+            if parent_key:
+                self._logger.warning(
+                    f"Could not find key '{key}' inside the scope of parent key '{parent_key}' in the template."
+                )
+            else:
+                self._logger.warning(f"Could not find key '{key}' in the template")
 
     def getTemplate(self) -> NestedDict:
         return self._template

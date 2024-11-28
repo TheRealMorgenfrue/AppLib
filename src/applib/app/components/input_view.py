@@ -20,7 +20,7 @@ class InputView(QWidget):
             Parent widget. By default None
         """
         super().__init__(parent)
-        self.vBoxLayout = QVBoxLayout(self)
+        self.vbox_layout = QVBoxLayout(self)
         self.buttonLayout = QHBoxLayout()
         self.label = QLabel(label)
         self.textEdit = TextEdit(parent=self)
@@ -41,10 +41,10 @@ class InputView(QWidget):
         self.buttonLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.buttonLayout.setSpacing(20)
 
-        self.vBoxLayout.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.vBoxLayout.addWidget(self.textEdit, stretch=2)
-        self.vBoxLayout.addLayout(self.buttonLayout)
-        self.vBoxLayout.addStretch(1)
+        self.vbox_layout.addWidget(self.label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.vbox_layout.addWidget(self.textEdit, stretch=2)
+        self.vbox_layout.addLayout(self.buttonLayout)
+        self.vbox_layout.addStretch(1)
 
     def _setQss(self) -> None:
         self.label.setObjectName("Label")

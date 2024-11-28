@@ -12,12 +12,12 @@ from PyQt6.QtWidgets import (
     QGraphicsDropShadowEffect,
 )
 
-from .common.core_signalbus import core_signalbus
-from .common.core_stylesheet import CoreStyleSheet
-from .components.link_card import LinkCardView
+from ..common.core_signalbus import core_signalbus
+from ..common.core_stylesheet import CoreStyleSheet
+from ..components.link_card import LinkCardView
 
-from ..module.config.app_config import AppConfig
-from ..module.config.internal.app_args import AppArgs
+from ...module.config.app_config import AppConfig
+from ...module.config.internal.app_args import AppArgs
 
 
 class BannerWidget(QWidget):
@@ -31,7 +31,7 @@ class BannerWidget(QWidget):
             or int(self._app_config.getValue("backgroundOpacity")) == 0
         )
 
-        self.vBoxLayout = QVBoxLayout(self)
+        self.vbox_layout = QVBoxLayout(self)
         self.galleryLabel = QLabel(f"{AppArgs.app_name}\nv{AppArgs.app_version}", self)
 
         shadow = QGraphicsDropShadowEffect()
@@ -55,11 +55,11 @@ class BannerWidget(QWidget):
         self.setMinimumHeight(350)
         self.setMaximumHeight(self.banner.height())
 
-        self.vBoxLayout.setSpacing(0)
-        self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
-        self.vBoxLayout.addWidget(self.galleryLabel)
-        self.vBoxLayout.addLayout(linkCardLayout)
-        self.vBoxLayout.setAlignment(
+        self.vbox_layout.setSpacing(0)
+        self.vbox_layout.setContentsMargins(0, 20, 0, 0)
+        self.vbox_layout.addWidget(self.galleryLabel)
+        self.vbox_layout.addLayout(linkCardLayout)
+        self.vbox_layout.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         )
 
@@ -122,23 +122,23 @@ class CoreHomeInterface(ScrollArea):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
         self.banner = BannerWidget(self)
-        self.view = QWidget(self)
-        self.vBoxLayout = QVBoxLayout(self.view)
+        self._view = QWidget(self)
+        self.vbox_layout = QVBoxLayout(self._view)
         self._initWidget()
 
     def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setWidget(self.view)
+        self.setWidget(self._view)
         self.setWidgetResizable(True)
 
-        self.vBoxLayout.setContentsMargins(0, 0, 0, 36)
-        self.vBoxLayout.setSpacing(40)
-        self.vBoxLayout.addWidget(self.banner, stretch=2)
-        self.vBoxLayout.addStretch(1)
-        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.vbox_layout.setContentsMargins(0, 0, 0, 36)
+        self.vbox_layout.setSpacing(40)
+        self.vbox_layout.addWidget(self.banner, stretch=2)
+        self.vbox_layout.addStretch(1)
+        self.vbox_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self._setQss()
 
     def _setQss(self):
-        self.view.setObjectName("view")
+        self._view.setObjectName("view")
         self.setObjectName("homeInterface")
         CoreStyleSheet.HOME_INTERFACE.apply(self)

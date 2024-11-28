@@ -32,14 +32,15 @@ class TemplateParser:
         validation_info: ValidationInfo,
     ):
         for setting, options in section.items():
-            # Gather UI groups
-            self._parseGroup(
-                setting=setting, options=options, template_name=template_name
-            )
             # Gather UI flags
             self._parseFlags(
                 setting=setting, options=options, template_name=template_name
             )
+            # Gather UI groups
+            if self._groupIsIncluded(options):
+                self._parseGroup(
+                    setting=setting, options=options, template_name=template_name
+                )
             # Gather validation info for the validation model
             self._parseValidationInfo(
                 section_name=section_name,
@@ -47,6 +48,10 @@ class TemplateParser:
                 options=options,
                 validation_info=validation_info,
             )
+
+    def _groupIsIncluded(self, options: dict[str, Any]) -> bool:
+        # options["ui_flags"] is a list after parsing flags
+        return not ("ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"])
 
     def _parseGroup(
         self, setting: str, options: dict[str, Any], template_name: str

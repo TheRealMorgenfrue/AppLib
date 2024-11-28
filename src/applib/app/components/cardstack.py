@@ -41,8 +41,8 @@ class CardStackBase(ScrollArea):
             self._cards = generator.getCards()
             self._defaultGroup = generator.getDefaultGroup()
             self.titleLabel = QLabel(self.tr(labeltext)) if labeltext else None
-            self.view = QWidget(self)
-            self.vGeneralLayout = QVBoxLayout(self.view)
+            self._view = QWidget(self)
+            self.vGeneralLayout = QVBoxLayout(self._view)
             self.hPivotLayout = QHBoxLayout()
             self.pivot = Pivot()  # type: AnyPivot
             self.pivotAlignment = pivotAlignment
@@ -64,12 +64,12 @@ class CardStackBase(ScrollArea):
     def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
-        self.setWidget(self.view)
+        self.setWidget(self._view)
         self.setWidgetResizable(True)
         self._setQss()
 
     def _setQss(self) -> None:
-        self.view.setObjectName("view")
+        self._view.setObjectName("view")
         if self.titleLabel:
             self.titleLabel.setObjectName("titleLabel")
 

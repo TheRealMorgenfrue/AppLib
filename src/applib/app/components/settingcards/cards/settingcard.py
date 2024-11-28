@@ -42,7 +42,7 @@ class SettingCardBase(CardBase, QFrame):
         self.titleLabel = FluentLabel(title)
         self.contentLabel = FluentLabel(content)
         self.hBoxLayout = QHBoxLayout()
-        self.vBoxLayout = QVBoxLayout()
+        self.vbox_layout = QVBoxLayout()
 
         self.hasDisableButton = hasDisableButton
         self.hideOption = True
@@ -69,16 +69,16 @@ class SettingCardBase(CardBase, QFrame):
         self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setContentsMargins(margin, margin, margin, margin)
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        self.vBoxLayout.setSpacing(0)
-        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
-        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.vbox_layout.setSpacing(0)
+        self.vbox_layout.setContentsMargins(0, 0, 0, 0)
+        self.vbox_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.hBoxLayout.addWidget(self.iconLabel, 0, Qt.AlignmentFlag.AlignLeft)
         self.hBoxLayout.addSpacing(16)
 
-        self.hBoxLayout.addLayout(self.vBoxLayout)
-        self.vBoxLayout.addWidget(self.titleLabel, 0, Qt.AlignmentFlag.AlignLeft)
-        self.vBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignmentFlag.AlignLeft)
+        self.hBoxLayout.addLayout(self.vbox_layout)
+        self.vbox_layout.addWidget(self.titleLabel, 0, Qt.AlignmentFlag.AlignLeft)
+        self.vbox_layout.addWidget(self.contentLabel, 0, Qt.AlignmentFlag.AlignLeft)
 
         self.hBoxLayout.addSpacing(16)
         self.hBoxLayout.addStretch(1)
@@ -360,7 +360,7 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
         h_content = max(self.contentLabel.heightForWidth(self.contentLabel.width()), 0)
         h_form = max(self.formLayout.heightForWidth(self.width()), 0)
 
-        m_vbox = self.vBoxLayout.contentsMargins()
+        m_vbox = self.vbox_layout.contentsMargins()
         h_vbox = m_vbox.top() + m_vbox.bottom()
         m_hbox = self.hBoxLayout.contentsMargins()
         h_hbox = m_hbox.top() + m_hbox.bottom()
@@ -421,7 +421,7 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
         h_flow = self.flowLayout.heightForWidth(self.width())
         # h_widget = self._currentWidget.size().height()
 
-        m_vbox = self.vBoxLayout.contentsMargins()
+        m_vbox = self.vbox_layout.contentsMargins()
         h_vbox = m_vbox.top() + m_vbox.bottom()
         m_hbox = self.hBoxLayout.contentsMargins()
         h_hbox = m_hbox.top() + m_hbox.bottom()

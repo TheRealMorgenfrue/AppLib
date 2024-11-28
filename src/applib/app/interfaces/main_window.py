@@ -27,13 +27,13 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QSize, Qt
 
-from .common.core_signalbus import core_signalbus
-from .common.core_stylesheet import CoreStyleSheet
-from .components.infobar_test import InfoBar, InfoBarPosition
+from ..common.core_signalbus import core_signalbus
+from ..common.core_stylesheet import CoreStyleSheet
+from ..components.infobar_test import InfoBar, InfoBarPosition
 
-from ..module.config.internal.app_args import AppArgs
-from ..module.config.internal.testargs import TestArgs
-from ..module.logging import logger
+from ...module.config.internal.app_args import AppArgs
+from ...module.config.internal.testargs import TestArgs
+from ...module.logging import logger
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -52,7 +52,7 @@ class CoreMainWindow(MSFluentWindow):
         try:
             self._initWindow()
 
-            from ..module.config.app_config import AppConfig
+            from ...module.config.app_config import AppConfig
 
             self._app_config = AppConfig()
             self._connectSignalToSlot()
@@ -80,7 +80,7 @@ class CoreMainWindow(MSFluentWindow):
                 self.homeInterface = None
 
             try:
-                from .process_interface import CoreProcessInterface
+                from .process.process_interface import CoreProcessInterface
 
                 self.processInterface = CoreProcessInterface(self)
             except Exception:
@@ -158,7 +158,7 @@ class CoreMainWindow(MSFluentWindow):
 
         # Setup rendering for background image
         self.scene = QGraphicsScene()
-        self.view = QGraphicsView()
+        self._view = QGraphicsView()
 
         self.show()
         QApplication.processEvents()
@@ -289,8 +289,8 @@ class CoreMainWindow(MSFluentWindow):
         super().paintEvent(e)
         if self.background:
             # Only set scene once!
-            if not self.view.scene():
-                self.view.setScene(self.scene)
+            if not self._view.scene():
+                self._view.setScene(self.scene)
 
             # Setup painter
             painter = QPainter(self)
@@ -326,4 +326,4 @@ class CoreMainWindow(MSFluentWindow):
             # Add image with effects to the scene and render image
             self.scene.clear()
             self.scene.addItem(pixmapItem)
-            self.view.render(painter, rect, rect.toRect())
+            self._view.render(painter, rect, rect.toRect())

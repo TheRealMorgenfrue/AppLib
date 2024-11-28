@@ -24,7 +24,7 @@ class ConsoleView(QWidget):
         self.consoleLabel = QLabel(self.tr(f"Thread {processID}"))
         self.textEdit = TextEdit(self)
         self.terminateButton = PrimaryPushButton(self.tr("Terminate"), self)
-        self.vBoxLayout = QVBoxLayout(self)
+        self.vbox_layout = QVBoxLayout(self)
         self.buttonLayout = QHBoxLayout()
 
         self._initWidget()
@@ -44,11 +44,11 @@ class ConsoleView(QWidget):
         self.buttonLayout.setSpacing(20)
         self.buttonLayout.addWidget(self.terminateButton)
 
-        self.vBoxLayout.addWidget(
+        self.vbox_layout.addWidget(
             self.consoleLabel, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.vBoxLayout.addWidget(self.textEdit, stretch=1)
-        self.vBoxLayout.addLayout(self.buttonLayout)
+        self.vbox_layout.addWidget(self.textEdit, stretch=1)
+        self.vbox_layout.addLayout(self.buttonLayout)
 
     def _setQss(self) -> None:
         self.consoleLabel.setObjectName("Label")

@@ -178,7 +178,7 @@ class ExpandSettingCard(CardBase, QScrollArea):
     ) -> None:
         super().__init__(cardName=setting, parent=parent)
         self.scrollWidget = QFrame(self)
-        self.view = QFrame(self.scrollWidget)
+        self._view = QFrame(self.scrollWidget)
         self.card = HeaderSettingCard(
             setting=setting,
             icon=icon,
@@ -189,7 +189,7 @@ class ExpandSettingCard(CardBase, QScrollArea):
         )
 
         self.scrollLayout = QVBoxLayout(self.scrollWidget)
-        self.viewLayout = QVBoxLayout(self.view)
+        self.viewLayout = QVBoxLayout(self._view)
         self.spaceWidget = SpaceWidget(self.scrollWidget)
         self.borderWidget = ExpandBorderWidget(self)
 
@@ -222,11 +222,11 @@ class ExpandSettingCard(CardBase, QScrollArea):
     def _initLayout(self) -> None:
         self.scrollLayout.setContentsMargins(0, 0, 0, 0)
         self.scrollLayout.setSpacing(0)
-        self.scrollLayout.addWidget(self.view)
+        self.scrollLayout.addWidget(self._view)
         self.scrollLayout.addWidget(self.spaceWidget)
 
     def _setQss(self) -> None:
-        self.view.setObjectName("view")
+        self._view.setObjectName("view")
         self.scrollWidget.setObjectName("scrollWidget")
         self.setProperty("isExpand", False)
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self.card)
@@ -310,9 +310,9 @@ class ExpandGroupSettingCard(ExpandSettingCard):
     def addGroupWidget(self, widget: QWidget) -> None:
         # Add separator
         if self.viewLayout.count() >= 1:
-            self.viewLayout.addWidget(GroupSeparator(self.view))
+            self.viewLayout.addWidget(GroupSeparator(self._view))
 
-        widget.setParent(self.view)
+        widget.setParent(self._view)
         self.viewLayout.addWidget(widget)
         self._adjustViewSize()
 

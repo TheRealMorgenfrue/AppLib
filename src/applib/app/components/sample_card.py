@@ -25,7 +25,7 @@ class SampleCard(CardWidget):
             self.sampleCardClicked.connect(onClick)
 
         self.hBoxLayout = QVBoxLayout(self)
-        self.vBoxLayout = QVBoxLayout()
+        self.vbox_layout = QVBoxLayout()
 
         self.iconWidget = IconWidget(icon, self)
         self.iconOpacityEffect = QGraphicsOpacityEffect(self)
@@ -41,19 +41,19 @@ class SampleCard(CardWidget):
 
         self._adjustSize()
 
-        self.vBoxLayout.setSpacing(2)
-        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.vbox_layout.setSpacing(2)
+        self.vbox_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.hBoxLayout.addWidget(
             self.iconWidget, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.hBoxLayout.addLayout(self.vBoxLayout)
-        self.vBoxLayout.addStretch(1)
-        self.vBoxLayout.addWidget(
+        self.hBoxLayout.addLayout(self.vbox_layout)
+        self.vbox_layout.addStretch(1)
+        self.vbox_layout.addWidget(
             self.titleLabel, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.vBoxLayout.addStretch(1)
+        self.vbox_layout.addStretch(1)
 
         self.titleLabel.setObjectName("titleLabel")
 
@@ -104,20 +104,20 @@ class SampleCardView(QWidget):
         super().__init__(parent)
         self._cards = {}  # type: dict[int, SampleCard]
         self.titleLabel = QLabel(title, self) if title else None
-        self.vBoxLayout = QVBoxLayout(self)
+        self.vbox_layout = QVBoxLayout(self)
         self.flowLayout = FlowLayout()
 
-        self.vBoxLayout.setContentsMargins(20, 0, 20, 0)
-        self.vBoxLayout.setSpacing(10)
+        self.vbox_layout.setContentsMargins(20, 0, 20, 0)
+        self.vbox_layout.setSpacing(10)
 
         self.flowLayout.setContentsMargins(0, 0, 0, 0)
         self.flowLayout.setHorizontalSpacing(12)
         self.flowLayout.setVerticalSpacing(12)
 
         if self.titleLabel:
-            self.vBoxLayout.addWidget(self.titleLabel)
+            self.vbox_layout.addWidget(self.titleLabel)
             self.titleLabel.setObjectName("viewTitleLabel")
-        self.vBoxLayout.addLayout(self.flowLayout, 1)
+        self.vbox_layout.addLayout(self.flowLayout, 1)
 
         CoreStyleSheet.SAMPLE_CARD.apply(self)
 

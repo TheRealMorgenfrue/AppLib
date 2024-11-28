@@ -10,173 +10,55 @@ from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
 
 import traceback
 
-from .common.core_stylesheet import CoreStyleSheet
-from .common.core_signalbus import core_signalbus
-from .components.console_view import ConsoleView
-from .components.infobar_test import InfoBar, InfoBarPosition
-from .components.progresscards.progress_ring_card import ProgressRingCard
-from .generators.cardwidget_generator import CardWidgetGenerator
+from ...common.core_stylesheet import CoreStyleSheet
+from ...common.core_signalbus import core_signalbus
+from ...components.console_view import ConsoleView
+from ...components.flow_area import FlowArea
+from ...components.infobar_test import InfoBar, InfoBarPosition
+from .process_subinterface import ProcessSubinterface
 
-from ..module.concurrency.process.process_generator import ProcessGenerator
-from ..module.config.templates.app_template import AppTemplate
-from ..module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
-from ..module.config.app_config import AppConfig
-from ..module.config.internal.app_args import AppArgs
-from ..module.logging import logger
-
-
-class ProcessSettings(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
-        super().__init__(parent)
-        self.view = QWidget(self)
-        self.vBoxLayout = QVBoxLayout(self.view)
-
-        self._initWidget()
-        self._initLayout()
-
-    def _initWidget(self) -> None:
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setViewportMargins(0, 0, 0, 0)
-        self.setWidget(self.view)
-        self.setWidgetResizable(True)
-        self._setQss()
-
-    def _setQss(self) -> None:
-        self.setObjectName("processSettings")
-        self.view.setObjectName("view")
-        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
-
-    def _initLayout(self) -> None:
-        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
-
-        app_template = AppTemplate()
-        template_topkey = "Process"
-        template_keys = [
-            "maxThreads",
-            "terminalSize",
-        ]  # TODO: Create new template class for use here instead of pulling stuff out from app template
-        template = AppTemplate.createSubTemplate(
-            template_name=app_template.getName(),
-            template={
-                template_topkey: {
-                    key: app_template.getValue(key=key) for key in template_keys
-                }
-            },
-            icons=app_template.getIcons(),
-        )
-        generator = CardWidgetGenerator(
-            config=AppConfig(),
-            template=template,
-            is_tight=True,
-            parent=self,
-        )
-        for card in generator.getCards():
-            self.vBoxLayout.addWidget(card)
-
-
-class ProcessStatus(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
-        super().__init__(parent)
-        self.view = QWidget(self)
-        self.progressRingCard = ProgressRingCard(self.tr("Process Status"))
-
-        self.vBoxLayout = QVBoxLayout(self.view)
-
-        self._initWidget()
-        self._initLayout()
-
-    def _initWidget(self) -> None:
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setViewportMargins(0, 0, 0, 0)
-        self.setWidget(self.view)
-        self.setWidgetResizable(True)
-        self._setQss()
-
-    def _setQss(self) -> None:
-        self.setObjectName("processStatus")
-        self.view.setObjectName("view")
-        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
-
-    def _initLayout(self) -> None:
-        self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
-        self.vBoxLayout.addWidget(
-            self.progressRingCard,
-            alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter,
-        )
-
-
-class ProcessSubinterface(QWidget):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
-        super().__init__(parent)
-        self.vBoxLayout = QVBoxLayout(self)
-
-        self.processStatus = ProcessStatus()
-        self.processSettings = ProcessSettings()
-
-        self._initLayout()
-
-    def _initLayout(self) -> None:
-        # self.setMinimumWidth(400)
-        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
-        self.vBoxLayout.setSpacing(10)
-        self.vBoxLayout.addWidget(self.processStatus, 2)
-        self.vBoxLayout.addWidget(self.processSettings, 3)
-
-    def getProgressCard(self) -> ProgressRingCard:
-        return self.processStatus.progressRingCard
-
-
-class FlowingConsoles(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
-        super().__init__(parent)
-        self.view = QWidget(self)
-        self.flowLayout = FlowLayout(self.view, needAni=True)
-
-        self._initWidget()
-        self._initLayout()
-
-    def _initWidget(self) -> None:
-        # self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.setViewportMargins(0, 0, 0, 0)
-        self.setWidget(self.view)
-        self.setWidgetResizable(True)
-        self._setQss()
-
-    def _setQss(self) -> None:
-        self.setObjectName("flowConsoles")
-        self.view.setObjectName("view")
-        CoreStyleSheet.PROCESS_INTERFACE.apply(self)
-
-    def _initLayout(self) -> None:
-        self.flowLayout.setContentsMargins(0, 0, 0, 0)
-        self.flowLayout.setHorizontalSpacing(30)
-        self.flowLayout.setVerticalSpacing(30)
+from ....module.concurrency.process.process_generator import ProcessGenerator
+from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
+from ....module.config.app_config import AppConfig
+from ....module.config.internal.app_args import AppArgs
+from ....module.config.templates.template_enums import UIFlags
+from ....module.config.templates.app_template import AppTemplate
+from ....module.config.app_config import AppConfig
+from ....module.logging import logger
 
 
 class CoreProcessInterface(ScrollArea):
     _logger = logger
     _app_config = AppConfig()
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(
+        self,
+        process_generator: ProcessGenerator,
+        ThreadManager: ThreadUIStreamer,
+        parent: Optional[QWidget] = None,
+    ) -> None:
         try:
             super().__init__(parent)
-            self.view = QWidget(self)
+            self._view = QWidget(self)
             self.titleLabel = QLabel(self.tr(f"{AppArgs.app_name} Process Manager"))
             self.terminateAllButton = PushButton(self.tr("Terminate All"))
             self.startButton = PrimaryPushButton(self.tr("Start All"))
-            self.flowConsoles = FlowingConsoles()
-            self.processSubinterface = ProcessSubinterface()
+            self.flowConsoles = FlowArea()
+            self.processSubinterface = ProcessSubinterface(
+                config=self._app_config, template=self._createProcessTemplate()
+            )
 
-            self.vGeneralLayout = QVBoxLayout(self.view)
+            self.vGeneralLayout = QVBoxLayout(self._view)
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
             self.maxThreads = self._app_config.getValue("maxThreads")
             self.terminalSize = self._app_config.getValue("terminalSize")
             self.consoleWidgets = {}  # type: dict[int, ConsoleView | None]
-            self.threadManager = ThreadUIStreamer(self.maxThreads, self.consoleWidgets)
-            # REVIEW: Add your own process generator!
-            self.processGen = None  # ProcessGenerator()
+            self.threadManager = ThreadManager(
+                self.maxThreads, self.consoleWidgets
+            )  # type: ThreadUIStreamer
+            self.processGen = process_generator
             self.processRunning = False
 
             self._initWidget()
@@ -188,16 +70,34 @@ class CoreProcessInterface(ScrollArea):
             self.deleteLater()
             raise
 
+    def _createProcessTemplate(self) -> AppTemplate:
+        # REVIEW: Consider creating new template class for use here instead of pulling stuff out from app template
+        app_template = AppTemplate()
+        template_topkey = "Process"
+        template_options = app_template.getValue(template_topkey)
+
+        template_dict = {template_topkey: {}}
+        for k, v in template_options.items():
+            if "ui_flags" in v and UIFlags.EXCLUDE in v["ui_flags"]:
+                v.pop("ui_flags")
+                template_dict[template_topkey] |= {k: v}
+        template = AppTemplate.createSubTemplate(
+            template_name="Process Template",
+            template=template_dict,
+            icons=app_template.getIcons(),
+        )
+        return template
+
     def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
-        self.setWidget(self.view)
+        self.setWidget(self._view)
         self.setWidgetResizable(True)
         self._setQss()
 
     def _setQss(self) -> None:
         self.setObjectName("processInterface")
-        self.view.setObjectName("view")
+        self._view.setObjectName("view")
         self.titleLabel.setObjectName("Label")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
@@ -231,7 +131,7 @@ class CoreProcessInterface(ScrollArea):
                 if console is None and amount > 0:
                     amount -= 1
                     console = ConsoleView(
-                        processID=i, sizeHint=sizeHint, parent=self.view
+                        processID=i, sizeHint=sizeHint, parent=self._view
                     )
                     self.consoleWidgets[i] = console
                     self.flowConsoles.flowLayout.addWidget(console)
@@ -240,7 +140,7 @@ class CoreProcessInterface(ScrollArea):
         stop = start + amount
         # Add *amount* new consoles (minus those re-added)
         for i in range(start, stop):
-            console = ConsoleView(processID=i, sizeHint=sizeHint, parent=self.view)
+            console = ConsoleView(processID=i, sizeHint=sizeHint, parent=self._view)
             self.consoleWidgets |= {i: console}
             self.flowConsoles.flowLayout.addWidget(console)
             ids.append(i)

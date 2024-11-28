@@ -1,5 +1,5 @@
 from typing import TypeAlias
 
-from ...config.templates.template_base import BaseTemplate
+from ...config.templates.base_template import BaseTemplate
 
 AnyTemplate: TypeAlias = BaseTemplate

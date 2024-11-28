@@ -11,6 +11,7 @@ class CoreStyleSheet(StyleSheetBase, Enum):
     PROCESS_INTERFACE = "process_interface"
     SETTINGS_INTERFACE = "settings_interface"
     SETTINGS_SUBINTERFACE = "settings_subinterface"
+    GENERIC = "generic"
 
     # Components
     CONSOLE_VIEW = f"components/console_view"

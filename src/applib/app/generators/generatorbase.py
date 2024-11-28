@@ -313,7 +313,7 @@ class GeneratorBase:
                     card_group.addSettingCard(card)
             else:
                 self._logger.warning(
-                    f"Config '{self._template_name}': Empty card group detected! Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
+                    f"Config '{self._template_name}': Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
                 )
                 card_group.deleteLater()
                 del self._getCardList()[i]

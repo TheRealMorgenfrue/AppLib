@@ -17,8 +17,9 @@
 # Plugin: Enable anti-bloat to remove dependency-heavy imports
 # nuitka-project: --enable-plugin=anti-bloat
 
+
 if __name__ == "__main__":
     from applib.app.core_app import CoreApp
-    from applib.app.main_window import CoreMainWindow
+    from applib.app.interfaces.main_window import CoreMainWindow
 
     app = CoreApp(CoreMainWindow)

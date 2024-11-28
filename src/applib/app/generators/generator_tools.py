@@ -1,4 +1,5 @@
 from __future__ import annotations
+import traceback
 from typing import Iterable
 
 from ..components.settingcards.card_base import DisableWrapper
@@ -68,9 +69,14 @@ class UIGrouping:
     @classmethod
     def connectUIGroups(cls, ui_groups: Iterable[Group]):
         for group in ui_groups:
-            uiGroupParent = group.getUIGroupParent()
-            parent = group.getParentCard()
-            parent_option = parent.getOption()
+            try:
+                uiGroupParent = group.getUIGroupParent()
+                parent = group.getParentCard()
+                parent_option = parent.getOption()
+            except Exception:
+                logger.error(traceback.format_exc(limit=AppArgs.traceback_limit))
+                continue
+
             is_disabled = False
 
             if (
