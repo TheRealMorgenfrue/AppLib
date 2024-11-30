@@ -31,28 +31,28 @@ class SampleCard(CardWidget):
         # self.contentLabel = QLabel(TextWrap.wrap(content, 45, False)[0], self)
 
         self.hBoxLayout = QVBoxLayout(self)
-        self.vbox_layout = QVBoxLayout()
+        self.vBoxLayout = QVBoxLayout()
 
         self.setFixedSize(130, 160)
         self.iconWidget.setFixedSize(110, 110)
 
         # self.hBoxLayout.setSpacing(28)
         # self.hBoxLayout.setContentsMargins(20, 0, 0, 0)
-        self.vbox_layout.setSpacing(2)
-        # self.vbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.vbox_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.vBoxLayout.setSpacing(2)
+        # self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.hBoxLayout.addWidget(
             self.iconWidget, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.hBoxLayout.addLayout(self.vbox_layout)
-        self.vbox_layout.addStretch(1)
-        self.vbox_layout.addWidget(
+        self.hBoxLayout.addLayout(self.vBoxLayout)
+        self.vBoxLayout.addStretch(1)
+        self.vBoxLayout.addWidget(
             self.titleLabel, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        # self.vbox_layout.addWidget(self.contentLabel)
-        self.vbox_layout.addStretch(1)
+        # self.vBoxLayout.addWidget(self.contentLabel)
+        self.vBoxLayout.addStretch(1)
 
         self.titleLabel.setObjectName("titleLabel")
         # self.contentLabel.setObjectName('contentLabel')
@@ -95,17 +95,17 @@ class SampleCardView1(QWidget):
     def __init__(self, title: str, parent=None):
         super().__init__(parent=parent)
         self.titleLabel = QLabel(title, self)
-        self.vbox_layout = QVBoxLayout(self)
+        self.vBoxLayout = QVBoxLayout(self)
         self.flowLayout = FlowLayout()
 
-        self.vbox_layout.setContentsMargins(20, 0, 20, 0)
-        self.vbox_layout.setSpacing(10)
+        self.vBoxLayout.setContentsMargins(20, 0, 20, 0)
+        self.vBoxLayout.setSpacing(10)
         self.flowLayout.setContentsMargins(0, 0, 0, 0)
         self.flowLayout.setHorizontalSpacing(12)
         self.flowLayout.setVerticalSpacing(12)
 
-        self.vbox_layout.addWidget(self.titleLabel)
-        self.vbox_layout.addLayout(self.flowLayout, 1)
+        self.vBoxLayout.addWidget(self.titleLabel)
+        self.vBoxLayout.addLayout(self.flowLayout, 1)
 
         self.titleLabel.setObjectName("viewTitleLabel")
         CoreStyleSheet.SAMPLE_CARD.apply(self)

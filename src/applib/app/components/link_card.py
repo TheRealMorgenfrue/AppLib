@@ -41,15 +41,15 @@ class LinkCard(QFrame):
         self.iconWidget.setFixedSize(54, 54)
         self.urlWidget.setFixedSize(16, 16)
 
-        self.vbox_layout = QVBoxLayout(self)
-        self.vbox_layout.setSpacing(0)
-        self.vbox_layout.setContentsMargins(24, 24, 0, 13)
-        self.vbox_layout.addWidget(self.iconWidget)
-        self.vbox_layout.addSpacing(16)
-        self.vbox_layout.addWidget(self.titleLabel)
-        self.vbox_layout.addSpacing(8)
-        self.vbox_layout.addWidget(self.contentLabel)
-        self.vbox_layout.setAlignment(
+        self.vBoxLayout = QVBoxLayout(self)
+        self.vBoxLayout.setSpacing(0)
+        self.vBoxLayout.setContentsMargins(24, 24, 0, 13)
+        self.vBoxLayout.addWidget(self.iconWidget)
+        self.vBoxLayout.addSpacing(16)
+        self.vBoxLayout.addWidget(self.titleLabel)
+        self.vBoxLayout.addSpacing(8)
+        self.vBoxLayout.addWidget(self.contentLabel)
+        self.vBoxLayout.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         )
         self.urlWidget.move(160, 162)

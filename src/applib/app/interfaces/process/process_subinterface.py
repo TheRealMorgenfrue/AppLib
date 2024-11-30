@@ -36,7 +36,7 @@ class CoreProcessSettings(ScrollArea):
         self._view = QWidget(self)
         self._config = config
         self._template = template
-        self.vbox_layout = QVBoxLayout(self._view)
+        self.vBoxLayout = QVBoxLayout(self._view)
 
         self._initWidget()
         self._initLayout()
@@ -54,7 +54,7 @@ class CoreProcessSettings(ScrollArea):
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def _initLayout(self) -> None:
-        self.vbox_layout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
 
         generator = CardWidgetGenerator(
             config=self._config,
@@ -63,7 +63,7 @@ class CoreProcessSettings(ScrollArea):
             parent=self,
         )
         for card in generator.getCards():
-            self.vbox_layout.addWidget(card)
+            self.vBoxLayout.addWidget(card)
 
 
 class CoreProcessStatus(ScrollArea):
@@ -79,7 +79,7 @@ class CoreProcessStatus(ScrollArea):
         """
         super().__init__(parent)
         self._view = QWidget(self)
-        self.vbox_layout = QVBoxLayout(self._view)
+        self.vBoxLayout = QVBoxLayout(self._view)
         self.progress_ring_card = ProgressRingCard(self.tr("Process Status"))
 
         self._initWidget()
@@ -98,8 +98,8 @@ class CoreProcessStatus(ScrollArea):
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
     def _initLayout(self) -> None:
-        self.vbox_layout.setContentsMargins(0, 20, 0, 0)
-        self.vbox_layout.addWidget(
+        self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
+        self.vBoxLayout.addWidget(
             self.progress_ring_card,
             alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter,
         )
@@ -129,7 +129,7 @@ class ProcessSubinterface(QWidget):
             By default None.
         """
         super().__init__(parent)
-        self.vbox_layout = QVBoxLayout(self)
+        self.vBoxLayout = QVBoxLayout(self)
 
         self.process_status = CoreProcessStatus()
         self.process_settings = CoreProcessSettings(config=config, template=template)
@@ -138,10 +138,10 @@ class ProcessSubinterface(QWidget):
 
     def _initLayout(self) -> None:
         # self.setMinimumWidth(400)
-        self.vbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.vbox_layout.setSpacing(10)
-        self.vbox_layout.addWidget(self.process_status, 2)
-        self.vbox_layout.addWidget(self.process_settings, 3)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setSpacing(10)
+        self.vBoxLayout.addWidget(self.process_status, 2)
+        self.vBoxLayout.addWidget(self.process_settings, 3)
 
     def getProgressCard(self) -> ProgressRingCard:
         return self.process_status.progress_ring_card

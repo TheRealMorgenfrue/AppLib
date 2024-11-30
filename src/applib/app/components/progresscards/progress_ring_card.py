@@ -13,7 +13,7 @@ from .progress_card import ProgressCard
 class ProgressRingCard(ProgressCard):
     def __init__(self, title: str, parent: Optional[QWidget] = None):
         super().__init__(title, ProgressRing(), parent)
-        self.vbox_layout = QVBoxLayout(self)
+        self.vBoxLayout = QVBoxLayout(self)
 
         self._initLayout()
 
@@ -25,13 +25,13 @@ class ProgressRingCard(ProgressCard):
         self.progressWidget.setFixedSize(120, 120)
         self.progressWidget.setTextVisible(True)
 
-        self.vbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.vbox_layout.setSpacing(15)
-        self.vbox_layout.addWidget(self.titleLabel, alignment=Qt.AlignmentFlag.AlignTop)
-        self.vbox_layout.addWidget(
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setSpacing(15)
+        self.vBoxLayout.addWidget(self.titleLabel, alignment=Qt.AlignmentFlag.AlignTop)
+        self.vBoxLayout.addWidget(
             self.progressWidget, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.vbox_layout.addStretch(1)
+        self.vBoxLayout.addStretch(1)
 
     def resizeEvent(self, a0: QResizeEvent | None) -> None:
         super().resizeEvent(a0)
@@ -48,7 +48,7 @@ class ProgressRingCard(ProgressCard):
             h += text_rect.height() * ceil(text_rect.width() / w)
 
         self.setFixedSize(w, h)
-        self.vbox_layout.update()
+        self.vBoxLayout.update()
 
 
 class IndeterminateProgressRingCard(ProgressRingCard):

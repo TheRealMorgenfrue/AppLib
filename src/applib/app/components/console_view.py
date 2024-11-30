@@ -14,17 +14,17 @@ class ConsoleView(QWidget):
 
     def __init__(
         self,
-        processID: int,
+        process_id: int,
         sizeHint: Optional[QSize] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(parent)
         self._sizeHint = sizeHint if sizeHint else QSize(400, 400)
-        self.processID = processID
-        self.consoleLabel = QLabel(self.tr(f"Thread {processID}"))
+        self.process_id = process_id
+        self.consoleLabel = QLabel(self.tr(f"Thread {process_id}"))
         self.textEdit = TextEdit(self)
         self.terminateButton = PrimaryPushButton(self.tr("Terminate"), self)
-        self.vbox_layout = QVBoxLayout(self)
+        self.vBoxLayout = QVBoxLayout(self)
         self.buttonLayout = QHBoxLayout()
 
         self._initWidget()
@@ -44,11 +44,11 @@ class ConsoleView(QWidget):
         self.buttonLayout.setSpacing(20)
         self.buttonLayout.addWidget(self.terminateButton)
 
-        self.vbox_layout.addWidget(
+        self.vBoxLayout.addWidget(
             self.consoleLabel, alignment=Qt.AlignmentFlag.AlignCenter
         )
-        self.vbox_layout.addWidget(self.textEdit, stretch=1)
-        self.vbox_layout.addLayout(self.buttonLayout)
+        self.vBoxLayout.addWidget(self.textEdit, stretch=1)
+        self.vBoxLayout.addLayout(self.buttonLayout)
 
     def _setQss(self) -> None:
         self.consoleLabel.setObjectName("Label")
@@ -57,7 +57,7 @@ class ConsoleView(QWidget):
 
     def _connectSignalToSlot(self) -> None:
         self.terminateButton.clicked.connect(
-            lambda: self.terminationRequest.emit(self.processID)
+            lambda: self.terminationRequest.emit(self.process_id)
         )
         self.activated.connect(self.terminateButton.setEnabled)
 

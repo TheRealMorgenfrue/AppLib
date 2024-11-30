@@ -16,7 +16,7 @@ class TemplateParser:
     _parsed_templates: list[str] = []
     # Store information used to generate validation models
     _validation_infos: dict[str, ValidationInfo] = {}
-    # These groups have no parent assigned to them which is an error
+    # These groups have no parent assigned to them (which is an error)
     _orphan_groups: dict[str, list[str]] = {}
 
     def __new__(cls) -> Self:
@@ -61,7 +61,6 @@ class TemplateParser:
         if "ui_group" in options:
             # Make ui_group option a formatted list of strings
             groups = self.formatGroup(template_name, options["ui_group"])
-
             # This group is a child of these groups
             parent_groups = groups[1 : len(groups)] if len(groups) > 1 else None
 

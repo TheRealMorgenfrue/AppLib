@@ -30,7 +30,7 @@ class Ui_MessageBox:
         self.yesButton = PrimaryPushButton(self.tr("OK"), self.buttonGroup)
         self.cancelButton = QPushButton(self.tr("Cancel"), self.buttonGroup)
 
-        self.vbox_layout = QVBoxLayout(parent)
+        self.vBoxLayout = QVBoxLayout(parent)
         self.textLayout = QVBoxLayout()
         self.widgetLayout = QVBoxLayout()
         self.buttonLayout = QHBoxLayout(self.buttonGroup)
@@ -70,12 +70,12 @@ class Ui_MessageBox:
             self.contentLabel.setText(TextWrap.wrap(self.content, chars, False)[0])
 
     def _initLayout(self):
-        self.vbox_layout.setSpacing(0)
-        self.vbox_layout.setContentsMargins(0, 0, 0, 0)
-        self.vbox_layout.addLayout(self.textLayout)
-        self.vbox_layout.addLayout(self.widgetLayout)
-        self.vbox_layout.addWidget(self.buttonGroup, 0, Qt.AlignmentFlag.AlignBottom)
-        self.vbox_layout.setSizeConstraint(QVBoxLayout.SizeConstraint.SetMinimumSize)
+        self.vBoxLayout.setSpacing(0)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.addLayout(self.textLayout)
+        self.vBoxLayout.addLayout(self.widgetLayout)
+        self.vBoxLayout.addWidget(self.buttonGroup, 0, Qt.AlignmentFlag.AlignBottom)
+        self.vBoxLayout.setSizeConstraint(QVBoxLayout.SizeConstraint.SetMinimumSize)
 
         self.textLayout.setSpacing(12)
         self.textLayout.setContentsMargins(24, 24, 24, 24)
@@ -154,7 +154,7 @@ class Dialog(FramelessDialog, Ui_MessageBox):
         self.resize(240, 192)
         self.titleBar.hide()
 
-        self.vbox_layout.insertWidget(
+        self.vBoxLayout.insertWidget(
             0, self.windowTitleLabel, 0, Qt.AlignmentFlag.AlignTop
         )
         self.windowTitleLabel.setObjectName("windowTitleLabel")

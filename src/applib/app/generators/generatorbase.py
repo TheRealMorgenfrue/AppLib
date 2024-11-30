@@ -204,7 +204,7 @@ class GeneratorBase:
 
                 if "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]:
                     self._logger.debug(
-                        f"Config '{self._template_name}': Excluding setting '{setting}' from settings panel"
+                        f"Config '{self._template_name}': Excluding setting '{setting}' from GUI"
                     )
                     continue
 
