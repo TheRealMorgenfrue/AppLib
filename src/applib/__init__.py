@@ -67,6 +67,7 @@ from .app.interfaces.home_interface import CoreHomeInterface
 from .app.interfaces.main_window import CoreMainWindow
 from .app.interfaces.process.process_interface import CoreProcessInterface
 from .app.interfaces.settings_interface import CoreSettingsInterface
+from .app.interfaces.settings_subinterface import CoreSettingsSubInterface
 
 from .module.concurrency.process.process_base import ProcessBase
 from .module.concurrency.process.process_generator import ProcessGenerator
@@ -146,6 +147,7 @@ __all__ = [
     "CoreMainWindow",
     "CoreProcessInterface",
     "CoreSettingsInterface",
+    "CoreSettingsSubInterface",
     "CoreStyleSheet",
     "Dialog",
     "ExpandingSettingCard",
