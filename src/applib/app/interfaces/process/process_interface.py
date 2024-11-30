@@ -1,7 +1,7 @@
+from copy import deepcopy
 from typing import Any, Optional
 from qfluentwidgets import (
     ScrollArea,
-    FlowLayout,
     PrimaryPushButton,
     PushButton,
 )
@@ -33,7 +33,7 @@ class CoreProcessInterface(ScrollArea):
 
     def __init__(
         self,
-        process_generator: ProcessGenerator,
+        ProcessGenerator: ProcessGenerator,
         ThreadManager: ThreadUIStreamer,
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -52,14 +52,13 @@ class CoreProcessInterface(ScrollArea):
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
-            self.maxThreads = self._app_config.getValue("maxThreads")
-            self.terminalSize = self._app_config.getValue("terminalSize")
-            self.consoleWidgets = {}  # type: dict[int, ConsoleView | None]
-            self.threadManager = ThreadManager(
-                self.maxThreads, self.consoleWidgets
-            )  # type: ThreadUIStreamer
-            self.processGen = process_generator
-            self.processRunning = False
+            self.max_threads = self._app_config.getValue("maxThreads")
+            self.terminal_size = self._app_config.getValue("terminalSize")
+            self.console_widgets = {}  # type: dict[int, ConsoleView | None]
+
+            self.threadManager = ThreadManager(self.max_threads, self.console_widgets)
+            self.process_generator = ProcessGenerator()
+            self.process_running = False
 
             self._initWidget()
             self._initLayout()
@@ -74,15 +73,16 @@ class CoreProcessInterface(ScrollArea):
         # REVIEW: Consider creating new template class for use here instead of pulling stuff out from app template
         app_template = AppTemplate()
         template_topkey = "Process"
-        template_options = app_template.getValue(template_topkey)
+        template_options = deepcopy(app_template.getValue(template_topkey))
 
         template_dict = {template_topkey: {}}
         for k, v in template_options.items():
             if "ui_flags" in v and UIFlags.EXCLUDE in v["ui_flags"]:
                 v.pop("ui_flags")
                 template_dict[template_topkey] |= {k: v}
+
         template = AppTemplate.createSubTemplate(
-            template_name="Process Template",
+            template_name="Process",
             template=template_dict,
             icons=app_template.getIcons(),
         )
@@ -123,51 +123,51 @@ class CoreProcessInterface(ScrollArea):
 
     def _addConsoles(self, amount: int) -> None:
         ids = []
-        start = len(self.consoleWidgets)
-        sizeHint = QSize(self.terminalSize, self.terminalSize)
+        start = len(self.console_widgets)
+        sizeHint = QSize(self.terminal_size, self.terminal_size)
         if start:
             # Re-add previously removed consoles
-            for i, console in self.consoleWidgets.items():
+            for i, console in self.console_widgets.items():
                 if console is None and amount > 0:
                     amount -= 1
                     console = ConsoleView(
-                        processID=i, sizeHint=sizeHint, parent=self._view
+                        process_id=i, sizeHint=sizeHint, parent=self._view
                     )
-                    self.consoleWidgets[i] = console
+                    self.console_widgets[i] = console
                     self.flowConsoles.flowLayout.addWidget(console)
                     ids.append(i)
 
         stop = start + amount
         # Add *amount* new consoles (minus those re-added)
         for i in range(start, stop):
-            console = ConsoleView(processID=i, sizeHint=sizeHint, parent=self._view)
-            self.consoleWidgets |= {i: console}
+            console = ConsoleView(process_id=i, sizeHint=sizeHint, parent=self._view)
+            self.console_widgets |= {i: console}
             self.flowConsoles.flowLayout.addWidget(console)
             ids.append(i)
         self.threadManager.consoleCountChanged.emit(ids)
 
     def _removeConsoles(self, amount: int, indices: Optional[list[int]] = None) -> None:
-        iterator = indices if indices else reversed(self.consoleWidgets)
+        iterator = indices if indices else reversed(self.console_widgets)
         for i in iterator:
-            console = self.consoleWidgets[i]
+            console = self.console_widgets[i]
             if console and amount:
                 amount -= 1
                 self.flowConsoles.flowLayout.removeWidget(console)
                 console.deleteLater()
-                self.consoleWidgets[i] = None
+                self.console_widgets[i] = None
         self.flowConsoles.flowLayout.update()
 
     def _initConsole(self, allowRemoval: bool = True) -> None:
-        if self.consoleWidgets:
+        if self.console_widgets:
             availableConsoles = len(
-                [console for console in self.consoleWidgets.values() if console]
+                [console for console in self.console_widgets.values() if console]
             )
-            if availableConsoles < self.maxThreads:
-                self._addConsoles(self.maxThreads - availableConsoles)
-            elif allowRemoval and availableConsoles > self.maxThreads:
-                self._removeConsoles(availableConsoles - self.maxThreads)
+            if availableConsoles < self.max_threads:
+                self._addConsoles(self.max_threads - availableConsoles)
+            elif allowRemoval and availableConsoles > self.max_threads:
+                self._removeConsoles(availableConsoles - self.max_threads)
         else:
-            self._addConsoles(self.maxThreads)
+            self._addConsoles(self.max_threads)
 
     def _connectSignalToSlot(self) -> None:
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
@@ -192,23 +192,23 @@ class CoreProcessInterface(ScrollArea):
         self.threadManager.clearConsole.connect(self._onClearConsole)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, valuePack: tuple[Any,]
+        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
-            (value,) = valuePack
+            (value,) = value_tuple
             if configkey == "maxThreads":
-                self.maxThreads = value
-                self._initConsole(allowRemoval=not self.processRunning)
-                self.threadManager.updateMaxThreads.emit(self.maxThreads)
+                self.max_threads = value
+                self._initConsole(allowRemoval=not self.process_running)
+                self.threadManager.updateMaxThreads.emit(self.max_threads)
             elif configkey == "terminalSize":
-                for console in self.consoleWidgets.values():
+                self.terminal_size = value
+                for console in self.console_widgets.values():
                     if console:
-                        self.terminalSize = value
                         console.updateSizeHint(QSize(value, value))
 
-    def _onProcessRunning(self, isRunning: bool) -> None:
-        self.terminateAllButton.setEnabled(isRunning)
-        self.processRunning = isRunning
+    def _onProcessRunning(self, is_running: bool) -> None:
+        self.terminateAllButton.setEnabled(is_running)
+        self.process_running = is_running
 
     def _onTerminateAllButtonClicked(self) -> None:
         self.threadManager.kill.emit(False)  # Include self: True/False
@@ -227,9 +227,9 @@ class CoreProcessInterface(ScrollArea):
 
     def _onStartButtonClicked(self) -> None:
         try:
-            if self.processGen.canStart():
+            if self.process_generator.canStart():
                 self.processSubinterface.getProgressCard().start()
-                self.threadManager.setProcessGenerator(self.processGen)
+                self.threadManager.setProcessGenerator(self.process_generator)
                 self.threadManager.start()
                 core_signalbus.isProcessesRunning.emit(True)
             else:
@@ -243,8 +243,8 @@ class CoreProcessInterface(ScrollArea):
     def _onThreadManagerFinished(self) -> None:
         core_signalbus.isProcessesRunning.emit(False)
 
-    def _onConsoleTextReceived(self, processID: int, text: str) -> None:
-        self.consoleWidgets[processID].append(text)
+    def _onConsoleTextReceived(self, process_id: int, text: str) -> None:
+        self.console_widgets[process_id].append(text)
 
-    def _onClearConsole(self, processID: int) -> None:
-        self.consoleWidgets[processID].clear()
+    def _onClearConsole(self, process_id: int) -> None:
+        self.console_widgets[process_id].clear()

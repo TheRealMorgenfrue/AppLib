@@ -7,13 +7,15 @@ from ..thread.thread_manager import ThreadManager
 
 
 class ThreadUIStreamer(ThreadManager):
-    consoleTextStream = pyqtSignal(int, str)  # processID, text
+    consoleTextStream = pyqtSignal(int, str)  # process_id, text
     consoleCountChanged = pyqtSignal(list)  # list[int] # amount of new consoles
-    clearConsole = pyqtSignal(int)  # processID
+    clearConsole = pyqtSignal(int)  # process_id
 
-    def __init__(self, maxThreads: int, consoleWidgets: dict[int, ConsoleView]) -> None:
-        super().__init__(maxThreads)
-        self.consoleWidgets = consoleWidgets
+    def __init__(
+        self, max_threads: int, console_widgets: dict[int, ConsoleView]
+    ) -> None:
+        super().__init__(max_threads)
+        self.console_widgets = console_widgets
 
         self.__connectSignalToSlot()
 
@@ -21,9 +23,9 @@ class ThreadUIStreamer(ThreadManager):
         self.consoleCountChanged.connect(self._onConsoleCountChanged)
         self.threadClosed.connect(self._onThreadClosed)
 
-    def _onThreadClosed(self, processID: int) -> None:
+    def _onThreadClosed(self, process_id: int) -> None:
         try:
-            self.consoleWidgets[processID].activated.emit(False)
+            self.console_widgets[process_id].activated.emit(False)
         except AttributeError:
             # The console widget with this PID was nuked
             pass
@@ -31,19 +33,19 @@ class ThreadUIStreamer(ThreadManager):
     def _onConsoleCountChanged(self, amount: list[int]) -> None:
         while amount:
             i = amount.pop()
-            console = self.consoleWidgets[i]
+            console = self.console_widgets[i]
             console.terminationRequest.connect(self._TerminateProcessRequest)
 
     def _setupProcessStream(
-        self, processID: int, process: ProcessBase, setupConsole: bool
+        self, process_id: int, process: ProcessBase, setupConsole: bool
     ) -> None:
         if setupConsole:
-            self.clearConsole.emit(processID)
-            self.consoleWidgets[processID].activated.emit(True)
+            self.clearConsole.emit(process_id)
+            self.console_widgets[process_id].activated.emit(True)
 
         process.consoleStream.connect(
-            lambda text, processID=processID: self.consoleTextStream.emit(
-                processID, text
+            lambda text, process_id=process_id: self.consoleTextStream.emit(
+                process_id, text
             )
         )
 
@@ -53,14 +55,14 @@ class ThreadUIStreamer(ThreadManager):
         if new_processes:
             for threadID, isThreadNew, process in new_processes:
                 self._setupProcessStream(threadID, process, isThreadNew)
-                thread = self._threadPool[threadID]
+                thread = self._thread_pool[threadID]
                 thread.start()
 
     @override
-    def _onProcessFinished(self, processID: int) -> None:
-        new_processes = super()._onProcessFinished(processID)
+    def _onProcessFinished(self, process_id: int) -> None:
+        new_processes = super()._onProcessFinished(process_id)
         if new_processes:
             for threadID, isThreadNew, process in new_processes:
                 self._setupProcessStream(threadID, process, isThreadNew)
-                thread = self._threadPool[threadID]
+                thread = self._thread_pool[threadID]
                 thread.start()

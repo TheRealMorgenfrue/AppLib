@@ -14,30 +14,30 @@ from ...logging import logger
 # (a good idea would be to connect signals in the "start" method instead)
 class ProcessBase(QObject):
     _logger = logger
-    finished = pyqtSignal(int)  # processID
-    failed = pyqtSignal(int)  # processID
+    finished = pyqtSignal(int)  # process_id
+    failed = pyqtSignal(int)  # process_id
     consoleStream = pyqtSignal(str)  # Receives text (stdout+stderr) from subprocess
 
     def __init__(self) -> None:
         super().__init__()
         self.process = None  # type: asyncio.subprocess.Process
-        self.processID = None  # type: int
+        self.process_id = None  # type: int
 
     def _cleanup(self, failed: bool = False) -> None:
         if failed:
-            self.failed.emit(self.processID)
+            self.failed.emit(self.process_id)
         else:
-            self.finished.emit(self.processID)
+            self.finished.emit(self.process_id)
         self.deleteLater()
 
     @abstractmethod
     async def _run(self) -> None: ...
 
-    def setProcessID(self, processID: int) -> None:
-        self.processID = processID
+    def setProcessID(self, process_id: int) -> None:
+        self.process_id = process_id
 
     def getProcessID(self) -> int:
-        return self.processID
+        return self.process_id
 
     def terminate(self, timeout: float = 2.0) -> None:
         try:
@@ -47,15 +47,15 @@ class ProcessBase(QObject):
                 if self.process.returncode is None:
                     raise TimeoutError()
         except ProcessLookupError:
-            self._logger.debug(f"Process {self.processID} is already dead")
+            self._logger.debug(f"Process {self.process_id} is already dead")
         except TimeoutError:
             self._logger.warning(
-                f"Process {self.processID} exceeded its shutdown period. It will be killed forcefully"
+                f"Process {self.process_id} exceeded its shutdown period. It will be killed forcefully"
             )
             self.process.kill()
         except Exception:
             self._logger.critical(
-                f"Process {self.processID} failed to commit suicide\n"
+                f"Process {self.process_id} failed to commit suicide\n"
                 + traceback.format_exc(limit=AppArgs.traceback_limit)
             )
         finally:
@@ -65,13 +65,12 @@ class ProcessBase(QObject):
     def start(self) -> None:
         failed = False
         try:
-            # Save reference to the event loop to allow coroutines to be
-            # submitted to it outside of asyncio.run()
             self.consoleStream.emit(f"Process started")
+            # TODO: Enhance asyncio eventloops: https://github.com/MagicStack/uvloop
             asyncio.run(self._run())
         except Exception:
             failed = True
-            err_msg = f"Process {self.processID} failed\n" + traceback.format_exc(
+            err_msg = f"Process {self.process_id} failed\n" + traceback.format_exc(
                 limit=AppArgs.traceback_limit
             )
             self.consoleStream.emit(err_msg)

@@ -18,20 +18,25 @@ from ..components.link_card import LinkCardView
 
 from ...module.config.app_config import AppConfig
 from ...module.config.internal.app_args import AppArgs
+from ...module.tools.types.general import StrPath
 
 
 class BannerWidget(QWidget):
     _app_config = AppConfig()
 
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(
+        self,
+        banner_path: StrPath = f"{AppArgs.asset_images_dir}{os.sep}banner.jpg",
+        parent: Optional[QWidget] = None,
+    ):
         super().__init__(parent)
-        self.isBackgroundActive = bool(self._app_config.getValue("appBackground"))
-        self.showBanner = (
-            not self.isBackgroundActive
+        self.is_background_active = bool(self._app_config.getValue("appBackground"))
+        self.show_banner = (
+            not self.is_background_active
             or int(self._app_config.getValue("backgroundOpacity")) == 0
         )
 
-        self.vbox_layout = QVBoxLayout(self)
+        self.vBoxLayout = QVBoxLayout(self)
         self.galleryLabel = QLabel(f"{AppArgs.app_name}\nv{AppArgs.app_version}", self)
 
         shadow = QGraphicsDropShadowEffect()
@@ -42,7 +47,7 @@ class BannerWidget(QWidget):
         self.galleryLabel.setGraphicsEffect(shadow)
         self.galleryLabel.setObjectName("galleryLabel")
 
-        self.banner = QPixmap(f"{AppArgs.asset_images_dir}{os.sep}banner.jpg")
+        self.banner = QPixmap(banner_path)
 
         self.linkCardView = LinkCardView(self)
         self.linkCardView.setContentsMargins(0, 0, 0, 36)
@@ -55,11 +60,11 @@ class BannerWidget(QWidget):
         self.setMinimumHeight(350)
         self.setMaximumHeight(self.banner.height())
 
-        self.vbox_layout.setSpacing(0)
-        self.vbox_layout.setContentsMargins(0, 20, 0, 0)
-        self.vbox_layout.addWidget(self.galleryLabel)
-        self.vbox_layout.addLayout(linkCardLayout)
-        self.vbox_layout.setAlignment(
+        self.vBoxLayout.setSpacing(0)
+        self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
+        self.vBoxLayout.addWidget(self.galleryLabel)
+        self.vBoxLayout.addLayout(linkCardLayout)
+        self.vBoxLayout.setAlignment(
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
         )
 
@@ -75,19 +80,19 @@ class BannerWidget(QWidget):
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, valuePack: tuple[Any,]
+        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
-            (value,) = valuePack
+            (value,) = value_tuple
             if configkey == "appBackground":
-                self.showBanner = not bool(value)
-                self.isBackgroundActive = bool(value)
+                self.show_banner = not bool(value)
+                self.is_background_active = bool(value)
             elif configkey == "backgroundOpacity":
-                self.showBanner = not self.isBackgroundActive or int(value) == 0
+                self.show_banner = not self.is_background_active or int(value) == 0
 
     def paintEvent(self, e):
         super().paintEvent(e)
-        if self.showBanner and not self.banner.isNull():
+        if self.show_banner and not self.banner.isNull():
             painter = QPainter(self)
             painter.setRenderHints(
                 QPainter.RenderHint.SmoothPixmapTransform
@@ -121,9 +126,9 @@ class BannerWidget(QWidget):
 class CoreHomeInterface(ScrollArea):
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
-        self.banner = BannerWidget(self)
         self._view = QWidget(self)
-        self.vbox_layout = QVBoxLayout(self._view)
+        self.banner = BannerWidget(parent=self)
+        self.vBoxLayout = QVBoxLayout(self._view)
         self._initWidget()
 
     def _initWidget(self):
@@ -131,11 +136,11 @@ class CoreHomeInterface(ScrollArea):
         self.setWidget(self._view)
         self.setWidgetResizable(True)
 
-        self.vbox_layout.setContentsMargins(0, 0, 0, 36)
-        self.vbox_layout.setSpacing(40)
-        self.vbox_layout.addWidget(self.banner, stretch=2)
-        self.vbox_layout.addStretch(1)
-        self.vbox_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 36)
+        self.vBoxLayout.setSpacing(40)
+        self.vBoxLayout.addWidget(self.banner, stretch=2)
+        self.vBoxLayout.addStretch(1)
+        self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self._setQss()
 
     def _setQss(self):

@@ -28,20 +28,20 @@ class ThreadManager(QThread):
     totalProgress = pyqtSignal(int)
 
     kill = pyqtSignal(bool)  # Include self: True/False
-    threadClosed = pyqtSignal(int)  # processID
+    threadClosed = pyqtSignal(int)  # process_id
     allThreadsClosed = pyqtSignal()
 
-    def __init__(self, maxThreads: int) -> None:
+    def __init__(self, max_threads: int) -> None:
         super().__init__()
         self.name = "thread manager"
-        self.maxThreads = maxThreads
+        self.max_threads = max_threads
 
-        self._currentProgress = 0  # Amount of processes that finished succesfully
-        self._totalProgress = 0  # The total amount of processes which will be executed
-        self._processGen = None  # type: ProcessGenerator
+        self._current_progress = 0  # Amount of processes that finished succesfully
+        self._total_progress = 0  # The total amount of processes which will be executed
+        self._process_gen = None  # type: ProcessGenerator
         self._genIter = None  # type: Generator[ProcessBase, Any, Any]
-        self._processPool = []  # type: list[ProcessBase]
-        self._threadPool = {}  # type: dict[int, QThread]
+        self._process_pool = []  # type: list[ProcessBase]
+        self._thread_pool = {}  # type: dict[int, QThread]
         self._stop = False  # Don't create new processes
         self._killed = False
 
@@ -55,8 +55,8 @@ class ThreadManager(QThread):
         self.updateMaxThreads.connect(self._onMaxThreadsUpdated)
 
     def _onMaxThreadsUpdated(self, maxThreads: int) -> None:
-        self.maxThreads = maxThreads
-        if self._totalProgress != 0:
+        self.max_threads = maxThreads
+        if self._total_progress != 0:
             # Update thread/process pool
             self._runProcesses()
 
@@ -75,7 +75,7 @@ class ThreadManager(QThread):
             self._stop = True
             self._killed = suicide
             self._logger.info("Terminating all processes")
-            for threadID in self._threadPool.keys():
+            for threadID in self._thread_pool.keys():
                 if not self._TerminateProcessRequest(threadID):
                     still_alive.append(threadID)
             length = len(still_alive)
@@ -86,16 +86,16 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.critical("Process termination failed catastrophically!")
 
-    def _TerminateProcessRequest(self, processID: int) -> bool:
+    def _TerminateProcessRequest(self, process_id: int) -> bool:
         try:
-            process = self._processPool[processID]
+            process = self._process_pool[process_id]
             if process:
-                self._logger.info(f"Terminating process {processID}")
+                self._logger.info(f"Terminating process {process_id}")
                 process.terminate()
             return True
         except Exception:
             self._logger.error(
-                f"Failed to properly terminate process {processID}\n"
+                f"Failed to properly terminate process {process_id}\n"
                 + traceback.format_exc(limit=AppArgs.traceback_limit)
             )
             return False
@@ -120,30 +120,30 @@ class ThreadManager(QThread):
             tuple[2] : ProcessBase
                 A subclass of ProcessBase. This is the process that will run in the thread with threadID.
         """
-        isRunning = len(self._threadPool)
+        isRunning = len(self._thread_pool)
 
         if not isRunning:
-            self._totalProgress = self._processGen.getTotalProgress()
+            self._total_progress = self._process_gen.getTotalProgress()
             self._logger.info(
-                f"Initializing {self.name}. Processes to execute: {self._totalProgress}"
+                f"Initializing {self.name}. Processes to execute: {self._total_progress}"
             )
             self.currentProgress.emit(self.currentProgress)
-            self.totalProgress.emit(self._totalProgress)
+            self.totalProgress.emit(self._total_progress)
 
         # Populate thread pool and process pool
         availableThreads = self._updateThreadPool()
         new_processes = self._createProcesses(availableThreads)
 
         if not isRunning:
-            threadPoolSize = len(self._threadPool)
+            threadPoolSize = len(self._thread_pool)
             self._logger.debug(
-                f"Scheduled {self._totalProgress} {self._processGrammer(self._totalProgress)} "
+                f"Scheduled {self._total_progress} {self._processGrammer(self._total_progress)} "
                 + f"in {threadPoolSize} {self._threadGrammar(threadPoolSize)}"
             )
         return new_processes
 
     def _onProcessFinished(
-        self, processID: int
+        self, process_id: int
     ) -> list[tuple[int, bool, ProcessBase]] | None:
         """Schedules an amount of processes to run in a thread based on available threads.
         New processes are taken from the process generator.
@@ -157,7 +157,7 @@ class ThreadManager(QThread):
 
         Parameters
         ----------
-        processID : int
+        process_id : int
             The ID of the process that just finished.
 
         Returns
@@ -176,26 +176,26 @@ class ThreadManager(QThread):
         """
         try:
             # Delete old thread
-            thread = self._threadPool[processID]
+            thread = self._thread_pool[process_id]
             thread.quit()
             thread.wait()
             thread.deleteLater()  # TODO: Recycle threads instead of deleting them for each process (figure out why signals/slots cause issues with recycled threads)
-            self._threadPool[processID] = None
+            self._thread_pool[process_id] = None
 
             # Only attempt create new threads if allowed
             if not self._stop:
-                self._currentProgress += 1  # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
-                self.currentProgress.emit(self._currentProgress)
+                self._current_progress += 1  # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
+                self.currentProgress.emit(self._current_progress)
 
-                availableThreads = self._updateThreadPool(processID)
+                availableThreads = self._updateThreadPool(process_id)
 
                 if availableThreads:
                     new_processes = self._createProcesses(availableThreads)
                     if new_processes:
                         return new_processes
 
-            # Thread is no longer in use (threadID and processID are identical here)
-            self._closeThread(processID)
+            # Thread is no longer in use (threadID and process_id are identical here)
+            self._closeThread(process_id)
         except Exception:
             self._logger.error(
                 f"{self.name.title()} has failed\n"
@@ -207,7 +207,7 @@ class ThreadManager(QThread):
         self, availableThreads: list[tuple[int, bool]]
     ) -> list[tuple[int, bool, ProcessBase]]:
         """Creates a new process for each available thread in *availableThreads*.\n
-        The processID of the newly created process matches the threadID of the thread.
+        The process_id of the newly created process matches the threadID of the thread.
 
         Parameters
         ----------
@@ -235,8 +235,8 @@ class ThreadManager(QThread):
             process = next(self._genIter, None)
             if process:
                 self._logger.debug(f"Starting new thread with ID {threadID}")
-                self._processPool[threadID] = process
-                self._threadPool[threadID] = thread = QThread()
+                self._process_pool[threadID] = process
+                self._thread_pool[threadID] = thread = QThread()
                 process.setProcessID(threadID)
                 process.moveToThread(thread)
                 process.finished.connect(self._onProcessFinished)
@@ -258,13 +258,13 @@ class ThreadManager(QThread):
             Close the thread with this threadID.
         """
         # Ensure a thread is only closed once
-        if threadID not in self._threadPool:
+        if threadID not in self._thread_pool:
             return
 
         self._logger.debug(f"Closing thread {threadID}")
-        self._threadPool.pop(threadID)
+        self._thread_pool.pop(threadID)
         self.threadClosed.emit(threadID)
-        if not self._threadPool:
+        if not self._thread_pool:
             self.allThreadsClosed.emit()
 
     def _updateThreadPool(
@@ -276,7 +276,7 @@ class ThreadManager(QThread):
         Parameters
         ----------
         finishedProcessID : Optional[int], optional
-            The processID of the most recently finished process.
+            The process_id of the most recently finished process.
             By default None.
 
         Returns
@@ -292,33 +292,33 @@ class ThreadManager(QThread):
         """
         availableThreads = []
         addFinishedProcessID = True
-        aboutToFinish = self._currentProgress + self.maxThreads > self._totalProgress
-        justGettingStarted = self._currentProgress == 0
+        aboutToFinish = self._current_progress + self.max_threads > self._total_progress
+        justGettingStarted = self._current_progress == 0
 
         if not aboutToFinish or justGettingStarted:
             threadDifference = (
-                (self.maxThreads - len(self._threadPool))
-                if self.maxThreads <= self._totalProgress
-                else self._totalProgress - len(self._threadPool)
+                (self.max_threads - len(self._thread_pool))
+                if self.max_threads <= self._total_progress
+                else self._total_progress - len(self._thread_pool)
             )
 
             # Thread count is increased
             if threadDifference > 0:
-                start = len(self._threadPool)
+                start = len(self._thread_pool)
                 stop = start + threadDifference
                 for i in range(start, stop):
                     availableThreads.append((i, True))
-                    self._threadPool |= {i: None}
-                    self._processPool.append(None)
+                    self._thread_pool |= {i: None}
+                    self._process_pool.append(None)
                 self._logger.debug(
                     f"Added {threadDifference} {self._threadGrammar(threadDifference)} to the thread pool "
-                    + f"(total size: {len(self._threadPool)})"
+                    + f"(total size: {len(self._thread_pool)})"
                 )
 
             # Thread count is decreased
             elif threadDifference < 0:
                 removedThreadIDs = []
-                start = max(self._threadPool.keys())
+                start = max(self._thread_pool.keys())
                 stop = (
                     start + threadDifference
                 )  # Addition cause the difference is negative
@@ -326,8 +326,8 @@ class ThreadManager(QThread):
                 for threadID in range(start, stop, step):
                     # Ensure the threadID exists and is safe to remove
                     if (
-                        threadID in self._threadPool
-                        and self._threadPool[threadID] is None
+                        threadID in self._thread_pool
+                        and self._thread_pool[threadID] is None
                     ):
                         # if self._threadPool[threadID] is None: # Thread removal testing only (will explode)!
                         self._closeThread(threadID)
@@ -336,7 +336,7 @@ class ThreadManager(QThread):
                 if removedThreads:
                     self._logger.debug(
                         f"Removed {removedThreads} {self._threadGrammar(removedThreads)} from the thread pool "
-                        + f"(total size: {len(self._threadPool)})"
+                        + f"(total size: {len(self._thread_pool)})"
                     )
                     self.threadsRemoved.emit(removedThreadIDs)
                     addFinishedProcessID = finishedProcessID not in removedThreadIDs
@@ -349,18 +349,18 @@ class ThreadManager(QThread):
         try:
             if self._stop:
                 self._logger.info(
-                    f"Termination successful. Finished {self._currentProgress} / {self._totalProgress} processes"
+                    f"Termination successful. Finished {self._current_progress} / {self._total_progress} processes"
                 )
                 return
 
-            if self._currentProgress < self._totalProgress:
-                missing = self._totalProgress - self._currentProgress
+            if self._current_progress < self._total_progress:
+                missing = self._total_progress - self._current_progress
                 self._logger.warning(
-                    f"Some processes did not complete. Missing {missing} / {self._totalProgress} processes"
+                    f"Some processes did not complete. Missing {missing} / {self._total_progress} processes"
                 )
             else:
                 self._logger.info(
-                    f"{f"All {self._totalProgress} processes have" if self._totalProgress != 1 else "The process has"} finished!"
+                    f"{f"All {self._total_progress} processes have" if self._total_progress != 1 else "The process has"} finished!"
                 )
         finally:
             self.quit()
@@ -376,8 +376,8 @@ class ThreadManager(QThread):
         generator : ProcessGenerator
             A subclass of *ProcessGenerator* that creates ProcessBase instances.
         """
-        self._processGen = generator
-        self._genIter = self._processGen.generator()
+        self._process_gen = generator
+        self._genIter = self._process_gen.generator()
 
     def run(self) -> None:
         try:
@@ -395,4 +395,4 @@ class ThreadManager(QThread):
             # Resetting values to prevent previus process executions from interfering with the current execution
             # (as a new thread manager is not instantiated per run)
             self._stop, self._killed = False, False
-            self._currentProgress, self._totalProgress = 0, 0
+            self._current_progress, self._total_progress = 0, 0

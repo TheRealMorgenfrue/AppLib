@@ -9,7 +9,6 @@ from PyQt6.QtGui import QIcon
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
-from .settings_subinterface import CoreSettingsSubInterface
 
 from ...module.config.internal.app_args import AppArgs
 from ...module.logging import logger
@@ -33,41 +32,13 @@ class CoreSettingsInterface(ScrollArea):
             self._widgets = {}  # type: dict[Hashable, QWidget]
             self._view = QWidget(self)
             self._sampleCardView = SampleCardView()
-            self.vbox_layout = QVBoxLayout(self._view)
+            self.vBoxLayout = QVBoxLayout(self._view)
             self.stackedWidget = PopUpAniStackedWidget()
 
             self._initWidget()
-            self.__loadAppInterface()  # For testing purposes TODO: Move to testing area
         except Exception:
             self.deleteLater()
             raise
-
-    def __loadAppInterface(self) -> None:
-        # For testing purposes. TODO: Move to testing area
-        try:
-            from ...app.components.cardstack import PivotCardStack
-            from ...app.generators.card_generator import CardGenerator
-            from ...module.config.app_config import AppConfig
-            from ...module.config.templates.app_template import AppTemplate
-
-            app_settings = CoreSettingsSubInterface(
-                config=AppConfig(),
-                template=AppTemplate(),
-                Generator=CardGenerator,
-                CardStack=PivotCardStack,
-            )
-        except Exception:
-            self._logger.error(
-                f"Could not load {AppArgs.app_name} settings panel\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
-            )
-            app_settings = None
-
-        self.addSubInterface(
-            icon=f"{AppArgs.logo_dir}/logo.png",
-            title=AppArgs.app_name,
-            widget=app_settings,
-        )
 
     def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -84,9 +55,9 @@ class CoreSettingsInterface(ScrollArea):
         CoreStyleSheet.SETTINGS_INTERFACE.apply(self)
 
     def _initLayout(self):
-        self.vbox_layout.addWidget(self._sampleCardView)
-        self.vbox_layout.addWidget(self.stackedWidget, stretch=1)
-        self.vbox_layout.setSpacing(20)
+        self.vBoxLayout.addWidget(self._sampleCardView)
+        self.vBoxLayout.addWidget(self.stackedWidget, stretch=1)
+        self.vBoxLayout.setSpacing(20)
         self.stackedWidget.setHidden(True)
 
     def _onCurrentIndexChanged(self, pack: tuple):
@@ -151,6 +122,12 @@ class CoreSettingsInterface(ScrollArea):
         widget : QWidget
             The widget to add as a subinterface.
         """
-        self._createSampleCard(
-            widget_id=id(widget), icon=icon, title=title, widget=widget
-        )
+        try:
+            self._createSampleCard(
+                widget_id=id(widget), icon=icon, title=title, widget=widget
+            )
+        except Exception:
+            self._logger.error(
+                f"Failed to add subinterface '{type(widget).__name__}'\n"
+                + f"{traceback.format_exc(limit=AppArgs.traceback_limit)}"
+            )

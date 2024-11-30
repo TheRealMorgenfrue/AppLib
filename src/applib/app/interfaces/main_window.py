@@ -1,20 +1,19 @@
-from contextlib import redirect_stdout
 import traceback
-from typing import Any
+from typing import Any, Optional, Union
 
-with redirect_stdout(None):
-    from qfluentwidgets import (
-        NavigationItemPosition,
-        MSFluentWindow,
-        SplashScreen,
-        NavigationBarPushButton,
-        toggleTheme,
-        setTheme,
-        theme,
-        setThemeColor,
-        Theme,
-    )
-    from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (
+    NavigationItemPosition,
+    MSFluentWindow,
+    SplashScreen,
+    NavigationBarPushButton,
+    toggleTheme,
+    setTheme,
+    theme,
+    setThemeColor,
+    Theme,
+    FluentIconBase,
+)
+from qfluentwidgets import FluentIcon as FIF
 
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPaintEvent
 from PyQt6.QtWidgets import (
@@ -24,6 +23,7 @@ from PyQt6.QtWidgets import (
     QGraphicsPixmapItem,
     QGraphicsScene,
     QGraphicsView,
+    QWidget,
 )
 from PyQt6.QtCore import QSize, Qt
 
@@ -31,73 +31,48 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 
+from ...module.config.app_config import AppConfig
 from ...module.config.internal.app_args import AppArgs
-from ...module.config.internal.testargs import TestArgs
 from ...module.logging import logger
 
 
 class CoreMainWindow(MSFluentWindow):
     _logger = logger
 
-    def __init__(self):
+    def __init__(
+        self,
+        subinterfaces: list[tuple[QWidget, Union[str, QIcon, FluentIconBase], str]],
+        settings_interface: Optional[
+            tuple[QWidget, Union[str, QIcon, FluentIconBase], str] | None
+        ] = None,
+        app_icon: Union[str, QIcon] = f"{AppArgs.logo_dir}/logo.png",
+    ):
         super().__init__()
+        self._app_icon = app_icon
+        self._subinterfaces = subinterfaces
+        self._settings_tuple = settings_interface
+        self._error_log = []
+        self._default_logmsg = f"Please check the log for details"
         self.background = None  # type: QPixmap | None
-        self.backgroundOpacity = 0.0
-        self.backgroundBlurRadius = 0.0
-        self.errorLog = []
-        self.logmsg = f"Please check the log for details"
+        self.background_opacity = 0.0
+        self.background_blur_radius = 0.0
+
         self.setMicaEffectEnabled(False)
         setTheme(Theme.AUTO, lazy=True)
+        self._initWindow()
 
         try:
-            self._initWindow()
-
-            from ...module.config.app_config import AppConfig
-
             self._app_config = AppConfig()
             self._connectSignalToSlot()
-
-            # The rest of the modules imported here to make sure
-            # the splash screen is loaded before anything else
-            try:
-                from .settings_interface import CoreSettingsInterface
-
-                self.settingsInterface = CoreSettingsInterface(self)
-            except Exception:
-                self.errorLog.append(
-                    traceback.format_exc(limit=TestArgs.traceback_limit)
-                )
-                self.settingsInterface = None
-
-            try:
-                from .home_interface import CoreHomeInterface
-
-                self.homeInterface = CoreHomeInterface(self)
-            except Exception:
-                self.errorLog.append(
-                    traceback.format_exc(limit=TestArgs.traceback_limit)
-                )
-                self.homeInterface = None
-
-            try:
-                from .process.process_interface import CoreProcessInterface
-
-                self.processInterface = CoreProcessInterface(self)
-            except Exception:
-                self.errorLog.append(
-                    traceback.format_exc(limit=TestArgs.traceback_limit)
-                )
-                self.processInterface = None
-
             self._initNavigation()
             self._initBackground()
         except Exception:
-            self.errorLog.append(traceback.format_exc(limit=TestArgs.traceback_limit))
+            self._error_log.append(traceback.format_exc(limit=AppArgs.traceback_limit))
 
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
 
-        if self.errorLog:
+        if self._error_log:
             self._displayErrors()
             self._logger.warning("Application started with errors")
         else:
@@ -107,18 +82,24 @@ class CoreMainWindow(MSFluentWindow):
     def _initBackground(self):
         val = self._app_config.getValue("appBackground")
         self.background = QPixmap(val) if val else None  # type: QPixmap | None
-        self.backgroundOpacity = (
+        self.background_opacity = (
             self._app_config.getValue("backgroundOpacity", 0.0) / 100
         )
-        self.backgroundBlurRadius = float(
+        self.background_blur_radius = float(
             self._app_config.getValue("backgroundBlur", 0.0)
         )
 
     def _initNavigation(self):
-        if self.homeInterface:
-            self.addSubInterface(self.homeInterface, FIF.HOME, self.tr("Home"))
-        if self.processInterface:
-            self.addSubInterface(self.processInterface, FIF.IOT, self.tr("Process"))
+        for Interface, icon, title in self._subinterfaces:
+            try:
+                init_interface = Interface(parent=self)
+                self.addSubInterface(
+                    interface=init_interface, icon=icon, text=self.tr(title)
+                )
+            except Exception:
+                self._error_log.append(
+                    traceback.format_exc(limit=AppArgs.traceback_limit)
+                )
 
         self.navigationInterface.addWidget(
             "themeButton",
@@ -127,11 +108,12 @@ class CoreMainWindow(MSFluentWindow):
             NavigationItemPosition.BOTTOM,
         )
 
-        if self.settingsInterface:
+        if self._settings_tuple:
+            Interface, icon, title = self._settings_tuple
             self.addSubInterface(
-                self.settingsInterface,
-                FIF.SETTING,
-                self.tr("Settings"),
+                interface=Interface(parent=self),
+                icon=icon,
+                text=self.tr(title),
                 position=NavigationItemPosition.BOTTOM,
             )
 
@@ -142,9 +124,10 @@ class CoreMainWindow(MSFluentWindow):
         # self.setResizeEnabled(False)
         self.setMinimumSize(960, 700)
         self.resize(1280, 720)
-        # REVIEW: Set your own icon!
-        self.setWindowIcon(QIcon(f"{AppArgs.logo_dir}/logo.png"))
-        self.setWindowTitle(f"{AppArgs.app_name} {TestArgs.app_version}")
+        self.setWindowIcon(
+            QIcon(self._app_icon) if isinstance(self._app_icon, str) else self._app_icon
+        )
+        self.setWindowTitle(f"{AppArgs.app_name} {AppArgs.app_version}")
 
         # Create splash screen
         self.splashScreen = SplashScreen(self.windowIcon(), self)
@@ -174,10 +157,10 @@ class CoreMainWindow(MSFluentWindow):
         core_signalbus.genericError.connect(self._onGenericError)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, valuePack: tuple[Any,]
+        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self._app_config.getConfigName():
-            (value,) = valuePack
+            (value,) = value_tuple
             if configkey == "appBackground":
                 self.background = QPixmap(value) if value else None
                 self.update()
@@ -186,10 +169,10 @@ class CoreMainWindow(MSFluentWindow):
             elif configkey == "appColor":
                 setThemeColor(value, lazy=True)
             elif configkey == "backgroundOpacity":
-                self.backgroundOpacity = value / 100
+                self.background_opacity = value / 100
                 self.update()
             elif configkey == "backgroundBlur":
-                self.backgroundBlurRadius = float(value)
+                self.background_blur_radius = float(value)
                 self.update()
 
     def _onThemeChanged(self, value: str):
@@ -203,7 +186,7 @@ class CoreMainWindow(MSFluentWindow):
     def _onGenericError(self, title: str, content: str) -> None:
         InfoBar.error(
             title=self.tr(title),
-            content=(self.tr(content) if content else self.logmsg),
+            content=(self.tr(content) if content else self._default_logmsg),
             orient=(Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal),
             isClosable=True,
             duration=7000,
@@ -242,7 +225,7 @@ class CoreMainWindow(MSFluentWindow):
         else:
             InfoBar.error(
                 title=self.tr(title),
-                content=self.tr(content) if content else self.logmsg,
+                content=self.tr(content) if content else self._default_logmsg,
                 orient=(
                     Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal
                 ),
@@ -265,7 +248,7 @@ class CoreMainWindow(MSFluentWindow):
             )
 
     def _displayErrors(self) -> None:
-        for error in self.errorLog:
+        for error in self._error_log:
             self._logger.critical(
                 "Encountered a critical error during startup\n" + error
             )
@@ -314,14 +297,14 @@ class CoreMainWindow(MSFluentWindow):
 
             # Add blur effect
             blur = QGraphicsBlurEffect()
-            blur.setBlurRadius(self.backgroundBlurRadius)
+            blur.setBlurRadius(self.background_blur_radius)
             blur.setBlurHints(QGraphicsBlurEffect.BlurHint.QualityHint)
 
             # Create pixmap for the graphics scene
             pixmapItem = QGraphicsPixmapItem(pixmap)
             pixmapItem.setGraphicsEffect(blur)
             pixmapItem.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIgnoresParentOpacity)
-            pixmapItem.setOpacity(self.backgroundOpacity)
+            pixmapItem.setOpacity(self.background_opacity)
 
             # Add image with effects to the scene and render image
             self.scene.clear()
