@@ -69,7 +69,13 @@ class Group:
         Self | None
              Returns Group instance if an instance with the *ui_group* ID exists, otherwise None
         """
-        return cls._instances.get(template_name, None).get(ui_group, None)
+        try:
+            return cls._instances.get(template_name, None).get(ui_group, None)
+        except AttributeError as err:
+            err.add_note(
+                f"Cause: Failed to get group '{ui_group}' because template '{template_name}' has no Group instance"
+            )
+            raise
 
     @classmethod
     def getAllGroups(cls, template_name: str) -> Iterable[Self] | None:
