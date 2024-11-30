@@ -3,9 +3,9 @@ from PyQt6.QtWidgets import QWidget
 
 from applib.app.components.cardstack import PivotCardStack
 from applib.app.generators.card_generator import CardGenerator
-from applib.module.config.app_config import AppConfig
-from applib.module.config.internal.app_args import AppArgs
-from applib.module.config.templates.app_template import AppTemplate
+from applib.module.config.core_config import CoreConfig
+from applib.module.config.internal.core_args import CoreArgs
+from applib.module.config.templates.core_template import CoreTemplate
 from applib.app.interfaces.settings_interface import CoreSettingsInterface
 from applib.app.interfaces.settings_subinterface import CoreSettingsSubInterface
 
@@ -15,10 +15,10 @@ class TestSettingsInterface(CoreSettingsInterface):
         super().__init__(parent=parent)
         self.addSubInterface(
             icon=FIF.AIRPLANE,
-            title=AppArgs.app_name,
+            title=CoreArgs.app_name,
             widget=CoreSettingsSubInterface(
-                config=AppConfig(),
-                template=AppTemplate(),
+                config=CoreConfig(),
+                template=CoreTemplate(),
                 Generator=CardGenerator,
                 CardStack=PivotCardStack,
             ),

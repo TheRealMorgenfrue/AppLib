@@ -6,7 +6,7 @@ from PyQt6.QtCore import Qt
 from typing import Optional, override
 
 from .range_setting import RangeSetting
-from ....module.config.internal.app_args import AppArgs
+from ....module.config.internal.core_args import CoreArgs
 
 from ....module.tools.utilities import dictLookup
 from ....module.tools.types.config import AnyConfig
@@ -102,7 +102,7 @@ class CoreSlider(RangeSetting):
 
     def _setLabelText(self, value: int) -> None:
         if self.baseunit:
-            unit = dictLookup(AppArgs.config_units, self.baseunit)
+            unit = dictLookup(CoreArgs.config_units, self.baseunit)
 
             # Found a unit definition for the base unit
             if unit is not None:

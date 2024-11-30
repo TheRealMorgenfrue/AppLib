@@ -16,17 +16,17 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.link_card import LinkCardView
 
-from ...module.config.app_config import AppConfig
-from ...module.config.internal.app_args import AppArgs
+from ...module.config.core_config import CoreConfig
+from ...module.config.internal.core_args import CoreArgs
 from ...module.tools.types.general import StrPath
 
 
 class BannerWidget(QWidget):
-    _app_config = AppConfig()
+    _app_config = CoreConfig()
 
     def __init__(
         self,
-        banner_path: StrPath = f"{AppArgs.asset_images_dir}{os.sep}banner.jpg",
+        banner_path: StrPath = f"{CoreArgs.asset_images_dir}{os.sep}banner.jpg",
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent)
@@ -37,7 +37,9 @@ class BannerWidget(QWidget):
         )
 
         self.vBoxLayout = QVBoxLayout(self)
-        self.galleryLabel = QLabel(f"{AppArgs.app_name}\nv{AppArgs.app_version}", self)
+        self.galleryLabel = QLabel(
+            f"{CoreArgs.app_name}\nv{CoreArgs.app_version}", self
+        )
 
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(20)
@@ -72,7 +74,7 @@ class BannerWidget(QWidget):
             FluentIcon.GITHUB,
             self.tr("GitHub repo"),
             self.tr(""),
-            AppArgs.link_github,
+            CoreArgs.link_github,
         )
         self._connectSignalToSlot()
 

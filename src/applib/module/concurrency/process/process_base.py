@@ -5,7 +5,7 @@ import traceback
 
 from PyQt6.QtCore import pyqtSignal, QObject
 
-from ...config.internal.app_args import AppArgs
+from ...config.internal.core_args import CoreArgs
 from ...logging import logger
 
 
@@ -56,7 +56,7 @@ class ProcessBase(QObject):
         except Exception:
             self._logger.critical(
                 f"Process {self.process_id} failed to commit suicide\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
         finally:
             del self.process
@@ -71,7 +71,7 @@ class ProcessBase(QObject):
         except Exception:
             failed = True
             err_msg = f"Process {self.process_id} failed\n" + traceback.format_exc(
-                limit=AppArgs.traceback_limit
+                limit=CoreArgs.traceback_limit
             )
             self.consoleStream.emit(err_msg)
             self._logger.error(err_msg)

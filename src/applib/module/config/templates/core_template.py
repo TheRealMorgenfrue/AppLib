@@ -1,6 +1,6 @@
 from typing import Self, override
 
-from ..internal.app_args import AppArgs
+from ..internal.core_args import CoreArgs
 from .base_template import BaseTemplate
 from .template_enums import UIGroups, UITypes, UIFlags
 from ..validators import validateLoglevel, validateTheme
@@ -8,7 +8,7 @@ from ..validators.generic_validator import validatePath
 from ...tools.types.general import NestedDict
 
 
-class AppTemplate(BaseTemplate):
+class CoreTemplate(BaseTemplate):
     _instance = None
 
     def __new__(cls) -> Self:
@@ -20,7 +20,7 @@ class AppTemplate(BaseTemplate):
     def __init__(self) -> None:
         if not self._created:
             super().__init__(
-                template_name=AppArgs.app_template_name,
+                template_name=CoreArgs.app_template_name,
                 template=self._createTemplate(),
                 icons=None,
             )
@@ -32,9 +32,9 @@ class AppTemplate(BaseTemplate):
             "General": {
                 "loglevel": {
                     "ui_type": UITypes.COMBOBOX,
-                    "ui_title": f"Set log level for {AppArgs.app_name}",
-                    "default": "INFO" if AppArgs.is_release else "DEBUG",
-                    "values": AppArgs.template_loglevels,
+                    "ui_title": f"Set log level for {CoreArgs.app_name}",
+                    "default": "INFO" if CoreArgs.is_release else "DEBUG",
+                    "values": CoreArgs.template_loglevels,
                     "validators": [validateLoglevel],
                 }
             },
@@ -43,7 +43,7 @@ class AppTemplate(BaseTemplate):
                     "ui_type": UITypes.COMBOBOX,
                     "ui_title": "Set application theme",
                     "default": "System",
-                    "values": AppArgs.template_themes,
+                    "values": CoreArgs.template_themes,
                     "validators": [validateTheme],
                 },
                 "appColor": {

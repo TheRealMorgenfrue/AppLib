@@ -19,17 +19,17 @@ from .process_subinterface import ProcessSubinterface
 
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
-from ....module.config.app_config import AppConfig
-from ....module.config.internal.app_args import AppArgs
+from ....module.config.core_config import CoreConfig
+from ....module.config.internal.core_args import CoreArgs
 from ....module.config.templates.template_enums import UIFlags
-from ....module.config.templates.app_template import AppTemplate
-from ....module.config.app_config import AppConfig
+from ....module.config.templates.core_template import CoreTemplate
+from ....module.config.core_config import CoreConfig
 from ....module.logging import logger
 
 
 class CoreProcessInterface(ScrollArea):
     _logger = logger
-    _app_config = AppConfig()
+    _app_config = CoreConfig()
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class CoreProcessInterface(ScrollArea):
         try:
             super().__init__(parent)
             self._view = QWidget(self)
-            self.titleLabel = QLabel(self.tr(f"{AppArgs.app_name} Process Manager"))
+            self.titleLabel = QLabel(self.tr(f"{CoreArgs.app_name} Process Manager"))
             self.terminateAllButton = PushButton(self.tr("Terminate All"))
             self.startButton = PrimaryPushButton(self.tr("Start All"))
             self.flowConsoles = FlowArea()
@@ -69,9 +69,9 @@ class CoreProcessInterface(ScrollArea):
             self.deleteLater()
             raise
 
-    def _createProcessTemplate(self) -> AppTemplate:
+    def _createProcessTemplate(self) -> CoreTemplate:
         # REVIEW: Consider creating new template class for use here instead of pulling stuff out from app template
-        app_template = AppTemplate()
+        app_template = CoreTemplate()
         template_topkey = "Process"
         template_options = deepcopy(app_template.getValue(template_topkey))
 
@@ -81,7 +81,7 @@ class CoreProcessInterface(ScrollArea):
                 v.pop("ui_flags")
                 template_dict[template_topkey] |= {k: v}
 
-        template = AppTemplate.createSubTemplate(
+        template = CoreTemplate.createSubTemplate(
             template_name="Process",
             template=template_dict,
             icons=app_template.getIcons(),
@@ -237,7 +237,7 @@ class CoreProcessInterface(ScrollArea):
         except Exception:
             self._logger.error(
                 f"Process Manager failed\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
 
     def _onThreadManagerFinished(self) -> None:

@@ -10,7 +10,7 @@ from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
 
-from ...module.config.internal.app_args import AppArgs
+from ...module.config.internal.core_args import CoreArgs
 from ...module.logging import logger
 
 
@@ -73,7 +73,7 @@ class CoreSettingsInterface(ScrollArea):
             InfoBar.error(
                 title=self.tr("Module is not available"),
                 content=self.tr(
-                    f"Please check the logs at:\n {AppArgs.log_dir.resolve()}"
+                    f"Please check the logs at:\n {CoreArgs.log_dir.resolve()}"
                 ),
                 orient=Qt.Orientation.Vertical,
                 isClosable=False,
@@ -129,5 +129,5 @@ class CoreSettingsInterface(ScrollArea):
         except Exception:
             self._logger.error(
                 f"Failed to add subinterface '{type(widget).__name__}'\n"
-                + f"{traceback.format_exc(limit=AppArgs.traceback_limit)}"
+                + f"{traceback.format_exc(limit=CoreArgs.traceback_limit)}"
             )

@@ -6,7 +6,7 @@ from typing import Self
 
 from .coloredformatter import ColoredFormatter
 from .colorcodefilter import ColorCodeFilter
-from ..config.internal.app_args import AppArgs
+from ..config.internal.core_args import CoreArgs
 from ..config.tools.ini_file_parser import IniFileParser
 from ..tools.utilities import retrieveDictValue
 
@@ -14,12 +14,12 @@ from ..tools.utilities import retrieveDictValue
 class Logger:
     _instance = None
 
-    _logger_name = AppArgs.app_name
-    _config_path = AppArgs.app_config_path
-    _log_dir = AppArgs.log_dir
-    _log_format = AppArgs.log_format
-    _log_format_color = AppArgs.log_format_color
-    _log_levels = AppArgs.template_loglevels
+    _logger_name = CoreArgs.app_name
+    _config_path = CoreArgs.app_config_path
+    _log_dir = CoreArgs.log_dir
+    _log_format = CoreArgs.log_format
+    _log_format_color = CoreArgs.log_format_color
+    _log_levels = CoreArgs.template_loglevels
 
     def __new__(cls) -> Self:
         if cls._instance is None:

@@ -20,7 +20,7 @@ from .generator_tools import (
     updateCardGrouping,
 )
 
-from ...module.config.internal.app_args import AppArgs
+from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIFlags, UITypes
 from ...module.config.tools.template_options.groups import Group
 from ...module.config.tools.template_parser import TemplateParser
@@ -136,7 +136,7 @@ class GeneratorBase:
                 configname=self._config_name,
                 options=options,
                 caption=options["ui_title"],
-                directory=f"{AppArgs.app_dir}",  # Starting directory
+                directory=f"{CoreArgs.app_dir}",  # Starting directory
                 filter=options["ui_file_filter"],
                 initial_filter=options["ui_file_filter"],
                 parent=parent,
@@ -245,7 +245,7 @@ class GeneratorBase:
                 except Exception:
                     self._logger.error(
                         f"Config '{self._template_name}': Error creating setting card for setting '{setting}'\n"
-                        + traceback.format_exc(limit=AppArgs.traceback_limit)
+                        + traceback.format_exc(limit=CoreArgs.traceback_limit)
                     )
                     card = None
                 if card:

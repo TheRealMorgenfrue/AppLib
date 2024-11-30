@@ -97,7 +97,7 @@ class ValidationModelGenerator:
                     first_field,
                     *subsequent_fields,
                     mode=mode,
-                    check_fields=check_fields
+                    check_fields=check_fields,
                 )(validator)
                 if section_name in field_validators:
                     field_validators[section_name] |= {validator_name: fv}
@@ -121,7 +121,7 @@ class ValidationModelGenerator:
                     field_validators[nosection_name]
                     if nosection_name in field_validators
                     else None
-                )
+                ),
             )
         else:
             # Each submodel is tied to a section of the template
@@ -135,7 +135,7 @@ class ValidationModelGenerator:
                         field_validators[section_name]
                         if section_name in field_validators
                         else None
-                    )
+                    ),
                 )
                 constructed_model = sub_model.model_construct()
                 full_model_fields |= {

@@ -1,17 +1,15 @@
-from collections import deque
-from configparser import ConfigParser
 import os
 import shutil
 import tomlkit
 import tomlkit.exceptions
 import json
 import traceback
-
+from collections import deque
 from pathlib import Path
 from pydantic import ValidationError
 from typing import Any, Callable, Literal, Mapping, Optional
 
-from ..internal.app_args import AppArgs
+from ..internal.core_args import CoreArgs
 from ..tools.ini_file_parser import IniFileParser
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...logging import logger
@@ -57,7 +55,7 @@ def writeConfig(
     except Exception:
         logger.error(
             f"Failed to write {file} to '{dst_path}'\n"
-            + traceback.format_exc(limit=AppArgs.traceback_limit)
+            + traceback.format_exc(limit=CoreArgs.traceback_limit)
         )
         raise
 
@@ -166,7 +164,7 @@ def backupConfig(srcPath: StrPath) -> None:
     except TypeError:  # If input path is None
         logger.error(
             f"Failed to create backup of '{srcPath}'\n"
-            + traceback.format_exc(limit=AppArgs.traceback_limit)
+            + traceback.format_exc(limit=CoreArgs.traceback_limit)
         )
 
 
@@ -366,7 +364,7 @@ def loadConfig(
         isError, isRecoverable = True, False
         logger.error(
             f"{config_name}: An unexpected error occurred while loading '{filename}'\n"
-            + traceback.format_exc(limit=AppArgs.traceback_limit)
+            + traceback.format_exc(limit=CoreArgs.traceback_limit)
         )
     finally:
         if isError:
@@ -456,7 +454,7 @@ def validateValue(
         is_error = True
         logger.error(
             f"Config '{config_name}': An unexpected error occurred while validating value '{value}' using key '{setting}'\n"
-            + traceback.format_exc(limit=AppArgs.traceback_limit)
+            + traceback.format_exc(limit=CoreArgs.traceback_limit)
         )
     finally:
         return is_error, is_valid

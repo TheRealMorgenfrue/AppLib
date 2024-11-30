@@ -46,7 +46,7 @@ def getAssetsPath() -> Path:
     return Path.cwd()
 
 
-class AppArgs:
+class CoreArgs:
     # General
     app_version = VERSION
     link_github = ""

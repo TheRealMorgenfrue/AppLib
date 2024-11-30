@@ -4,7 +4,7 @@ from typing import Any, Mapping, Optional
 
 from ...app.common.core_signalbus import core_signalbus
 
-from .internal.app_args import AppArgs
+from .internal.core_args import CoreArgs
 from .tools.config_tools import (
     checkMissingFields,
     loadConfig,
@@ -258,6 +258,6 @@ class ConfigBase:
             msg = "Failed to save the config"
             self._logger.error(
                 f"Config '{self._config_name}': {msg}\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
             core_signalbus.configStateChange.emit(False, msg, "")

@@ -5,7 +5,7 @@ import traceback
 
 from ..process.process_base import ProcessBase
 from ..process.process_generator import ProcessGenerator
-from ...config.internal.app_args import AppArgs
+from ...config.internal.core_args import CoreArgs
 from ...logging import logger
 from ...tools.utilities import iterToString
 
@@ -96,7 +96,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.error(
                 f"Failed to properly terminate process {process_id}\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
             return False
 
@@ -199,7 +199,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.error(
                 f"{self.name.title()} has failed\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
             self.kill.emit(True)
 
@@ -387,7 +387,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.critical(
                 f"{self.name.title()} has failed\n"
-                + traceback.format_exc(limit=AppArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
             # Call terminate method directly as the event loop is not running at this point
             self._TerminateAllRequest(suicide=True)

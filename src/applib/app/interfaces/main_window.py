@@ -31,8 +31,8 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 
-from ...module.config.app_config import AppConfig
-from ...module.config.internal.app_args import AppArgs
+from ...module.config.core_config import CoreConfig
+from ...module.config.internal.core_args import CoreArgs
 from ...module.logging import logger
 
 
@@ -45,7 +45,7 @@ class CoreMainWindow(MSFluentWindow):
         settings_interface: Optional[
             tuple[QWidget, Union[str, QIcon, FluentIconBase], str] | None
         ] = None,
-        app_icon: Union[str, QIcon] = f"{AppArgs.logo_dir}/logo.png",
+        app_icon: Union[str, QIcon] = f"{CoreArgs.logo_dir}/logo.png",
     ):
         super().__init__()
         self._app_icon = app_icon
@@ -62,12 +62,12 @@ class CoreMainWindow(MSFluentWindow):
         self._initWindow()
 
         try:
-            self._app_config = AppConfig()
+            self._app_config = CoreConfig()
             self._connectSignalToSlot()
             self._initNavigation()
             self._initBackground()
         except Exception:
-            self._error_log.append(traceback.format_exc(limit=AppArgs.traceback_limit))
+            self._error_log.append(traceback.format_exc(limit=CoreArgs.traceback_limit))
 
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
@@ -98,7 +98,7 @@ class CoreMainWindow(MSFluentWindow):
                 )
             except Exception:
                 self._error_log.append(
-                    traceback.format_exc(limit=AppArgs.traceback_limit)
+                    traceback.format_exc(limit=CoreArgs.traceback_limit)
                 )
 
         self.navigationInterface.addWidget(
@@ -127,7 +127,7 @@ class CoreMainWindow(MSFluentWindow):
         self.setWindowIcon(
             QIcon(self._app_icon) if isinstance(self._app_icon, str) else self._app_icon
         )
-        self.setWindowTitle(f"{AppArgs.app_name} {AppArgs.app_version}")
+        self.setWindowTitle(f"{CoreArgs.app_name} {CoreArgs.app_version}")
 
         # Create splash screen
         self.splashScreen = SplashScreen(self.windowIcon(), self)

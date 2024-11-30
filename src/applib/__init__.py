@@ -20,7 +20,6 @@ from .app.common.auto_wrap import AutoTextWrap
 from .app.common.core_signalbus import core_signalbus
 from .app.common.core_stylesheet import CoreStyleSheet
 
-
 from .app.components.dialogs.messagebox_base import Dialog, MessageBoxBase
 from .app.components.dialogs.messagebox import TextMessageBox
 from .app.components.progresscards.progress_bar_card import (
@@ -81,7 +80,11 @@ from .module.concurrency.process.stream_reader import asyncReadPipe
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 
+from .module.config.config_base import ConfigBase
+from .module.config.core_config import CoreConfig
+from .module.config.internal.core_args import CoreArgs
 from .module.config.templates.base_template import BaseTemplate
+from .module.config.templates.core_template import CoreTemplate
 from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
 from .module.config.tools.template_options.groups import Group
 from .module.config.tools.template_options.validation_info import ValidationInfo
@@ -97,7 +100,6 @@ from .module.config.tools.ini_file_parser import IniFileParser
 from .module.config.tools.template_parser import TemplateParser
 from .module.config.tools.validation_model_gen import ValidationModelGenerator
 from .module.config.validators import validatePath, validateLoglevel, validateTheme
-from .module.config.config_base import ConfigBase
 
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
 
@@ -151,6 +153,9 @@ __all__ = [
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
     "ConfigBase",
+    "CoreArgs",
+    "CoreConfig",
+    "CoreTemplate",
     "ConsoleView",
     "CoreApp",
     "CoreHomeInterface",

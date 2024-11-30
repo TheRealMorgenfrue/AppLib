@@ -3,7 +3,7 @@ import traceback
 from typing import Iterable
 
 from ..components.settingcards.card_base import DisableWrapper
-from ...module.config.internal.app_args import AppArgs
+from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIGroups, UITypes
 from ...module.config.tools.template_options.groups import Group
 from ...module.logging import logger
@@ -74,7 +74,7 @@ class UIGrouping:
                 parent = group.getParentCard()
                 parent_option = parent.getOption()
             except Exception:
-                logger.error(traceback.format_exc(limit=AppArgs.traceback_limit))
+                logger.error(traceback.format_exc(limit=CoreArgs.traceback_limit))
                 continue
 
             is_disabled = False
@@ -231,9 +231,9 @@ def parseUnit(setting: str, options: dict, config_name: str) -> str | None:
     baseunit = None
     if "ui_unit" in options:
         baseunit = options["ui_unit"]
-        if baseunit not in AppArgs.config_units.keys():
+        if baseunit not in CoreArgs.config_units.keys():
             logger.warning(
                 f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                + f"Expected one of '{iterToString(AppArgs.config_units.keys(), separator=', ')}'"
+                + f"Expected one of '{iterToString(CoreArgs.config_units.keys(), separator=', ')}'"
             )
     return baseunit

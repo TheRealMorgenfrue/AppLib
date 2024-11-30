@@ -25,10 +25,10 @@ def makeAppArgs(cls):
 
     Must only be used once!
     """
-    from ..config.internal.app_args import AppArgs
+    from ..config.internal.core_args import CoreArgs
 
     for k, v in cls.__dict__.items():
         # Ensure in-built attributes are not copied (i.e. prefix or postfix is not "__")
         if k[:2].count("_") != 2 and k[-2:].count("_") != 2:
-            setattr(AppArgs, k, v)
+            setattr(CoreArgs, k, v)
     return cls
