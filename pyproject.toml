@@ -20,5 +20,11 @@ dependencies = [
   "PyQt6==6.7.1"
 ]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "src/test",
+  "src/test.py"
+]
+
 [tool.hatch.version]
 path = "src/applib/module/tools/version.py"
