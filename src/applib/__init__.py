@@ -19,6 +19,8 @@ with __ctxl.redirect_stdout(None):
 from .app.common.auto_wrap import AutoTextWrap
 from .app.common.core_signalbus import core_signalbus
 from .app.common.core_stylesheet import CoreStyleSheet
+
+
 from .app.components.dialogs.messagebox_base import Dialog, MessageBoxBase
 from .app.components.dialogs.messagebox import TextMessageBox
 from .app.components.progresscards.progress_bar_card import (
@@ -30,6 +32,7 @@ from .app.components.progresscards.progress_ring_card import (
     IndeterminateProgressRingCard,
 )
 from .app.components.progresscards.progress_card import ProgressCard
+
 from .app.components.settingcards.card_base import CardBase, ParentCardBase
 from .app.components.settingcards.cards.clustered_settingcard import (
     ClusteredSettingCard,
@@ -50,14 +53,17 @@ from .app.components.settingcards.widgets.parent_settingwidgets import (
     NestedSettingWidget,
 )
 from .app.components.settingcards.widgets.settingwidget import SettingWidget
+
 from .app.components.cardstack import PivotCardStack, SegmentedPivotCardStack
 from .app.components.console_view import ConsoleView
+from .app.components.flow_area import FlowArea
 from .app.components.fluent_label import FluentLabel
 from .app.components.infobar_test import InfoBar, InfoBarPosition
 from .app.components.input_view import InputView
 from .app.components.link_card import LinkCard, LinkCardView
 from .app.components.menu_list_view import MenuListView
 from .app.components.sample_card import SampleCard, SampleCardView
+
 from .app.generators.card_generator import CardGenerator
 from .app.generators.cardwidget_generator import CardWidgetGenerator
 from .app.generators.generatorbase import GeneratorBase
@@ -74,6 +80,7 @@ from .module.concurrency.process.process_generator import ProcessGenerator
 from .module.concurrency.process.stream_reader import asyncReadPipe
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
+
 from .module.config.templates.base_template import BaseTemplate
 from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
 from .module.config.tools.template_options.groups import Group
@@ -91,8 +98,11 @@ from .module.config.tools.template_parser import TemplateParser
 from .module.config.tools.validation_model_gen import ValidationModelGenerator
 from .module.config.validators import validatePath, validateLoglevel, validateTheme
 from .module.config.config_base import ConfigBase
+
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
+
 from .module.logging import logger
+
 from .module.tools.decorators import makeAppArgs
 from .module.tools.utilities import (
     iterToString,
@@ -151,6 +161,7 @@ __all__ = [
     "CoreStyleSheet",
     "Dialog",
     "ExpandingSettingCard",
+    "FlowArea",
     "FlowSettingCard",
     "FluentLabel",
     "FluentSettingCard",
