@@ -1,6 +1,6 @@
 from time import time
 import traceback
-from typing import Any, Mapping, Optional
+from typing import Any, Mapping
 
 from ...app.common.core_signalbus import core_signalbus
 
@@ -23,33 +23,30 @@ class ConfigBase:
 
     def __init__(
         self,
-        template_config: Optional[dict[str, Any]],
-        validation_model: Optional[Model],
+        template_model: dict[str, Any],
+        validation_model: Model,
         config_name: str,
         config_path: StrPath,
         save_interval: int = 1,
     ) -> None:
-        """Initiate config wrapper class
-
-        Remember to call setter for config !
-        ----
-        config : dict
-            The config dictionary (i.e. the "actual" config)
+        """
+        Initiate config wrapper class.
 
         Parameters
         ----------
-        config_name : str
-            The name of the config.
-
-        config_path : StrPath
-            The path where the config will be written to.
-
-        template_config : dict | None
-            The template which the *config* was created from
+        template : dict[str, Any]
+            A dict created from a `Model`, resembling a template,
+            from which the config will be created.
 
         validation_model : Model
             The model used to validate the config.
             The type is a Pydantic model.
+
+        config_name : str
+            The name of the config to create.
+
+        config_path : StrPath
+            The config's location on disk.
 
         save_interval : int, optional
             Time between config saves in seconds, by default 1.
@@ -57,13 +54,13 @@ class ConfigBase:
         self._load_failure = False  # The config failed to load
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
-        self._lastSaveTime = (
+        self._last_save_time = (
             time()
         )  # Prevent excessive disk writing (with multiple write requests in a short time span)
         self._config_name = config_name
         self._config_path = config_path
         self._config = None  # type: dict[str, Any]
-        self._template_config = template_config
+        self._template_model = template_model
         self._validation_model = validation_model
         self.__connectSignalToSlot()
 
@@ -94,7 +91,7 @@ class ConfigBase:
             config_name=self._config_name,
             config_path=self._config_path,
             validator=self._validateLoad,
-            template=self._template_config,
+            template=self._template_model,
         )
         return config
 
@@ -137,19 +134,19 @@ class ConfigBase:
         self._config = config
 
     def setTemplateConfig(self, template_config: dict[str, Any]) -> None:
-        self._template_config = template_config
+        self._template_model = template_config
 
     def setValidationModel(self, validation_model: Model) -> None:
         self._validation_model = validation_model
 
     def getConfig(self) -> dict[str, Any]:
-        """Get the config dictionary object
-        (i.e. the "actual" config).
+        """
+        Get the config's underlying dict.
 
         Returns
         -------
         dict[str, dict]
-            _description_
+            The config's underlying dict
         """
         return self._config
 
@@ -157,7 +154,8 @@ class ConfigBase:
         return self._config_name
 
     def getFailureStatus(self) -> bool:
-        """Returns whether the config failed to load.
+        """
+        Returns whether the config failed to load.
 
         Returns
         -------
@@ -170,11 +168,11 @@ class ConfigBase:
         self._load_failure = status
 
     def getValue(
-        self, key: str, default: Any = None, use_template_config: bool = False
+        self, key: str, default: Any = None, use_template: bool = False
     ) -> Any:
-        """Get a value from the config dictionary object.
-            Return first value found. If there is no item with that key, return
-            default.
+        """
+        Get a value from the config dictionary object.
+        Return first value found. If there is no item with that key, return default.
 
         This is the default implementation.
         To change its behavior, simply @override this method in a subclass.
@@ -190,7 +188,7 @@ class ConfigBase:
         default : Any, optional
             Return default value if the key is not found. By default None.
 
-        use_template_config : bool, optional
+        use_template : bool, optional
             Use the template config, by default False.
             The template config is useful for getting e.g. default values of settings.
 
@@ -199,7 +197,7 @@ class ConfigBase:
         Any
             The value of the key if found, else the default value.
         """
-        config = self._template_config if use_template_config else self._config
+        config = self._template_model if use_template else self._config
         value = retrieveDictValue(d=config, key=key, default=default)
         if value is None:
             self._logger.warning(
@@ -208,10 +206,8 @@ class ConfigBase:
         return value
 
     def setValue(self, key: str, value: Any, config_name: str) -> bool:
-        """Update the config dictionary with *value*.
-
-        This is the default implementation.
-        To change its behavior, simply @override this method in a subclass.
+        """
+        Update the config dictionary with `value`.
 
         Parameters
         ----------
@@ -249,9 +245,9 @@ class ConfigBase:
         try:
             if (
                 self._is_modified
-                and (self._lastSaveTime + self._save_interval) < time()
+                and (self._last_save_time + self._save_interval) < time()
             ):
-                self._lastSaveTime = time()
+                self._last_save_time = time()
                 writeConfig(self._config, self._config_path)
                 self._is_modified = False
         except Exception:
