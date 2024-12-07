@@ -55,9 +55,7 @@ class CoreLineEdit(BaseSetting):
             configname=configname,
             options=options,
             currentValue=config.getValue(configkey, configname),
-            defaultValue=config.getValue(
-                configkey, configname, use_template_config=True
-            ),
+            defaultValue=config.getValue(configkey, configname, use_template=True),
             backupValue=None,
             isDisabled=False,
             notifyDisabled=True,

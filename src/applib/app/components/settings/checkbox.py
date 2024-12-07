@@ -43,7 +43,7 @@ class CoreCheckBox(BoolSetting):
             options=options,
             currentValue=self._convertBool(config.getValue(configkey, configname)),
             defaultValue=self._convertBool(
-                config.getValue(configkey, configname, use_template_config=True)
+                config.getValue(configkey, configname, use_template=True)
             ),
             backupValue=False,
             isDisabled=False,

@@ -47,7 +47,7 @@ class CoreColorPicker(BaseSetting):
             options=options,
             currentValue=QColor(config.getValue(configkey, configname)),
             defaultValue=QColor(
-                config.getValue(configkey, configname, use_template_config=True)
+                config.getValue(configkey, configname, use_template=True)
             ),
             backupValue=None,
             isDisabled=False,
