@@ -1,9 +1,10 @@
 from typing import Self
 
-from .config_base import ConfigBase
+from applib.module.config.templates.core_template import CoreTemplate
+
 from .internal.core_args import CoreArgs
-from .tools.validation_model_gen import ValidationModelGenerator
-from .templates.core_template import CoreTemplate
+from .config_base import ConfigBase
+from .tools.validation_model_gen import CoreValidationModelGenerator
 
 
 class CoreConfig(ConfigBase):
@@ -15,14 +16,23 @@ class CoreConfig(ConfigBase):
             cls._created = False
         return cls._instance
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+    ) -> None:
+        """
+        The default class for creating configs from templates and loading the created config from disk.
+        The config is validation using the generic validation model.
+
+        NOTE: To create your own custom config class, please inherit from `ConfigBase`.
+        """
+        template = CoreTemplate()
         if not self._created:
-            validation_model = ValidationModelGenerator().getGenericModel(
-                model_name=CoreTemplate().getName(),
-                template=CoreTemplate().getTemplate(),
+            validation_model = CoreValidationModelGenerator().getGenericModel(
+                model_name=template.getName(),
+                template=template.getTemplate(),
             )
             super().__init__(
-                template_config=validation_model.model_construct().model_dump(),
+                template_model=validation_model.model_construct().model_dump(),
                 validation_model=validation_model,
                 config_name=CoreArgs.app_config_name,
                 config_path=CoreArgs.app_config_path,
