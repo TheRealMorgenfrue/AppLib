@@ -98,7 +98,7 @@ from .module.config.tools.config_tools import (
 )
 from .module.config.tools.ini_file_parser import IniFileParser
 from .module.config.tools.template_parser import TemplateParser
-from .module.config.tools.validation_model_gen import ValidationModelGenerator
+from .module.config.tools.validation_model_gen import CoreValidationModelGenerator
 from .module.config.validators import validatePath, validateLoglevel, validateTheme
 
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
@@ -212,7 +212,7 @@ __all__ = [
     "UIGroups",
     "UITypes",
     "ValidationInfo",
-    "ValidationModelGenerator",
+    "CoreValidationModelGenerator",
     "asyncReadPipe",
     "backupConfig",
     "checkMissingFields",

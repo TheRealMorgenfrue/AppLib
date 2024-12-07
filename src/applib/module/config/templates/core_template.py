@@ -82,7 +82,6 @@ class CoreTemplate(BaseTemplate):
                     "max": None,
                     "ui_group_parent": UIGroups.CLUSTERED,
                     "ui_group": "pu_threads",
-                    "ui_flags": UIFlags.EXCLUDE,
                 },
                 "terminalSize": {
                     "ui_title": "Terminal size",
@@ -92,7 +91,6 @@ class CoreTemplate(BaseTemplate):
                     "max": None,
                     "ui_type": UITypes.SPINBOX,
                     "ui_group": "pu_threads",
-                    "ui_flags": UIFlags.EXCLUDE,
                 },
             },
         }

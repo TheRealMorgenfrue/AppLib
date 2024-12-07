@@ -5,7 +5,7 @@ from .template_options.validation_info import ValidationInfo
 from .template_parser import TemplateParser
 
 
-class ValidationModelGenerator:
+class CoreValidationModelGenerator:
     _instance = None
     # Cache of all created models. Models of the same type are cached only once
     _model_cache = {}
@@ -15,50 +15,14 @@ class ValidationModelGenerator:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def getGenericModel(self, model_name: str, template: dict) -> type[BaseModel]:
-        """
-        Generate a generic validation model of the supplied template.\n
-        This type of model can be used to validate all templates not requiring special care.
-
-        Parameters
-        ----------
-        model_name : str
-            The name of the generated model.
-
-        template : dict
-            The template from which the model is generated from.
-
-        Returns
-        -------
-        type[BaseModel]
-            A validation model of the template.
-        """
-        if "generic" not in self._model_cache:
-            self._model_cache |= {"generic": {}}
-
-        if model_name not in self._model_cache["generic"]:
-            self.template_parser = TemplateParser()
-            self.template_parser.parse(model_name, template)
-            validation_info = self.template_parser.getValidationInfo(model_name)
-
-            field_validators = self._createFieldValidators(
-                validation_info=validation_info
-            )
-            model = self._generateModel(
-                model_name=model_name,
-                fields=validation_info.getFields(),
-                field_validators=field_validators,
-            )
-            self._model_cache["generic"] |= {model_name: model}
-        return self._model_cache["generic"][model_name]
-
     def _createFieldValidators(
         self,
         validation_info: ValidationInfo,
         mode: Literal["before", "after", "plain"] = "after",
         check_fields: bool = True,
     ) -> dict[str, dict[str, field_validator]]:
-        """Create field validators for all settings that have a validator callable attached to them.
+        """
+        Create field validators for all settings that have a validator callable attached to them.
 
         Parameters
         ----------
@@ -146,3 +110,40 @@ class ValidationModelGenerator:
                 }
 
             return create_model(model_name, **full_model_fields)
+
+    def getGenericModel(self, model_name: str, template: dict) -> type[BaseModel]:
+        """
+        Generate a generic validation model of the supplied template.\n
+        This type of model can be used to validate all templates not requiring special care.
+
+        Parameters
+        ----------
+        model_name : str
+            The name of the generated model.
+
+        template : dict
+            The template from which the model is generated from.
+
+        Returns
+        -------
+        type[BaseModel]
+            A validation model of the template.
+        """
+        if "generic" not in self._model_cache:
+            self._model_cache |= {"generic": {}}
+
+        if model_name not in self._model_cache["generic"]:
+            self.template_parser = TemplateParser()
+            self.template_parser.parse(model_name, template)
+            validation_info = self.template_parser.getValidationInfo(model_name)
+
+            field_validators = self._createFieldValidators(
+                validation_info=validation_info
+            )
+            model = self._generateModel(
+                model_name=model_name,
+                fields=validation_info.getFields(),
+                field_validators=field_validators,
+            )
+            self._model_cache["generic"] |= {model_name: model}
+        return self._model_cache["generic"][model_name]
