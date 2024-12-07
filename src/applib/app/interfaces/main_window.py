@@ -33,7 +33,10 @@ from ..components.infobar_test import InfoBar, InfoBarPosition
 
 from ...module.config.core_config import CoreConfig
 from ...module.config.internal.core_args import CoreArgs
+from ...module.config.templates.core_template import CoreTemplate
 from ...module.logging import logger
+from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.templates import AnyTemplate
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -41,7 +44,11 @@ class CoreMainWindow(MSFluentWindow):
 
     def __init__(
         self,
-        subinterfaces: list[tuple[QWidget, Union[str, QIcon, FluentIconBase], str]],
+        main_config: AnyConfig = None,
+        main_template: AnyTemplate = None,
+        subinterfaces: list[
+            tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
+        ] = None,
         settings_interface: Optional[
             tuple[QWidget, Union[str, QIcon, FluentIconBase], str] | None
         ] = None,
@@ -62,7 +69,16 @@ class CoreMainWindow(MSFluentWindow):
         self._initWindow()
 
         try:
-            self._app_config = CoreConfig()
+            if main_config is None:
+                self.main_config = CoreConfig()
+            else:
+                self.main_config = main_config
+
+            if main_template is None:
+                self.main_template = CoreTemplate()
+            else:
+                self.main_template = main_template
+
             self._connectSignalToSlot()
             self._initNavigation()
             self._initBackground()
@@ -80,26 +96,27 @@ class CoreMainWindow(MSFluentWindow):
             self._checkSoftErrors()
 
     def _initBackground(self):
-        val = self._app_config.getValue("appBackground")
+        val = self.main_config.getValue("appBackground")
         self.background = QPixmap(val) if val else None  # type: QPixmap | None
         self.background_opacity = (
-            self._app_config.getValue("backgroundOpacity", 0.0) / 100
+            self.main_config.getValue("backgroundOpacity", 0.0) / 100
         )
         self.background_blur_radius = float(
-            self._app_config.getValue("backgroundBlur", 0.0)
+            self.main_config.getValue("backgroundBlur", 0.0)
         )
 
     def _initNavigation(self):
-        for Interface, icon, title in self._subinterfaces:
-            try:
-                init_interface = Interface(parent=self)
-                self.addSubInterface(
-                    interface=init_interface, icon=icon, text=self.tr(title)
-                )
-            except Exception:
-                self._error_log.append(
-                    traceback.format_exc(limit=CoreArgs.traceback_limit)
-                )
+        if self._subinterfaces:
+            for Interface, icon, title in self._subinterfaces:
+                try:
+                    init_interface = Interface(parent=self)
+                    self.addSubInterface(
+                        interface=init_interface, icon=icon, text=self.tr(title)
+                    )
+                except Exception:
+                    self._error_log.append(
+                        traceback.format_exc(limit=CoreArgs.traceback_limit)
+                    )
 
         self.navigationInterface.addWidget(
             "themeButton",
@@ -159,7 +176,7 @@ class CoreMainWindow(MSFluentWindow):
     def _onConfigUpdated(
         self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
-        if config_name == self._app_config.getConfigName():
+        if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
             if configkey == "appBackground":
                 self.background = QPixmap(value) if value else None
@@ -236,7 +253,7 @@ class CoreMainWindow(MSFluentWindow):
             )
 
     def _checkSoftErrors(self) -> None:
-        if self._app_config.getFailureStatus():
+        if self.main_config.getFailureStatus():
             InfoBar.warning(
                 title=self.tr("Using internal config"),
                 content=self.tr("Setting changes may not persist"),
@@ -264,9 +281,9 @@ class CoreMainWindow(MSFluentWindow):
     def toggleTheme(self) -> None:
         toggleTheme(lazy=True)
         core_signalbus.updateConfigSettings.emit(
-            self._app_config.getConfigName(), "appTheme", (theme().value,)
+            self.main_config.getConfigName(), "appTheme", (theme().value,)
         )
-        core_signalbus.doSaveConfig.emit(self._app_config.getConfigName())
+        core_signalbus.doSaveConfig.emit(self.main_config.getConfigName())
 
     def paintEvent(self, e: QPaintEvent) -> None:
         super().paintEvent(e)

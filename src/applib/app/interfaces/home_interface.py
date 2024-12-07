@@ -16,24 +16,24 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.link_card import LinkCardView
 
-from ...module.config.core_config import CoreConfig
 from ...module.config.internal.core_args import CoreArgs
 from ...module.tools.types.general import StrPath
+from ...module.tools.types.config import AnyConfig
 
 
 class BannerWidget(QWidget):
-    _app_config = CoreConfig()
-
     def __init__(
         self,
+        main_config: AnyConfig,
         banner_path: StrPath = f"{CoreArgs.asset_images_dir}{os.sep}banner.jpg",
         parent: Optional[QWidget] = None,
     ):
-        super().__init__(parent)
-        self.is_background_active = bool(self._app_config.getValue("appBackground"))
+        super().__init__(parent=parent)
+        self.main_config = main_config
+        self.is_background_active = bool(self.main_config.getValue("appBackground"))
         self.show_banner = (
             not self.is_background_active
-            or int(self._app_config.getValue("backgroundOpacity")) == 0
+            or int(self.main_config.getValue("backgroundOpacity")) == 0
         )
 
         self.vBoxLayout = QVBoxLayout(self)
@@ -84,7 +84,7 @@ class BannerWidget(QWidget):
     def _onConfigUpdated(
         self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
-        if config_name == self._app_config.getConfigName():
+        if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
             if configkey == "appBackground":
                 self.show_banner = not bool(value)
@@ -126,10 +126,10 @@ class BannerWidget(QWidget):
 
 
 class CoreHomeInterface(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, main_config: AnyConfig, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
         self._view = QWidget(self)
-        self.banner = BannerWidget(parent=self)
+        self.banner = BannerWidget(main_config=main_config, parent=self)
         self.vBoxLayout = QVBoxLayout(self._view)
         self._initWidget()
 

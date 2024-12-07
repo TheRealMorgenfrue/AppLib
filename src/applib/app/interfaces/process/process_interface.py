@@ -1,4 +1,3 @@
-from copy import deepcopy
 from typing import Any, Optional
 from qfluentwidgets import (
     ScrollArea,
@@ -19,20 +18,18 @@ from .process_subinterface import ProcessSubinterface
 
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
-from ....module.config.core_config import CoreConfig
 from ....module.config.internal.core_args import CoreArgs
-from ....module.config.templates.template_enums import UIFlags
 from ....module.config.templates.core_template import CoreTemplate
-from ....module.config.core_config import CoreConfig
 from ....module.logging import logger
+from ....module.tools.types.config import AnyConfig
 
 
 class CoreProcessInterface(ScrollArea):
     _logger = logger
-    _app_config = CoreConfig()
 
     def __init__(
         self,
+        main_config: AnyConfig,
         ProcessGenerator: ProcessGenerator,
         ThreadManager: ThreadUIStreamer,
         parent: Optional[QWidget] = None,
@@ -40,23 +37,26 @@ class CoreProcessInterface(ScrollArea):
         try:
             super().__init__(parent)
             self._view = QWidget(self)
+            self.main_config = main_config
             self.titleLabel = QLabel(self.tr(f"{CoreArgs.app_name} Process Manager"))
             self.terminateAllButton = PushButton(self.tr("Terminate All"))
             self.startButton = PrimaryPushButton(self.tr("Start All"))
             self.flowConsoles = FlowArea()
             self.processSubinterface = ProcessSubinterface(
-                config=self._app_config, template=self._createProcessTemplate()
+                config=self.main_config, template=self._createProcessTemplate()
             )
 
             self.vGeneralLayout = QVBoxLayout(self._view)
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
-            self.max_threads = self._app_config.getValue("maxThreads")
-            self.terminal_size = self._app_config.getValue("terminalSize")
+            self.max_threads = self.main_config.getValue("maxThreads")
+            self.terminal_size = self.main_config.getValue("terminalSize")
             self.console_widgets = {}  # type: dict[int, ConsoleView | None]
 
-            self.threadManager = ThreadManager(self.max_threads, self.console_widgets)
+            self.threadManager = ThreadManager(
+                self.max_threads, self.console_widgets
+            )  # type: ThreadUIStreamer
             self.process_generator = ProcessGenerator()
             self.process_running = False
 
@@ -73,17 +73,9 @@ class CoreProcessInterface(ScrollArea):
         # REVIEW: Consider creating new template class for use here instead of pulling stuff out from app template
         app_template = CoreTemplate()
         template_topkey = "Process"
-        template_options = deepcopy(app_template.getValue(template_topkey))
-
-        template_dict = {template_topkey: {}}
-        for k, v in template_options.items():
-            if "ui_flags" in v and UIFlags.EXCLUDE in v["ui_flags"]:
-                v.pop("ui_flags")
-                template_dict[template_topkey] |= {k: v}
-
         template = CoreTemplate.createSubTemplate(
-            template_name="Process",
-            template=template_dict,
+            template_name=app_template.getName(),
+            template={template_topkey: app_template.getValue(template_topkey)},
             icons=app_template.getIcons(),
         )
         return template
@@ -194,7 +186,7 @@ class CoreProcessInterface(ScrollArea):
     def _onConfigUpdated(
         self, config_name: str, configkey: str, value_tuple: tuple[Any,]
     ) -> None:
-        if config_name == self._app_config.getConfigName():
+        if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
             if configkey == "maxThreads":
                 self.max_threads = value
