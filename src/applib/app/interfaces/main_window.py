@@ -33,10 +33,8 @@ from ..components.infobar_test import InfoBar, InfoBarPosition
 
 from ...module.config.core_config import CoreConfig
 from ...module.config.internal.core_args import CoreArgs
-from ...module.config.templates.core_template import CoreTemplate
 from ...module.logging import logger
 from ...module.tools.types.config import AnyConfig
-from ...module.tools.types.templates import AnyTemplate
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -45,7 +43,6 @@ class CoreMainWindow(MSFluentWindow):
     def __init__(
         self,
         main_config: AnyConfig = None,
-        main_template: AnyTemplate = None,
         subinterfaces: list[
             tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
         ] = None,
@@ -73,11 +70,6 @@ class CoreMainWindow(MSFluentWindow):
                 self.main_config = CoreConfig()
             else:
                 self.main_config = main_config
-
-            if main_template is None:
-                self.main_template = CoreTemplate()
-            else:
-                self.main_template = main_template
 
             self._connectSignalToSlot()
             self._initNavigation()
