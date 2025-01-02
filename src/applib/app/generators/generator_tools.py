@@ -1,4 +1,3 @@
-from __future__ import annotations
 import traceback
 from typing import Iterable
 
@@ -45,7 +44,7 @@ class UIGrouping:
     def _desync_children(cls, wrapper: DisableWrapper | bool, child: AnyCard) -> None:
         # Result == !Input
         if isinstance(wrapper, DisableWrapper):
-            wrapper.isDisabled = not wrapper.isDisabled
+            wrapper.is_disabled = not wrapper.is_disabled
             child.getDisableSignal().emit(wrapper)
         else:
             child.getOption().setValue(not wrapper)
@@ -55,7 +54,7 @@ class UIGrouping:
         cls, wrapper: DisableWrapper | bool, child: AnyCard
     ) -> None:
         # Input ? Result == Input : pass
-        if isinstance(wrapper, DisableWrapper) and wrapper.isDisabled or wrapper:
+        if isinstance(wrapper, DisableWrapper) and wrapper.is_disabled or wrapper:
             cls._sync_children(wrapper, child)
 
     @classmethod
@@ -63,7 +62,7 @@ class UIGrouping:
         cls, wrapper: DisableWrapper | bool, child: AnyCard
     ) -> None:
         # Input ? Result == !Input : pass
-        if isinstance(wrapper, DisableWrapper) and wrapper.isDisabled or wrapper:
+        if isinstance(wrapper, DisableWrapper) and wrapper.is_disabled or wrapper:
             cls._desync_children(wrapper, child)
 
     @classmethod

@@ -158,7 +158,7 @@ class CoreMainWindow(MSFluentWindow):
     def _connectSignalToSlot(self) -> None:
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
         core_signalbus.configValidationError.connect(
-            lambda configname, title, content: self._onConfigValidationFailed(
+            lambda config_name, title, content: self._onConfigValidationFailed(
                 title, content
             )
         )
@@ -166,21 +166,21 @@ class CoreMainWindow(MSFluentWindow):
         core_signalbus.genericError.connect(self._onGenericError)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
+        self, config_name: str, config_key: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
-            if configkey == "appBackground":
+            if config_key == "appBackground":
                 self.background = QPixmap(value) if value else None
                 self.update()
-            elif configkey == "appTheme":
+            elif config_key == "appTheme":
                 self._onThemeChanged(value)
-            elif configkey == "appColor":
+            elif config_key == "appColor":
                 setThemeColor(value, lazy=True)
-            elif configkey == "backgroundOpacity":
+            elif config_key == "backgroundOpacity":
                 self.background_opacity = value / 100
                 self.update()
-            elif configkey == "backgroundBlur":
+            elif config_key == "backgroundBlur":
                 self.background_blur_radius = float(value)
                 self.update()
 

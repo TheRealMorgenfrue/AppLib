@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 from PyQt6.QtCore import Qt, pyqtSignal, pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
@@ -8,9 +7,9 @@ from ....module.tools.types.gui_settings import AnySetting
 
 class DisableWrapper:
     def __init__(
-        self, isDisabled: bool, othersOnly: bool = False, save: bool = True
+        self, is_disabled: bool, othersOnly: bool = False, save: bool = True
     ) -> None:
-        self.isDisabled = isDisabled
+        self.is_disabled = is_disabled
         self.othersOnly = othersOnly
         self.save = save
 

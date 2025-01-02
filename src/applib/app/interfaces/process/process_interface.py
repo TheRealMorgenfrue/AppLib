@@ -184,15 +184,15 @@ class CoreProcessInterface(ScrollArea):
         self.threadManager.clearConsole.connect(self._onClearConsole)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
+        self, config_name: str, config_key: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
-            if configkey == "maxThreads":
+            if config_key == "maxThreads":
                 self.max_threads = value
                 self._initConsole(allowRemoval=not self.process_running)
                 self.threadManager.updateMaxThreads.emit(self.max_threads)
-            elif configkey == "terminalSize":
+            elif config_key == "terminalSize":
                 self.terminal_size = value
                 for console in self.console_widgets.values():
                     if console:

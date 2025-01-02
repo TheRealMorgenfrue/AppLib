@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import CardWidget
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
 from PyQt6.QtCore import Qt
@@ -70,7 +69,7 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
     def _onParentNotified(self, values: tuple[str, Any]) -> None:
         type, value = values
         if type == "updateState":
-            self.disableChildren.emit(DisableWrapper(self.isDisabled))
+            self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     @override
     def getOption(self) -> AnySetting:
@@ -111,10 +110,10 @@ class NestedSettingWidget(ParentSettingWidget):
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        isDisabled = wrapper.isDisabled
-        if self.isDisabled != isDisabled:
-            self.isDisabled = isDisabled
-            self._cardWidget.setDisabled(isDisabled)
+        is_disabled = wrapper.is_disabled
+        if self.is_disabled != is_disabled:
+            self.is_disabled = is_disabled
+            self._cardWidget.setDisabled(is_disabled)
             self.disableChildren.emit(wrapper)
 
     @override

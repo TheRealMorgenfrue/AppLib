@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 import traceback
 from PyQt6.QtWidgets import QWidget
@@ -40,7 +39,6 @@ class GeneratorBase:
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        config_name: Optional[str] = None,
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
@@ -52,18 +50,17 @@ class GeneratorBase:
         self._config = config
         self._template = template
         self._template_name = self._template.getName()
-        self._config_name = config_name if config_name else self._template_name
+        self._config_name = config.getConfigName()
         self._default_group = default_group
         self._hide_group_label = hide_group_label
         self._is_tight = is_tight
         self._parent = parent
-        self._card_sort_order = (
-            {}
-        )  # type: dict[str, list]    # Mapping of the correct card sort order.
-        self._card_list = (
-            []
-        )  # type: list[AnyCardGroup] # Temp placement of unsorted cards.
-        self._cards = []  # type: list[AnyCardGroup] # The cards sorted correctly.
+        # type: dict[str, list] # Mapping of the correct card sort order.
+        self._card_sort_order = {}
+        # type: list[AnyCardGroup] # Temp placement of unsorted cards.
+        self._card_list = []
+        # type: list[AnyCardGroup] # The cards sorted correctly.
+        self._cards = []
 
     @abstractmethod
     def _createCard(
@@ -107,24 +104,21 @@ class GeneratorBase:
         if card_type == UITypes.CHECKBOX:
             widget = CoreCheckBox(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 parent=parent,
             )
         elif card_type == UITypes.COLOR_PICKER:
             widget = CoreColorPicker(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 parent=parent,
             )
         elif card_type == UITypes.COMBOBOX:
             widget = CoreComboBox(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 texts=options["values"],
                 parent=parent,
@@ -132,8 +126,7 @@ class GeneratorBase:
         elif card_type == UITypes.FILE_SELECTION:
             widget = CoreFileSelect(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 caption=options["ui_title"],
                 directory=f"{CoreArgs.app_dir}",  # Starting directory
@@ -144,8 +137,7 @@ class GeneratorBase:
         elif card_type == UITypes.LINE_EDIT:
             widget = CoreLineEdit(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 is_tight=self._is_tight,
                 invalidmsg=(
@@ -157,8 +149,7 @@ class GeneratorBase:
         elif card_type == UITypes.SLIDER:
             widget = CoreSlider(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 num_range=[options["min"], options["max"]],
                 is_tight=self._is_tight,
@@ -168,8 +159,7 @@ class GeneratorBase:
         elif card_type == UITypes.SPINBOX:
             widget = CoreSpinBox(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 min_value=options["min"],
                 parent=parent,
@@ -177,8 +167,7 @@ class GeneratorBase:
         elif card_type == UITypes.SWITCH:
             widget = CoreSwitch(
                 config=self._config,
-                configkey=setting_name,
-                configname=self._config_name,
+                config_key=setting_name,
                 options=options,
                 parent=parent,
             )

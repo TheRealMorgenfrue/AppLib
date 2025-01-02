@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import CheckBox, ToolTipFilter, ToolTipPosition, TextWrap
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from PyQt6.QtCore import Qt
@@ -24,7 +23,7 @@ class SettingWidgetBase(CardBase, QWidget):
         self._title = title
         self._content = content
         self.hasDisableButton = hasDisableButton
-        self.isDisabled = False
+        self.is_disabled = False
 
         CoreStyleSheet.SETTING_WIDGET.apply(self)
 
@@ -89,12 +88,12 @@ class SettingWidget(SettingWidgetBase):
             self._createToolTip(self.titleLabel, value)
             self._createToolTip(self.option, value)
         elif type == "updateState":
-            self.disableChildren.emit(DisableWrapper(self.isDisabled))
+            self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     def _createDisableButton(self) -> None:
         self.disableButton = CheckBox(self._title)
         self.disableButton.setObjectName("ui_disable")
-        self.disableButton.setChecked(not self.isDisabled)
+        self.disableButton.setChecked(not self.is_disabled)
         self.hBoxLayout.insertWidget(
             0, self.disableButton, alignment=Qt.AlignmentFlag.AlignLeft
         )
@@ -107,24 +106,24 @@ class SettingWidget(SettingWidgetBase):
     def _getDisableMsg(self) -> str:
         return (
             self.tr(f"{self._title} is disabled")
-            if self.isDisabled
+            if self.is_disabled
             else self.tr(f"{self._title} is enabled")
         )
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        isDisabled, othersOnly, save = (
-            wrapper.isDisabled,
+        is_disabled, othersOnly, save = (
+            wrapper.is_disabled,
             wrapper.othersOnly,
             wrapper.save,
         )
-        if self.isDisabled != isDisabled:
-            self.isDisabled = isDisabled
+        if self.is_disabled != is_disabled:
+            self.is_disabled = is_disabled
             if self.option and not othersOnly:
-                self.option.notify.emit(("disable", (isDisabled, save)))
+                self.option.notify.emit(("disable", (is_disabled, save)))
 
             if self.disableButton:
-                self.disableButton.setChecked(not isDisabled)
+                self.disableButton.setChecked(not is_disabled)
                 self.disableButton.setToolTip(self._getDisableMsg())
 
     @override

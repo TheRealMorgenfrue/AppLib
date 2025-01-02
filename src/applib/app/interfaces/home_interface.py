@@ -82,14 +82,14 @@ class BannerWidget(QWidget):
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, value_tuple: tuple[Any,]
+        self, config_name: str, config_key: str, value_tuple: tuple[Any,]
     ) -> None:
         if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
-            if configkey == "appBackground":
+            if config_key == "appBackground":
                 self.show_banner = not bool(value)
                 self.is_background_active = bool(value)
-            elif configkey == "backgroundOpacity":
+            elif config_key == "backgroundOpacity":
                 self.show_banner = not self.is_background_active or int(value) == 0
 
     def paintEvent(self, e):

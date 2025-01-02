@@ -10,7 +10,7 @@ class CoreSignalBus(QObject):
     # Notify whether a value was inserted in a config successfully or not
     configStateChange = pyqtSignal(bool, str, str)
 
-    # config_name: str, configkey: str, value: tuple[Any]
+    # config_name: str, config_key: str, value: tuple[Any]
     # Notify that a value in a config is updated
     # The tuple is a 1-tuple with the setting's value, e.g. (value,)
     configUpdated = pyqtSignal(str, str, tuple)
@@ -26,7 +26,7 @@ class CoreSignalBus(QObject):
     # Setting updates
     # ───────────────────────────────────────────────────────────────────────────#
 
-    # config_name: str, configkey: str, value: tuple[Any]
+    # config_name: str, config_key: str, value: tuple[Any]
     # Update a setting's value programmatically from anywhere
     # The tuple is a 1-tuple with the setting's value, e.g. (value,)
     updateConfigSettings = pyqtSignal(str, str, tuple)

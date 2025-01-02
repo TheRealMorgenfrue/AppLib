@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 from qfluentwidgets import (
     FluentIconBase,
@@ -46,7 +45,7 @@ class SettingCardBase(CardBase, QFrame):
 
         self.hasDisableButton = hasDisableButton
         self.hideOption = True
-        self.isDisabled = False
+        self.is_disabled = False
 
         self.__initLayout()
         self._setQss()
@@ -127,13 +126,13 @@ class SettingCardMixin:
             self.contentLabel.setText(value)
             self.contentLabel.setHidden(not bool(value))
         elif type == "updateState":
-            self.disableChildren.emit(DisableWrapper(self.isDisabled))
+            self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     def _createDisableButton(self, alignment: Qt.AlignmentFlag) -> None:
         if self.disableButton is None:
             disableButton = PillPushButton(self.tr("Enabled"))
             disableButton.clicked.connect(
-                lambda: self.disableCard.emit(DisableWrapper(not self.isDisabled))
+                lambda: self.disableCard.emit(DisableWrapper(not self.is_disabled))
             )
             self.buttonLayout.addWidget(disableButton, 0, alignment)
             self.disableButton = disableButton
@@ -173,27 +172,27 @@ class SettingCardMixin:
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        isDisabled, othersOnly, save = (
-            wrapper.isDisabled,
+        is_disabled, othersOnly, save = (
+            wrapper.is_disabled,
             wrapper.othersOnly,
             wrapper.save,
         )
-        if self.isDisabled != isDisabled:
-            self.isDisabled = isDisabled
+        if self.is_disabled != is_disabled:
+            self.is_disabled = is_disabled
             self.disableChildren.emit(wrapper)
             if self.option and not othersOnly:
-                self.option.notify.emit(("disable", (isDisabled, save)))
+                self.option.notify.emit(("disable", (is_disabled, save)))
                 if self.hasDisableButton and self.hideOption:
-                    self.option.setHidden(isDisabled)
+                    self.option.setHidden(is_disabled)
 
             if self.disableButton:
-                self.disableButton.setChecked(isDisabled)
+                self.disableButton.setChecked(is_disabled)
                 self.disableButton.setText(
-                    self.tr("Disabled") if isDisabled else self.tr("Enabled")
+                    self.tr("Disabled") if is_disabled else self.tr("Enabled")
                 )
 
             if self.resetbutton:
-                self.resetbutton.setDisabled(self.isDisabled)
+                self.resetbutton.setDisabled(self.is_disabled)
 
     @override
     def getOption(self) -> AnySetting:

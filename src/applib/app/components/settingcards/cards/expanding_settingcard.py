@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import (
     FluentIconBase,
     FluentStyleSheet,
@@ -193,7 +192,7 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self.spaceWidget = SpaceWidget(self.scrollWidget)
         self.borderWidget = ExpandBorderWidget(self)
 
-        self.isDisabled = False
+        self.is_disabled = False
         self.isExpand = False
 
         # Expand animation
@@ -372,7 +371,7 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
         # Parent does not have an option directly attached and only needs "updateState"
         type, value = values
         if type == "updateState":
-            self.disableChildren.emit(DisableWrapper(self.isDisabled))
+            self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     @override
     def addChild(self, child: QWidget) -> None:
@@ -384,9 +383,9 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        isDisabled = wrapper.isDisabled
-        if self.isDisabled != isDisabled:
-            self.isDisabled = isDisabled
+        is_disabled = wrapper.is_disabled
+        if self.is_disabled != is_disabled:
+            self.is_disabled = is_disabled
             self.disableChildren.emit(wrapper)
 
     @override
