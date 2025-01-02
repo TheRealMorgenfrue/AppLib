@@ -84,7 +84,7 @@ class ConfigBase:
         if self._config_name == config_name:
             self.saveConfig()
 
-    def _checkMissingFields(self, config: dict, template_model: dict) -> None:
+    def _checkMissingFields(self, config: dict, template_model: dict, error_prefix: str = "") -> None:
         """
         Compare the config against the template_model for missing
         sections/settings and vice versa.
@@ -96,6 +96,10 @@ class ConfigBase:
 
         template_model : dict
             The template_model associated with `config`.
+
+        error_prefix : str
+            Prefix error messages with this string.
+            By default `""`.
 
         Raises
         ------
@@ -165,7 +169,7 @@ class ConfigBase:
         all_errors.extend(section_errors)
         all_errors.extend(field_errors)
         if len(all_errors) > 0:
-            raise MissingFieldError(all_errors)
+            raise MissingFieldError([f"{error_prefix}: {error}" for error in all_errors])
 
     def _initConfig(self) -> dict:
         """
