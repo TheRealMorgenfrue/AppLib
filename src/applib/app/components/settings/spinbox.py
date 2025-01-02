@@ -1,60 +1,61 @@
-from __future__ import annotations
 from qfluentwidgets import SpinBox, DoubleSpinBox
 from PyQt6.QtWidgets import QWidget
 
 from typing import Optional, override
 
-from .range_setting import RangeSetting
+from .base_setting import BaseSetting
+from .range_setting import RangeSettingMixin
+
 from ....module.tools.types.config import AnyConfig
 
 
-class CoreSpinBox(RangeSetting):
+class CoreSpinBox(BaseSetting, RangeSettingMixin):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
         min_value: int,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Spinbox widget connected to a config key.
+        """
+        Spinbox widget connected to a config key.
 
         Parameters
         ----------
-        config : ConfigBase
+        config : AnyConfig
             Config from which to get values used for this setting.
 
-        configkey : str
-            The option key in the config which should be associated with this setting.
-
-        configname : str
-            The name of the config.
+        config_key : str
+            The key in the config which should be associated with this setting.
 
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
 
         min : int
             The minimum value this setting will accept.
 
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
+
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=config.getValue(configkey, configname),
-            defaultValue=config.getValue(configkey, configname, use_template=True),
-            backupValue=None,
-            isDisabled=False,
-            notifyDisabled=True,
+            current_value=config.getValue(key=config_key, parent_key=parent_key),
+            default_value=config.getValue(
+                key=config_key, parent_key=parent_key, use_template_model=True
+            ),
             parent=parent,
         )
         try:
-            self.minValue = min_value
-            if type(self.currentValue) == int:
+            self.min_value = min_value
+            if type(self.current_value) == int:
                 self.setting = SpinBox(self)
                 self.maxValue = 999999
             else:
@@ -64,14 +65,13 @@ class CoreSpinBox(RangeSetting):
             # Configure spinbox
             self.setting.setAccelerated(True)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.minValue, self.maxValue)
+            self.setting.setRange(self.min_value, self.maxValue)
 
             # Ensure value cannot be invalid in the GUI
-            self.setting.setValue(self._ensureValidGUIValue(self.currentValue))
+            self.setting.setValue(self._ensureValidGUIValue(self.current_value))
 
             # Add SpinBox to layout
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
@@ -82,10 +82,10 @@ class CoreSpinBox(RangeSetting):
 
     def setValue(self, value: int) -> None:
         if super().setValue(value):
-            if self.notifyDisabled:
-                self.notifyDisabled = False
+            if self.notify_disabled:
+                self.notify_disabled = False
                 self.setWidgetValue(value)
-                self.notifyDisabled = True
+                self.notify_disabled = True
 
     @override
     def setWidgetValue(self, value: str) -> None:

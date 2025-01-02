@@ -1,64 +1,62 @@
-from __future__ import annotations
 from typing import Optional, override
 from qfluentwidgets import CheckBox
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtBoundSignal
 
-from .bool_setting import BoolSetting
+from .base_setting import BaseSetting
+from .bool_setting import BoolSettingMixin
+
 from ....module.tools.types.config import AnyConfig
 
 
-class CoreCheckBox(BoolSetting):
+class CoreCheckBox(BaseSetting, BoolSettingMixin):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Check box widget connected to a config key.
+        """
+        Check box widget connected to a config key.
 
         Parameters
         ----------
-        config : ConfigBase
+        config : AnyConfig
             Config from which to get values used for this setting.
 
-        configkey : str
+        config_key : str
             The option key in the config which should be associated with this setting.
 
-        configname : str
-            The name of the config.
-
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
+
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
 
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=self._convertBool(config.getValue(configkey, configname)),
-            defaultValue=self._convertBool(
-                config.getValue(configkey, configname, use_template=True)
+            current_value=self._convertBool(
+                config.getValue(key=config_key, parent_key=parent_key)
             ),
-            backupValue=False,
-            isDisabled=False,
-            notifyDisabled=True,
+            default_value=self._convertBool(
+                config.getValue(
+                    key=config_key, parent_key=parent_key, use_template_model=True
+                )
+            ),
             parent=parent,
         )
         try:
             self.setting = CheckBox()
-
-            # Set value of switch
-            self.setting.setChecked(self.currentValue)
-
-            # Add Switch to layout
+            self.setting.setChecked(self.current_value)  # Set value of switch
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()

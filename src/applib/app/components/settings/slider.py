@@ -1,44 +1,42 @@
-from __future__ import annotations
 from qfluentwidgets import Slider
 from PyQt6.QtWidgets import QWidget, QLabel
 from PyQt6.QtCore import Qt
 
 from typing import Optional, override
 
-from .range_setting import RangeSetting
-from ....module.config.internal.core_args import CoreArgs
+from .base_setting import BaseSetting
+from .range_setting import RangeSettingMixin
 
+from ....module.config.internal.core_args import CoreArgs
 from ....module.tools.utilities import dictLookup
 from ....module.tools.types.config import AnyConfig
 
 
-class CoreSlider(RangeSetting):
+class CoreSlider(BaseSetting, RangeSettingMixin):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
         num_range: tuple[int, int],
         is_tight: bool,
         baseunit: Optional[str] = None,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Slider widget connected to a config key.
+        """
+        Slider widget connected to a config key.
 
         Parameters
         ----------
-        config : ConfigBase
+        config : AnyConfig
             Config from which to get values used for this setting.
 
-        configkey : str
+        config_key : str
             The option key in the config which should be associated with this setting.
 
-        configname : str
-            The name of the config.
-
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
 
         num_range : tuple[int, int]
             - num_range[0] == min
@@ -48,31 +46,34 @@ class CoreSlider(RangeSetting):
             Use a smaller version of the slider.
 
         baseunit : str, optional
-            The unit of the setting, e.g. "day". By default None.
+            The unit of the setting, e.g. "day".
+            By default `None`.
+
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
 
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=config.getValue(configkey, configname),
-            defaultValue=config.getValue(configkey, configname, use_template=True),
-            backupValue=None,
-            isDisabled=False,
-            notifyDisabled=True,
+            current_value=config.getValue(key=config_key, parent_key=parent_key),
+            default_value=config.getValue(
+                key=config_key, parent_key=parent_key, use_template_model=True
+            ),
             parent=parent,
         )
         try:
             self.baseunit = baseunit
-            self.minValue, self.maxValue = num_range
+            self.min_value, self.maxValue = num_range
             self.setting = Slider(Qt.Orientation.Horizontal, self)
             self.valueLabel = QLabel(self)
 
             # Ensure value cannot be invalid in the GUI
-            guiValue = self._ensureValidGUIValue(self.currentValue)
+            guiValue = self._ensureValidGUIValue(self.current_value)
 
             # Configure slider and label
             w = 268
@@ -80,7 +81,7 @@ class CoreSlider(RangeSetting):
                 w = int(w * 0.67) if self.maxValue > 40 else w // 2
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.minValue, self.maxValue)
+            self.setting.setRange(self.min_value, self.maxValue)
             self.setting.setValue(guiValue)
             self._setLabelText(guiValue)
             self.valueLabel.setObjectName("valueLabel")
@@ -89,7 +90,6 @@ class CoreSlider(RangeSetting):
             self.buttonlayout.addWidget(self.valueLabel)
             self.buttonlayout.addWidget(self.setting)
             self.buttonlayout.addSpacing(-10)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
@@ -115,10 +115,10 @@ class CoreSlider(RangeSetting):
 
     def setValue(self, value: int) -> None:
         if super().setValue(value):
-            if self.notifyDisabled:
-                self.notifyDisabled = False
+            if self.notify_disabled:
+                self.notify_disabled = False
                 self.setWidgetValue(value)
-                self.notifyDisabled = True
+                self.notify_disabled = True
 
     @override
     def setWidgetValue(self, value: str) -> None:
