@@ -266,7 +266,7 @@ class ConfigBase:
             validator(self._config, self._config_name)
         except KeyError as err:
             is_error = True
-            logger.error(err.args[0])
+            logger.error(f"{msg_prefix} {err.args[0]}")
         except ValidationError as err:
             is_error, is_valid = True, False
             insertDictValue(
