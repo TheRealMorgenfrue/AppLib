@@ -330,5 +330,5 @@ def insertDictValue(
 
     traverseDict(input, key, value, parent_key)
     if not old_value:
-        raise KeyError(f"Error: Key {key} does not exists")
+        raise KeyError(f"Key '{key}' does not exists")
     return old_value[0]
