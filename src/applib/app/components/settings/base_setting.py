@@ -1,4 +1,3 @@
-from __future__ import annotations
 from abc import abstractmethod
 from typing import Any, Optional
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
@@ -15,50 +14,83 @@ from ....module.tools.types.config import AnyConfig
 
 
 class BaseSetting(QWidget):
-    notify = pyqtSignal(tuple)  # isDisabled, saveValue
-    notifyParent = pyqtSignal(tuple)  # notifyType, value
+    notify = pyqtSignal(tuple)  # is_disabled, save_value
+    notifyParent = pyqtSignal(tuple)  # notify_type, value
 
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
-        currentValue: Any,
-        defaultValue: Any,
-        backupValue: Any = None,
-        isDisabled: bool = False,
-        notifyDisabled: bool = True,
+        current_value: Any,
+        default_value: Any,
+        notify_disabled: bool = True,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(parent)
+        """
+        The base class for all GUI settings.
+
+        Required Attributes
+        -------------------
+        Child classes must define the following attributes.
+
+        self.setting : QWidget
+            The widget defining some setting, e.g., a checkbox.
+
+        Parameters
+        ----------
+        config : AnyConfig
+            Config from which to get values used for this setting.
+
+        config_key : str
+            The option key in the config which should be associated with this setting.
+
+        options : dict
+            The options associated with `config_key`.
+
+        current_value : Any
+            The current value of the setting.
+
+        default_value : Any
+            The default value of the setting.
+
+        notify_disabled : bool, optional
+            Notify the associated Setting Card if this setting is disabled.
+            By default `True`.
+
+        parent : QWidget, optional
+            Parent of this class.
+            By default `None`.
+        """
+        super().__init__(parent=parent)
         self.config = config
-        self.configkey = configkey
-        self.configname = configname
-        self.options = options
-        self.currentValue = currentValue
-        self.defaultValue = defaultValue
-        self.disableSelfValue = (
+        self.config_key = config_key
+        self.config_name = config.getConfigName()
+        self.current_value = current_value
+        self.default_value = default_value
+        self.backup_value = None
+        self.is_disabled = False
+        self.notify_disabled = notify_disabled
+
+        # The value which disables this setting.
+        self.disable_self_value = (
             options["ui_disable_self"] if "ui_disable_self" in options else None
-        )  # The value which disables this setting.
-        self.disableOtherValue = (
+        )
+        # The value which disables children of this setting
+        self.disable_other_value = (
             options["ui_disable_other"] if "ui_disable_other" in options else None
-        )  # The value which disables children of this setting
-        self.backupValue = backupValue
-        self.isDisabled = isDisabled
-        self.notifyDisabled = notifyDisabled
+        )
+
+        # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
             "ui_flags" in options and UIFlags.REQUIRES_RELOAD in options["ui_flags"]
         )
 
         self.buttonlayout = QHBoxLayout(self)
         self.buttonlayout.setContentsMargins(0, 0, 0, 0)
-
-        self.setting = False
-
         self.__connectSignalToSlot()
         core_signalbus.configUpdated.emit(
-            self.configname, self.configkey, (self.currentValue,)
+            self.config_name, self.config_key, (self.current_value,)
         )
 
     def hideEvent(self, e: QHideEvent | None) -> None:
@@ -72,29 +104,29 @@ class BaseSetting(QWidget):
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
     def _onConfigUpdated(
-        self, config_name: str, configkey: str, value: tuple[Any,]
+        self, config_name: str, config_key: str, value: tuple[Any,]
     ) -> None:
         if (
             self.setting
-            and config_name == self.configname
-            and configkey == self.configkey
+            and config_name == self.config_name
+            and config_key == self.config_key
         ):
             self.setWidgetValue(value[0])
 
-    def _onUpdateConfigSettings(self, configkey: str, value: tuple[Any,]) -> None:
-        if self.setting and self.configkey == configkey:
+    def _onUpdateConfigSettings(self, config_key: str, value: tuple[Any,]) -> None:
+        if self.setting and self.config_key == config_key:
             self.setValue(value[0])
 
     def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
-        if old_name == self.configname:
-            self.configname = new_name
+        if old_name == self.config_name:
+            self.config_name = new_name
 
     def _onParentNotification(self, values: tuple) -> None:
         type, value = values
         if type == "disable":
-            self.notifyDisabled = False
+            self.notify_disabled = False
             self._setDisableWidget(value[0], value[1])
-            self.notifyDisabled = True
+            self.notify_disabled = True
         elif type == "updateState":
             self.updateDisabledStatus()
 
@@ -126,48 +158,45 @@ class BaseSetting(QWidget):
             # No ancestor found
             return self
 
-    def _setDisableWidget(self, isDisabled: bool, save: bool) -> None:
-        if self.isDisabled != isDisabled:
-            self.isDisabled = isDisabled
-            self.setting.setDisabled(self.isDisabled)
+    def _setDisableWidget(self, is_disabled: bool, save: bool) -> None:
+        if self.is_disabled != is_disabled:
+            self.is_disabled = is_disabled
+            self.setting.setDisabled(self.is_disabled)
 
-            if self.isDisabled:
-                self.backupValue = self.currentValue
-                value = self.disableSelfValue
+            if self.is_disabled:
+                self.backup_value = self.current_value
+                value = self.disable_self_value
             else:
-                value = self.backupValue
+                value = self.backup_value
 
             if self._canGetDisabled() and save:
                 self.setValue(value)
 
     def _canGetDisabled(self) -> bool:
-        return self.disableSelfValue is not None
+        return self.disable_self_value is not None
 
     def _canDisableOther(self) -> bool:
-        return self.disableOtherValue is not None
+        return self.disable_other_value is not None
 
     def updateDisabledStatus(self) -> None:
-        self.maybeDisableParent(self.currentValue, save=False)
+        self.maybeDisableParent(self.current_value, save=False)
 
     def maybeDisableParent(self, value: Any, save: bool = True) -> None:
-        if self.notifyDisabled:
+        if self.notify_disabled:
             if self._canGetDisabled():
                 self.notifyParent.emit(
-                    ("disable", (self.disableSelfValue == value, save))
+                    ("disable", (self.disable_self_value == value, save))
                 )
             elif self._canDisableOther():
                 self.notifyParent.emit(
-                    ("disable_other", (self.disableOtherValue == value, save))
+                    ("disable_other", (self.disable_other_value == value, save))
                 )
 
     def setValue(self, value: Any) -> bool:
         success = None
-        # print(
-        #     f"key: {self.configkey} | val: {value} | curVal: {self.currentValue} | bakVal: {self.backupValue}"
-        # )
-        if self.currentValue != value or self.backupValue == value:
-            if self.config.setValue(self.configkey, value, self.configname):
-                self.currentValue = value
+        if self.current_value != value or self.backup_value == value:
+            if self.config.setValue(self.config_key, value, self.config_name):
+                self.current_value = value
                 self.maybeDisableParent(value)
                 success = True
             else:
@@ -179,7 +208,7 @@ class BaseSetting(QWidget):
         return success
 
     def resetValue(self) -> None:
-        self.setValue(self.defaultValue)
+        self.setValue(self.default_value)
 
     @abstractmethod
     def setWidgetValue(self, value: Any) -> None: ...
