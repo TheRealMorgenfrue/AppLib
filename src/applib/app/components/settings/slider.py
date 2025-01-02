@@ -72,9 +72,6 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             self.setting = Slider(Qt.Orientation.Horizontal, self)
             self.valueLabel = QLabel(self)
 
-            # Ensure value cannot be invalid in the GUI
-            guiValue = self._ensureValidGUIValue(self.current_value)
-
             # Configure slider and label
             w = 268
             if is_tight:
@@ -82,8 +79,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
             self.setting.setRange(self.min_value, self.maxValue)
-            self.setting.setValue(guiValue)
-            self._setLabelText(guiValue)
+            self.setWidgetValue(self.current_value)
             self.valueLabel.setObjectName("valueLabel")
 
             # Add label and slider to layout
@@ -123,6 +119,6 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
     @override
     def setWidgetValue(self, value: str) -> None:
         # Do not update GUI with disable values
-        guiValue = self._ensureValidGUIValue(value)
-        self.setting.setValue(guiValue)
-        self._setLabelText(guiValue)
+        gui_value = self._ensureValidGUIValue(value)
+        self.setting.setValue(gui_value)
+        self._setLabelText(gui_value)

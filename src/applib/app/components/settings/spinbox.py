@@ -68,7 +68,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             self.setting.setRange(self.min_value, self.maxValue)
 
             # Ensure value cannot be invalid in the GUI
-            self.setting.setValue(self._ensureValidGUIValue(self.current_value))
+            self.setWidgetValue(self.current_value)
 
             # Add SpinBox to layout
             self.buttonlayout.addWidget(self.setting)

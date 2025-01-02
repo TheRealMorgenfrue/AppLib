@@ -117,4 +117,5 @@ class CoreFileSelect(BaseSetting):
 
     @override
     def setWidgetValue(self, value: StrPath) -> None:
+        # Present for API compatibility
         pass
