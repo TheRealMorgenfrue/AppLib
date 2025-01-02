@@ -565,7 +565,6 @@ class ConfigBase:
             True == invalid (i.e. the value was NOT saved).
         """
         is_error, is_invalid = self._validateValue(
-            config=self._config,
             key=key,
             value=value,
             validator=self._validate,
