@@ -240,7 +240,7 @@ def retrieveDictValue(
 
 def insertDictValue(
     input: dict, key: str, value: Any, parent_key: Optional[str] = None
-) -> list | None:
+) -> Any:
     """
     Recursively look for key in input.
     If found, replace the original value with the provided value and return the original value.
@@ -249,7 +249,7 @@ def insertDictValue(
     Value will only be returned if it is within parent key's scope.
 
     Note: If a nested dict with multiple identical parent_keys exist,
-    only the top-most parent_key is considered
+    only the top-most parent_key is considered.
 
     Causes side-effects!
     ----------
@@ -272,29 +272,63 @@ def insertDictValue(
 
     Returns
     -------
-    list | None
-        The replaced old value, if found. Otherwise, None.
+    Any
+        The replaced old value.
+
+    Raises
+    ------
+    KeyError
+        If the key was not found in the config.
     """
     old_value = []  # Modified in-place by traverseDict
-    parentKeys = []
+    parent_keys = []
 
-    def traverseDict(_input: dict, _key, _value, _parent_key) -> list | None:
-        for k, v in _input.items():
+    # Nested function is ONLY used in this function. Placement of source code considered more readable here.
+    def traverseDict(
+        _input: dict, search_key: str, value: Any, _parent_key: str
+    ) -> None:
+        """
+        Recursively search through `_input` depth-first.
+
+        Parameters
+        ----------
+        _input : dict
+            Dict to search in.
+
+        search_key : str
+            The key to search for.
+
+        value : Any
+            The value assigned to `search_key`.
+
+        _parent_key : str
+            `search_key` must have this key as a parent.
+        """
+        for traverse_key, traverse_value in _input.items():
+            # We've found the value we're looking for
             if old_value:
                 break
-            if isinstance(v, dict):
-                parentKeys.append(k)
-                traverseDict(v, _key, _value, _parent_key)
-            elif k == _key:
-                if parent_key is not None:
-                    if _parent_key in parentKeys:
-                        _input[k] = _value
-                        old_value.append(v)
+
+            # The dict is still nested
+            if isinstance(traverse_value, dict):
+                parent_keys.append(traverse_key)
+                traverseDict(traverse_value, search_key, value, _parent_key)
+
+            # The key is what we're looking for
+            if traverse_key == search_key:
+                # The key need a parent to be considered relevant
+                if parent_key:
+                    # The key has the correct parent key
+                    if _parent_key in parent_keys:
+                        _input[traverse_key] = value
+                        old_value.append(traverse_value)
+                # The key does not need a parent
                 else:
-                    _input[k] = _value
-                    old_value.clear()
-                    old_value.append(v)
+                    _input[traverse_key] = value
+                    old_value.append(traverse_value)
                 break
 
     traverseDict(input, key, value, parent_key)
-    return old_value or None
+    if not old_value:
+        raise KeyError(f"Error: Key {key} does not exists")
+    return old_value[0]

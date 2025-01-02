@@ -263,14 +263,14 @@ class ConfigBase:
         msg_prefix = f"Config '{self._config_name}':"
         try:
             old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
-            if old_value is None:
-                error_msg = f"{msg_prefix} Could not find setting '{key}'"
-                raise KeyError(error_msg)
             validator(self._config, self._config_name)
+        except KeyError as err:
+            is_error = True
+            logger.error(err.args[0])
         except ValidationError as err:
             is_error, is_valid = True, False
             insertDictValue(
-                self._config, key, old_value[0], parent_key=parent_key
+                self._config, key, old_value, parent_key=parent_key
             )  # Restore value
             logger.warning(
                 f"{msg_prefix} Unable to validate value '{value}' for setting '{key}': "

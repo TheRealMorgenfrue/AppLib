@@ -62,10 +62,11 @@ class BaseTemplate:
         return default if value is None else value
 
     def setValue(self, key: str, value: Any, parent_key: Optional[str] = None) -> None:
-        value = insertDictValue(
-            input=self._template, key=key, value=value, parent_key=parent_key
-        )
-        if value is None:
+        try:
+            insertDictValue(
+                input=self._template, key=key, value=value, parent_key=parent_key
+            )
+        except KeyError:
             if parent_key:
                 self._logger.warning(
                     f"Could not find key '{key}' inside the scope of parent key '{parent_key}' in the template."
