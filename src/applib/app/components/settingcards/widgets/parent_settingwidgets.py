@@ -44,7 +44,6 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
         )
         self.vGeneralLayout = QVBoxLayout(self)
         self._cardWidget = AppLibCardWidget()
-
         self.settingWidget = SettingWidget(
             setting=setting,
             title=self._title,
@@ -52,16 +51,15 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
             hasDisableButton=hasDisableButton,
             parent=self,
         )
+        self.__initLayout()
+        self.__connectSignalToSlot()
 
-        self._initLayout()
-        self._connectSignalToSlot()
-
-    def _initLayout(self) -> None:
+    def __initLayout(self) -> None:
         self.vGeneralLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.vGeneralLayout.setContentsMargins(0, 0, 0, 0)
         self.vGeneralLayout.addWidget(self._cardWidget)
 
-    def _connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
         self.settingWidget.disableCard.connect(self.disableCard.emit)
@@ -97,7 +95,6 @@ class NestedSettingWidget(ParentSettingWidget):
             parent=parent,
         )
         self.hBoxLayout = QHBoxLayout()
-
         self._initLayout()
 
     def _initLayout(self) -> None:
