@@ -94,11 +94,16 @@ class CoreSettingsSubInterface(ScrollArea):
         generator = self._Generator(
             config=self._config, template=self._template, **self._generator_kwargs
         )
+
+        kwargs = {}
+        if self._icons:
+            kwargs = {"icons": self._icons}
+
         card_stack = self._CardStack(
             generator=generator,
             labeltext=self.tr(f"{self._config.getConfigName()} Settings"),
-            icons=self._icons,
             parent=self,
+            **kwargs
         )
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(card_stack)
         self.vGeneralLayout.addWidget(card_stack)
