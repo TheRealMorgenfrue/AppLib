@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import ColorPickerButton
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtGui import QColor
@@ -6,6 +5,7 @@ from PyQt6.QtGui import QColor
 from typing import Optional, override
 
 from .base_setting import BaseSetting
+
 from ....module.tools.types.config import AnyConfig
 
 
@@ -13,55 +13,59 @@ class CoreColorPicker(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """ColorPicker widget connected to a config key
+        """
+        ColorPicker widget connected to a config key
 
         Parameters
         ----------
-        config : ConfigBase
-            Config from which to get values used for this setting
+        config : AnyConfig
+            Config from which to get values used for this setting.
 
-        configkey : str
-            The option key in the config which should be associated with this setting
+        config_key : str
+            The option key in the config which should be associated with this setting.
 
-        configname : str
+        config_name : str
             The name of the config.
 
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
 
         title : str
-            Widget title
+            Widget title.
+
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
 
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=QColor(config.getValue(configkey, configname)),
-            defaultValue=QColor(
-                config.getValue(configkey, configname, use_template=True)
+            current_value=QColor(
+                config.getValue(key=config_key, parent_key=parent_key)
             ),
-            backupValue=None,
-            isDisabled=False,
-            notifyDisabled=True,
+            default_value=QColor(
+                config.getValue(
+                    key=config_key, parent_key=parent_key, use_template_model=True
+                )
+            ),
             parent=parent,
         )
         try:
+            # Lowercase string is intended
             self.setting = ColorPickerButton(
-                self.currentValue, self.tr("application color"), self
-            )  # Lowercase string is intended
-
+                self.current_value, self.tr("application color"), self
+            )
             # Add colorpicker to layout
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()

@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import LineEdit
 from PyQt6.QtWidgets import QWidget
 
@@ -6,6 +5,7 @@ from typing import Optional, override
 
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
+
 from ....module.tools.types.config import AnyConfig
 
 
@@ -13,29 +13,27 @@ class CoreLineEdit(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
         is_tight: bool,
         invalidmsg: Optional[dict[str, str]] = None,
         tooltip: Optional[str] = None,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """LineEdit widget connected to a config key.
+        """
+        LineEdit widget connected to a config key.
 
         Parameters
         ----------
-        config : ConfigBase
+        config : AnyConfig
             Config from which to get values used for this setting.
 
-        configkey : str
+        config_key : str
             The option key in the config which should be associated with this setting.
 
-        configname : str
-            The name of the config.
-
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
 
         is_tight : bool, optional
             Use a smaller version of the line edit.
@@ -46,19 +44,21 @@ class CoreLineEdit(BaseSetting):
         tooltip : str, optional
             Tooltip for this setting, by default None.
 
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
+
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=config.getValue(configkey, configname),
-            defaultValue=config.getValue(configkey, configname, use_template=True),
-            backupValue=None,
-            isDisabled=False,
-            notifyDisabled=True,
+            current_value=config.getValue(key=config_key, parent_key=parent_key),
+            default_value=config.getValue(
+                key=config_key, parent_key=parent_key, use_template_model=True
+            ),
             parent=parent,
         )
         try:
@@ -70,14 +70,13 @@ class CoreLineEdit(BaseSetting):
             self.setting = LineEdit(self)
 
             # Configure LineEdit
-            self.setting.setText(self.currentValue)
+            self.setting.setText(self.current_value)
             self.setting.setToolTip(tooltip)
             self.setting.setToolTipDuration(4000)
             self._resizeTextBox()
 
             # Add LineEdit to layout
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
@@ -106,17 +105,15 @@ class CoreLineEdit(BaseSetting):
     def setValue(self, value: str) -> None:
         success = super().setValue(value)
         if success:
-            if not self.isDisabled:
+            if not self.is_disabled:
                 self.setWidgetValue(value)
         elif success is None:
-            core_signalbus.genericError.emit(
-                "Failed to save setting", "Config lock active"
-            )
+            core_signalbus.genericError.emit("Failed to save setting", "")
         else:
             core_signalbus.configValidationError.emit(
-                self.configname, self.invalidmsg[0], self.invalidmsg[1]
+                self.config_name, self.invalidmsg[0], self.invalidmsg[1]
             )
-            self.setting.setText(self.currentValue)
+            self.setting.setText(self.current_value)
 
     @override
     def setWidgetValue(self, value: str) -> None:

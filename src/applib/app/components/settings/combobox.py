@@ -1,10 +1,10 @@
-from __future__ import annotations
 from qfluentwidgets import ComboBox
 from PyQt6.QtWidgets import QWidget
 
 from typing import Optional, Union, override
 
 from .base_setting import BaseSetting
+
 from ....module.tools.types.config import AnyConfig
 
 
@@ -12,44 +12,44 @@ class CoreComboBox(BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
-        configkey: str,
-        configname: str,
+        config_key: str,
         options: dict,
         texts: Union[list[str], dict[str, str]],
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Combobox widget connected to a config key.
+        """
+        Combobox widget connected to a config key.
 
         Parameters
         ----------
-        config : ConfigBase
+        config : AnyConfig
             Config from which to get values used for this setting.
 
-        configkey : str
+        config_key : str
             The option key in the config which should be associated with this setting.
 
-        configname : str
-            The name of the config.
-
         options : dict
-            The options associated with the `configkey`.
+            The options associated with `config_key`.
 
         texts : list | dict
             All possible values this option can have.
 
+        parent_key : str, optional
+            Search for `config_key` within the scope of a parent key.
+
         parent : QWidget, optional
-            Parent of this class, by default `None`.
+            Parent of this class
+            By default `None`.
         """
         super().__init__(
             config=config,
-            configkey=configkey,
-            configname=configname,
+            config_key=config_key,
             options=options,
-            currentValue=config.getValue(configkey, configname),
-            defaultValue=config.getValue(configkey, configname, use_template=True),
-            backupValue=None,
-            isDisabled=False,
-            notifyDisabled=True,
+            current_value=config.getValue(key=config_key, parent_key=parent_key),
+            default_value=config.getValue(
+                key=config_key, parent_key=parent_key, use_template_model=True
+            ),
             parent=parent,
         )
         try:
@@ -63,9 +63,8 @@ class CoreComboBox(BaseSetting):
                 for text, option in zip(texts, texts):
                     self.setting.addItem(text, userData=option)
 
-            self.setting.setCurrentText(self.currentValue)
+            self.setting.setCurrentText(self.current_value)
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
