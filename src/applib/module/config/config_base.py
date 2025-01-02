@@ -443,7 +443,7 @@ class ConfigBase:
                 repaired_config |= {template_key: value}
         return repaired_config
 
-    def setTemplate(self, template_model: dict) -> None:
+    def setTemplateModel(self, template_model: dict) -> None:
         """
         Set a `template_model` for this config.
 
