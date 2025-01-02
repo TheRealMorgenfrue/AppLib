@@ -7,7 +7,8 @@ from PyQt6.QtWidgets import QApplication, QWidget
 
 class CoreApp:
     def __init__(self, MainWindow: QWidget) -> None:
-        """The main class from which all other code is executed.
+        """
+        The main class from which all other code is executed.
 
         Only one instance of this may be running.
 
@@ -26,7 +27,7 @@ class CoreApp:
         ### Initial Path Setup ###
         ##########################
         # Set initial CWD
-        os.chdir(Path(os.path.abspath(__file__)).parents[1])
+        os.chdir(Path(os.path.abspath(__file__)).parents[3])
 
         # Running in a Nuitka onefile binary
         if Path(sys.argv[0]) != Path(__file__):
@@ -64,13 +65,10 @@ class CoreApp:
             header = f"{line} Crash reported at {time.asctime()} {line}\n"
             content = traceback.format_exc()
             footer = "─" * len(header)
-            print(f"{header}\n{content}\n\n{footer}")  # For debugging
+            print(f"{header}\n{content}\n{footer}")  # For debugging
             with open(
-                Path(crashDir, f"crash {datetime.now().strftime("%Y-%m-%d")}.txt"),
+                Path(crashDir, f"crash {datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt"),
                 "a",
                 encoding="utf-8",
             ) as file:
-                file.write(header)
-                file.write(content)
-                file.write(footer)
-                file.write("\n\n")
+                file.write(header + "\n" + content)
