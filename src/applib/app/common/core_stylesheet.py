@@ -1,4 +1,4 @@
-from pathlib import Path
+import os
 from qfluentwidgets import StyleSheetBase, Theme, qconfig
 
 from enum import Enum
@@ -23,4 +23,4 @@ class CoreStyleSheet(StyleSheetBase, Enum):
 
     def path(self, theme=Theme.AUTO):
         theme = qconfig.theme if theme == Theme.AUTO else theme
-        return f"{Path(f"applib/assets/qss/{theme.value.lower()}/{self.value}.qss").resolve()}"
+        return f"{os.environ["APPLIB_PATH"]}/assets/qss/{theme.value.lower()}/{self.value}.qss"

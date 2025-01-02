@@ -25,6 +25,8 @@ class CoreApp:
         app = QApplication(sys.argv)
         app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
 
+        os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[1]}"
+
         try:
             w = MainWindow()
             sys.exit(app.exec())
