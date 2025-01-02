@@ -22,9 +22,9 @@ from ...module.tools.types.gui_generators import AnyCardGenerator
 # QEasingCurve.Type.InBack      // Bounce up
 # QEasingCurve.Type.InOutBack   // Bounce up & down
 
-AnyPivot: TypeAlias = (
-    Pivot | SegmentedToolWidget
-)  # All QFluentWidgets' pivot classes are supported. Add as needed.
+
+# All QFluentWidgets' pivot classes are supported. Add as needed.
+AnyPivot: TypeAlias = Pivot | SegmentedToolWidget
 
 
 class CardStackBase(ScrollArea):
@@ -40,8 +40,9 @@ class CardStackBase(ScrollArea):
             super().__init__(parent)
             self._cards = generator.getCards()
             self._defaultGroup = generator.getDefaultGroup()
-            self.titleLabel = QLabel(self.tr(labeltext)) if labeltext else None
             self._view = QWidget(self)
+
+            self.titleLabel = QLabel(self.tr(labeltext)) if labeltext else None
             self.vGeneralLayout = QVBoxLayout(self._view)
             self.hPivotLayout = QHBoxLayout()
             self.pivot = Pivot()  # type: AnyPivot
@@ -51,15 +52,34 @@ class CardStackBase(ScrollArea):
             self.deleteLater()
             raise
 
-    # This method is providing the interface for connecting the card to the QStackedWidget and the Pivot object
     @abstractmethod
     def _addSubInterface(
-        self, widget: QWidget, objectName: str, title: str, *args, **kwargs
-    ) -> None: ...
+        self, widget: QWidget, object_name: str, title: str, *args, **kwargs
+    ) -> None:
+        """
+        This method is providing the interface for connecting a setting card group to the
+        QStackedWidget and the Pivot.
 
-    # This method is adding the cards from the generator to the QStackedWidget using the method addSubInterface
+        Parameters
+        ----------
+        widget : QWidget
+            A setting card group created by a GUI Generator.
+
+        object_name : str
+            The object name that will be assigned to `widget`.
+
+        title : str
+            The title of the Pivot.
+        """
+        ...
+
     @abstractmethod
-    def _addCards(self) -> None: ...
+    def _addCardGroups(self) -> None:
+        """
+        This method is adding setting gard groups from the GUI Generator to the
+        QStackedWidget using the method `_addSubInterface`.
+        """
+        ...
 
     def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -74,7 +94,7 @@ class CardStackBase(ScrollArea):
             self.titleLabel.setObjectName("titleLabel")
 
     def _initLayout(self) -> None:
-        self._addCards()
+        self._addCardGroups()
         self.hPivotLayout.addWidget(self.pivot, alignment=self.pivotAlignment)
 
         if self.titleLabel:
@@ -110,21 +130,24 @@ class PivotCardStack(CardStackBase):
         labeltext: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Create a standard settings interface.
+        """
+        Create a standard settings interface.
 
         It is composed of a Pivot and a QStackedWidget.
-        Uses widgets created by the generator as content.
+        Uses widgets created by `generator` as content.
 
         Parameters
         ----------
         generator : AnyCardGenerator
-            The widget generator which supplies the content widgets displayed.
+            The GUI generator which supplies the setting cards displayed.
 
         labeltext : str, optional
-            The title of the CardStack, by default None.
+            The title of the CardStack.
+            By default `None`.
 
         parent : QWidget, optional
-            The parent widget of the CardStack, by default None.
+            The parent widget of the CardStack.
+            By default `None`.
         """
         try:
             super().__init__(
@@ -138,7 +161,7 @@ class PivotCardStack(CardStackBase):
             raise
 
     @override
-    def _addCards(self) -> None:
+    def _addCardGroups(self) -> None:
         for group in self._cards:
             name = group.getTitleLabel().text()
             self._addSubInterface(widget=group, objectName=name, title=name)
@@ -163,7 +186,8 @@ class SegmentedPivotCardStack(CardStackBase):
         labeltext: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Create a standard settings interface.
+        """
+        Create a standard settings interface.
 
         It is composed of a Segmented Pivot, which uses the supplied icon list, and a QStackedWidget.
         Uses widgets created by the generator as content.
@@ -174,7 +198,7 @@ class SegmentedPivotCardStack(CardStackBase):
             The widget generator which supplies the content widgets displayed.
 
         icons : list[str | QIcon | FluentIconBase]
-            The icons shown in the pivot for each card category
+            The icons shown in the Pivot for each card category.
 
         labeltext : str, optional
             The title of the CardStack, by default None.
@@ -200,12 +224,12 @@ class SegmentedPivotCardStack(CardStackBase):
             raise
 
     @override
-    def _addCards(self) -> None:
+    def _addCardGroups(self) -> None:
         for group in self._cards:
             name = group.getTitleLabel().text()
             self._addSubInterface(
                 widget=group,
-                objectName=name,
+                object_name=name,
                 title=name,
                 icon=self.icons.get(name.lower(), FIF.CANCEL_MEDIUM),
             )
@@ -214,21 +238,24 @@ class SegmentedPivotCardStack(CardStackBase):
     def _addSubInterface(
         self,
         widget: QWidget,
-        objectName: str,
+        object_name: str,
         title: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: Optional[Union[str, QIcon, FluentIconBase]],
     ):
-        widget.setObjectName(objectName)
+        widget.setObjectName(object_name)
         self.stackedWidget.addWidget(widget)
 
-        pivotItem = SegmentedToolItem(icon)
+        if icon is None:
+            pivotItem = SegmentedToolItem()
+        else:
+            pivotItem = SegmentedToolItem(icon)
         pivotItem.setToolTip(title)
         pivotItem.setToolTipDuration(5000)
         pivotItem.installEventFilter(
             ToolTipFilter(parent=pivotItem, showDelay=100, position=ToolTipPosition.TOP)
         )
         self.pivot.addWidget(
-            routeKey=objectName,
+            routeKey=object_name,
             widget=pivotItem,
             onClick=lambda: self.stackedWidget.setCurrentWidget(widget),
         )
