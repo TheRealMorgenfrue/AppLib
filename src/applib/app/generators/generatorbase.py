@@ -278,9 +278,6 @@ class GeneratorBase:
                     ):
                         self._updateCardSortOrder(card, card_group)
                 else:
-                    self._logger.warning(
-                        f"Config '{self._config_name}': Could not add setting '{setting}' to settings panel"
-                    )
                     try:
                         if main_group:
                             # Remove the failed card from its group
