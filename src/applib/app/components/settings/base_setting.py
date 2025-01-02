@@ -88,10 +88,11 @@ class BaseSetting(QWidget):
 
         self.buttonlayout = QHBoxLayout(self)
         self.buttonlayout.setContentsMargins(0, 0, 0, 0)
-        self.__connectSignalToSlot()
         core_signalbus.configUpdated.emit(
             self.config_name, self.config_key, (self.current_value,)
         )
+        # Connect after emitting as we only want to notify others, not self
+        self.__connectSignalToSlot()
 
     def hideEvent(self, e: QHideEvent | None) -> None:
         super().hideEvent(e)
