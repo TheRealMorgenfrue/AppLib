@@ -1,8 +1,9 @@
-from qfluentwidgets import ScrollArea
+from qfluentwidgets import ScrollArea, FluentIconBase
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtGui import QIcon
 
-from typing import Optional
+from typing import Optional, Union
 
 from ..common.core_stylesheet import CoreStyleSheet
 
@@ -19,7 +20,9 @@ class CoreSettingsSubInterface(ScrollArea):
         template: AnyTemplate,
         Generator: AnyCardGenerator,
         CardStack: AnyCardStack,
+        icons: dict[str, Union[str, QIcon, FluentIconBase]] = None,
         parent: Optional[QWidget] = None,
+        **generator_kwargs
     ):
         """
         Create a default settings panel for a `config`/`template` duo, where GUI components
@@ -41,9 +44,18 @@ class CoreSettingsSubInterface(ScrollArea):
             Lays out GUI elements using the layout style of the particular `CardStack`.
             NOTE: Must be a class reference.
 
+        icons : dict[str, Union[str, QIcon, FluentIconBase]]
+            The icons shown in the pivot for each GUI element section, if supported by the `CardStack`.
+            Must be a dict mapping a GUI element section, as defined in `template`, to an icon.
+            By default `None`.
+
         parent : QWidget, optional
             The parent widget of the subinterface.
-            By default None.
+            By default `None`.
+
+        generator_kwargs : dict
+            Additional keyword arguments supplied to `Generator`.
+            See the documentation of `Generator` for applicable kwargs.
         """
         try:
             super().__init__(parent)
@@ -51,6 +63,11 @@ class CoreSettingsSubInterface(ScrollArea):
             self._template = template
             self._Generator = Generator
             self._CardStack = CardStack
+            self._icons = icons
+
+            if "parent" not in generator_kwargs:
+                generator_kwargs |= {"parent": self}
+            self._generator_kwargs = generator_kwargs
 
             self._view = QWidget(self)
             self.vGeneralLayout = QVBoxLayout(self._view)
@@ -75,11 +92,12 @@ class CoreSettingsSubInterface(ScrollArea):
 
     def _initLayout(self) -> None:
         generator = self._Generator(
-            config=self._config, template=self._template, parent=self
+            config=self._config, template=self._template, **self._generator_kwargs
         )
         card_stack = self._CardStack(
             generator=generator,
             labeltext=self.tr(f"{self._config.getConfigName()} Settings"),
+            icons=self._icons,
             parent=self,
         )
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(card_stack)
