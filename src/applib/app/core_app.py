@@ -62,13 +62,15 @@ class CoreApp:
 
             line = "─" * 20
             header = f"{line} Crash reported at {time.asctime()} {line}\n"
-            print(header)  # For debugging
+            content = traceback.format_exc()
+            footer = "─" * len(header)
+            print(f"{header}\n{content}\n\n{footer}")  # For debugging
             with open(
                 Path(crashDir, f"crash {datetime.now().strftime("%Y-%m-%d")}.txt"),
                 "a",
                 encoding="utf-8",
             ) as file:
-                file.write(f"{header}")
-                file.write(traceback.format_exc())
-                file.write("─" * len(header))
+                file.write(header)
+                file.write(content)
+                file.write(footer)
                 file.write("\n\n")
