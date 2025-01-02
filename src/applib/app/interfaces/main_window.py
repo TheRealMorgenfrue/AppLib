@@ -99,16 +99,19 @@ class CoreMainWindow(MSFluentWindow):
 
     def _initNavigation(self):
         if self._subinterfaces:
+            created_interfaces = []
             for Interface, icon, title in self._subinterfaces:
                 try:
                     init_interface = Interface(parent=self)
                     self.addSubInterface(
                         interface=init_interface, icon=icon, text=self.tr(title)
                     )
+                    created_interfaces.append(init_interface)
                 except Exception:
                     self._error_log.append(
                         traceback.format_exc(limit=CoreArgs.traceback_limit)
                     )
+            self._subinterfaces = created_interfaces
 
         self.navigationInterface.addWidget(
             "themeButton",
