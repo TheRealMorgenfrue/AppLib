@@ -42,25 +42,23 @@ class GeneratorBase:
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
+        config_name_override: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         if config.getFailureStatus():
-            err_msg = f"Config '{type(config).__name__}' is invalid"
+            err_msg = f"Config '{config.getConfigName()}' is invalid"
             raise RuntimeError(err_msg)
         self._config = config
         self._template = template
         self._template_name = self._template.getName()
-        self._config_name = config.getConfigName()
+        self._config_name = config_name_override if config_name_override else config.getConfigName()
         self._default_group = default_group
         self._hide_group_label = hide_group_label
         self._is_tight = is_tight
         self._parent = parent
-        # type: dict[str, list] # Mapping of the correct card sort order.
-        self._card_sort_order = {}
-        # type: list[AnyCardGroup] # Temp placement of unsorted cards.
-        self._card_list = []
-        # type: list[AnyCardGroup] # The cards sorted correctly.
-        self._cards = []
+        self._card_sort_order = {} # type: dict[str, list] # Mapping of the correct card sort order.
+        self._card_list = [] # type: list[AnyCardGroup] # Temp placement of unsorted cards.
+        self._cards = [] # type: list[AnyCardGroup] # The cards sorted correctly.
 
     @abstractmethod
     def _createCard(
@@ -71,7 +69,40 @@ class GeneratorBase:
         content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
-    ) -> AnyCard | None: ...
+    ) -> AnyCard | None:
+        """
+        Create a setting card to be displayed in the GUI.
+
+        Parameters
+        ----------
+        card_type : UITypes
+            The type of the card. See `UITypes` for card types.
+
+        setting : str
+            The setting this card represent.
+            That is, a key in the template (and by extension, the config).
+
+        options : dict[str, Any]
+            Options detailing how the card should look and behave.
+            That is, the value of `setting` in the template.
+
+        content : str
+            The description of the card.
+
+        group : Group | None
+            The group this card belongs to.
+            Defines how this card is placed relative to other cards.
+
+        parent : Optional[QWidget], optional
+            The parent of the card.
+            By default `None`.
+
+        Returns
+        -------
+        AnyCard | None
+            A setting card which can be displayed in a GUI.
+        """
+        ...
 
     def _createSetting(
         self,
@@ -80,18 +111,19 @@ class GeneratorBase:
         options: dict,
         parent: Optional[QWidget] = None,
     ) -> AnySetting | None:
-        """Create setting widget for use on a setting card.
+        """
+        Create setting widget for use on a setting card.
 
         Parameters
         ----------
-        cardType : UITypes
-            The type of the setting, e.g. Switch.
+        card_type : UITypes
+            The type of the setting, e.g., Switch.
 
         setting_name : str
-            The name of the setting, i.e. its ID/key in the config.
+            The name of the setting, i.e., its ID/key in the config.
 
         options : dict
-            The options available for this setting, e.g. its default value.
+            The options available for this setting, e.g., its default value.
 
         parent : QWidget, optional
             The parent of this setting, by default `None`.
@@ -153,7 +185,7 @@ class GeneratorBase:
                 options=options,
                 num_range=[options["min"], options["max"]],
                 is_tight=self._is_tight,
-                baseunit=parseUnit(setting_name, options, self._template_name),
+                baseunit=parseUnit(setting_name, options, self._config_name),
                 parent=parent,
             )
         elif card_type == UITypes.SPINBOX:
@@ -173,7 +205,7 @@ class GeneratorBase:
             )
         else:
             err_msg = (
-                f"Config '{self._template_name}': Invalid ui_type '{card_type}' for setting '{setting_name}'. "
+                f"Config '{self._config_name}': Invalid ui_type '{card_type}' for setting '{setting_name}'. "
                 + f"Expected one of '{iterToString(UITypes._member_names_, separator=', ')}'"
             )
             raise TypeError(err_msg)
@@ -193,7 +225,7 @@ class GeneratorBase:
 
                 if "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]:
                     self._logger.debug(
-                        f"Config '{self._template_name}': Excluding setting '{setting}' from GUI"
+                        f"Config '{self._config_name}': Excluding setting '{setting}' from GUI"
                     )
                     continue
 
@@ -224,7 +256,7 @@ class GeneratorBase:
 
                 try:
                     card = self._createCard(
-                        card_type=inferType(setting, options, self._template_name),
+                        card_type=inferType(setting, options, self._config_name),
                         setting=setting,
                         options=options,
                         content=options["ui_desc"] if "ui_desc" in options else "",
@@ -233,7 +265,7 @@ class GeneratorBase:
                     )
                 except Exception:
                     self._logger.error(
-                        f"Config '{self._template_name}': Error creating setting card for setting '{setting}'\n"
+                        f"Config '{self._config_name}': Error creating setting card for setting '{setting}'\n"
                         + traceback.format_exc(limit=CoreArgs.traceback_limit)
                     )
                     card = None
@@ -247,7 +279,7 @@ class GeneratorBase:
                         self._updateCardSortOrder(card, card_group)
                 else:
                     self._logger.warning(
-                        f"Config '{self._template_name}': Could not add setting '{setting}' to settings panel"
+                        f"Config '{self._config_name}': Could not add setting '{setting}' to settings panel"
                     )
                     try:
                         if main_group:
@@ -302,7 +334,7 @@ class GeneratorBase:
                     card_group.addSettingCard(card)
             else:
                 self._logger.warning(
-                    f"Config '{self._template_name}': Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
+                    f"Config '{self._config_name}': Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
                 )
                 card_group.deleteLater()
                 del self._getCardList()[i]
