@@ -268,7 +268,7 @@ def insertDictValue(
 
     parent_key : str, optional
         Limit the search scope to the children of this key.
-        By default None.
+        By default `None`.
 
     Returns
     -------

@@ -10,7 +10,7 @@ class UIGroups(Enum):
     CLUSTERED = 0  # (Applies to: All)
 
     # This setting's children will be nested under it.
-    # However, the specifics of the nesting depend on the GUI config generator used.
+    # However, the specifics of the nesting depend on the GUI Generator used.
     # NESTED_CHILDREN and CLUSTERED are mutually exclusive!
     NESTED_CHILDREN = 1  # (Applies to: All)
 
@@ -59,7 +59,7 @@ class UITypes(Enum):
     # Sliding integer range
     SLIDER = 15
 
-    # Integer/float input in a fixed, allowed range
+    # Integer/float input in an allowed range
     SPINBOX = 18
 
     # True/False

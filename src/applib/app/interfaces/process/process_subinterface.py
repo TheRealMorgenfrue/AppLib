@@ -30,7 +30,7 @@ class CoreProcessSettings(ScrollArea):
 
         parent : Optional[QWidget], optional
             The parent widget of the process settings panel.
-            By default None.
+            By default `None`.
         """
         super().__init__(parent)
         self._view = QWidget(self)
@@ -75,7 +75,7 @@ class CoreProcessStatus(ScrollArea):
         ----------
         parent : Optional[QWidget], optional
             The parent widget of the process status card.
-            By default None.
+            By default `None`.
         """
         super().__init__(parent)
         self._view = QWidget(self)
@@ -126,7 +126,7 @@ class ProcessSubinterface(QWidget):
 
         parent : Optional[QWidget], optional
             The parent widget of the process subinterface.
-            By default None.
+            By default `None`.
         """
         super().__init__(parent)
         self.vBoxLayout = QVBoxLayout(self)

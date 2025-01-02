@@ -1,4 +1,3 @@
-from __future__ import annotations
 from PyQt6.QtWidgets import QWidget
 from typing import Any, Optional, override
 
@@ -34,16 +33,16 @@ class CardWidgetGenerator(GeneratorBase):
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        config_name: Optional[str] = None,
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Generate a Setting Card Widget for each setting in the supplied template.
+        """
+        Generate a Setting Card Widget for each setting in the supplied template.
         The type of the Setting Card Widget depends on various factors, including a setting's relation to other settings.
 
-        The CardWidget generator is very useful for templates consisting only of nested parent/child relationships.
+        The CardWidget generator is very useful for templates consisting only of any `UIGroups` nested parent/child relationships.
 
         Parameters
         ----------
@@ -53,10 +52,6 @@ class CardWidgetGenerator(GeneratorBase):
         template : AnyTemplate
             The template which cards are created from.
             The config should originate from the same template.
-
-        config_name : str, optional
-            The name of the config.
-            By default `None`.
 
         default_group : str, optional
             The card group which is displayed on app start.
@@ -77,7 +72,6 @@ class CardWidgetGenerator(GeneratorBase):
         super().__init__(
             config=config,
             template=template,
-            config_name=config_name,
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
@@ -115,13 +109,14 @@ class CardWidgetGenerator(GeneratorBase):
             if "disable_button" in options:
                 has_disable_button = options["disable_button"]  # type: bool
 
+            # Create Setting
             widget = self._createSetting(
                 card_type=card_type,
                 setting_name=setting,
                 options=options,
                 parent=parent,
             )
-            # Create card widget
+            # Create Setting Card Widget
             if isNestingGroup:
                 card = NestedSettingWidget(
                     setting=setting,

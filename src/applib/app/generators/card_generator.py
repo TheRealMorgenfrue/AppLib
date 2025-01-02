@@ -1,4 +1,3 @@
-from __future__ import annotations
 from qfluentwidgets import FluentIconBase
 from qfluentwidgets import FluentIcon as FIF
 from PyQt6.QtWidgets import QWidget
@@ -43,15 +42,15 @@ class CardGenerator(GeneratorBase):
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        config_name: Optional[str] = None,
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
         icons: Optional[list[Union[str, QIcon, FluentIconBase]]] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Generate a Setting Card widget for each setting in the supplied template.
-        The type of the Setting Card depends on various factors, including a setting's relation to other settings
+        """
+        Generate a Setting Card for each setting in the supplied template.
+        The type of the Setting Card depends on various factors, including a setting's relation to other settings.
 
         The Setting Card generator is useful for general-purpose templates containing a bit of everything.
         However, the Setting Cards might not look well in confined space, even with `is_tight`, so keep that in mind.
@@ -64,10 +63,6 @@ class CardGenerator(GeneratorBase):
         template : AnyTemplate
             The template which cards are created from.
             The config should originate from the same template.
-
-        config_name : str, optional
-            The name of the config.
-            By default `None`.
 
         default_group : str, optional
             The card group which is displayed on app start.
@@ -92,7 +87,6 @@ class CardGenerator(GeneratorBase):
         super().__init__(
             config=config,
             template=template,
-            config_name=config_name,
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
@@ -128,13 +122,14 @@ class CardGenerator(GeneratorBase):
             if "disable_button" in options:
                 has_disable_button = options["disable_button"]  # type: bool
 
+            # Create Setting
             widget = self._createSetting(
                 card_type=card_type,
                 setting_name=setting,
                 options=options,
                 parent=parent,
             )
-            # Create card widget
+            # Create Setting Card
             if isNestingGroup and setting == group.getParentName():
                 card = ExpandingSettingCard(
                     setting=setting,

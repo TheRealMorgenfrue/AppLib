@@ -277,7 +277,7 @@ class ThreadManager(QThread):
         ----------
         finishedProcessID : Optional[int], optional
             The process_id of the most recently finished process.
-            By default None.
+            By default `None`.
 
         Returns
         -------

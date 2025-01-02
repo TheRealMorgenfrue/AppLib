@@ -37,5 +37,4 @@ class CoreConfig(ConfigBase):
                 config_name=CoreArgs.app_config_name,
                 config_path=CoreArgs.app_config_path,
             )
-            self._setConfig(self._initConfig())
             self._created = True

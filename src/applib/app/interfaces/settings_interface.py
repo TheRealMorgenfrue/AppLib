@@ -25,7 +25,7 @@ class CoreSettingsInterface(ScrollArea):
         ----------
         parent : QWidget, optional
             The parent of the main settings page.
-            By default None.
+            By default `None`.
         """
         try:
             super().__init__(parent=parent)
