@@ -36,6 +36,7 @@ class CardWidgetGenerator(GeneratorBase):
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
+        config_name_override: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -65,6 +66,10 @@ class CardWidgetGenerator(GeneratorBase):
         is_tight : bool, optional
             Use a smaller version of the setting widgets, if available.
 
+        config_name_override : str | None, optional,
+            Override the default config name with this string.
+            Used for error message display.
+
         parent : QWidget, optional
             The parent of all card groups generated.
             By default `None`.
@@ -75,6 +80,7 @@ class CardWidgetGenerator(GeneratorBase):
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
+            config_name_override=config_name_override,
             parent=parent,
         )
         self._cards = self._generateCards(CardWidgetGroup)

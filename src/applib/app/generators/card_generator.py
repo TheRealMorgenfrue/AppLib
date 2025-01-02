@@ -45,6 +45,7 @@ class CardGenerator(GeneratorBase):
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
+        config_name_override: Optional[str] = None,
         icons: Optional[list[Union[str, QIcon, FluentIconBase]]] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -76,6 +77,10 @@ class CardGenerator(GeneratorBase):
         is_tight : bool, optional
             Use a smaller version of the setting widgets, if available.
 
+        config_name_override : str | None, optional,
+            Override the default config name with this string.
+            Used for error message display.
+
         icons : list[str | QIcon | FluentIconBase], optional
             Add an icon to each card generated.
             By default `None`.
@@ -90,6 +95,7 @@ class CardGenerator(GeneratorBase):
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
+            config_name_override=config_name_override,
             parent=parent,
         )
         self._icons = icons if icons else FIF.LEAF
