@@ -169,7 +169,9 @@ class ConfigBase:
         all_errors.extend(section_errors)
         all_errors.extend(field_errors)
         if len(all_errors) > 0:
-            raise MissingFieldError([f"{error_prefix}: {error}" for error in all_errors])
+            if error_prefix:
+                all_errors = [f"{error_prefix}: {error}" for error in all_errors]
+            raise MissingFieldError(all_errors)
 
     def _initConfig(self) -> dict:
         """

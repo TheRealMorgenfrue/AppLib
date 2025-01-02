@@ -27,18 +27,13 @@ class CoreSettingsInterface(ScrollArea):
             The parent of the main settings page.
             By default `None`.
         """
-        try:
-            super().__init__(parent=parent)
-            self._widgets = {}  # type: dict[Hashable, QWidget]
-            self._view = QWidget(self)
-            self._sampleCardView = SampleCardView()
-            self.vBoxLayout = QVBoxLayout(self._view)
-            self.stackedWidget = PopUpAniStackedWidget()
-
-            self._initWidget()
-        except Exception:
-            self.deleteLater()
-            raise
+        super().__init__(parent=parent)
+        self._widgets = {}  # type: dict[Hashable, QWidget]
+        self._view = QWidget(self)
+        self._sampleCardView = SampleCardView()
+        self.vBoxLayout = QVBoxLayout(self._view)
+        self.stackedWidget = PopUpAniStackedWidget()
+        self._initWidget()
 
     def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -131,3 +126,4 @@ class CoreSettingsInterface(ScrollArea):
                 f"Failed to add subinterface '{type(widget).__name__}'\n"
                 + f"{traceback.format_exc(limit=CoreArgs.traceback_limit)}"
             )
+            widget.deleteLater()
