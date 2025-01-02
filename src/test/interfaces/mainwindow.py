@@ -12,7 +12,6 @@ class TestMainWindow(CoreMainWindow):
     def __init__(self):
         super().__init__(
             main_config=CoreConfig(),
-            main_template=CoreTemplate(),
             subinterfaces=[
                 (TestHomeInterface, FIF.HOME, "Home"),
                 (TestProcessInterface, FIF.IOT, "Process"),
