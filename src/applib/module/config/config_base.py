@@ -84,10 +84,18 @@ class ConfigBase:
         if self._config_name == config_name:
             self.saveConfig()
 
-    def _checkMissingFields(self) -> None:
+    def _checkMissingFields(self, config: dict, template_model: dict) -> None:
         """
         Compare the config against the template_model for missing
         sections/settings and vice versa.
+
+        Parameters
+        ----------
+        config : dict
+            The config loaded from a file.
+
+        template_model : dict
+            The template_model associated with `config`.
 
         Raises
         ------
@@ -150,8 +158,8 @@ class ConfigBase:
                 if parents:
                     parents.pop()
 
-        searchFields(self._config, self._template_model, search_mode="missing")
-        searchFields(self._config, self._template_model, search_mode="unknown")
+        searchFields(config, template_model, search_mode="missing")
+        searchFields(config, template_model, search_mode="unknown")
 
         # Ensure all section errors are displayed first
         all_errors.extend(section_errors)
