@@ -20,7 +20,7 @@ class CoreSettingsSubInterface(ScrollArea):
         template: AnyTemplate,
         Generator: AnyCardGenerator,
         CardStack: AnyCardStack,
-        title: str | Literal["DEFAULT"] = "DEFAULT",
+        title: str | Literal["DEFAULT"] | None = "DEFAULT",
         icons: dict[str, Union[str, QIcon, FluentIconBase]] = None,
         parent: Optional[QWidget] = None,
         **generator_kwargs
@@ -107,7 +107,7 @@ class CoreSettingsSubInterface(ScrollArea):
 
         card_stack = self._CardStack(
             generator=generator,
-            labeltext=self.tr(f"{self._config.getConfigName()} Settings") if self._title == "DEFAULT" else self._title,
+            labeltext=f"{self._config.getConfigName()} Settings" if self._title == "DEFAULT" else self._title,
             parent=self,
             **cardstack_kwargs
         )
