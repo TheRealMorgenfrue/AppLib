@@ -88,14 +88,8 @@ from .module.config.templates.core_template import CoreTemplate
 from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
 from .module.config.tools.template_options.groups import Group
 from .module.config.tools.template_options.validation_info import ValidationInfo
-from .module.config.tools.config_tools import (
-    writeConfig,
-    backupConfig,
-    loadConfig,
-    upgradeConfig,
-    checkMissingFields,
-    validateValue,
-)
+from .module.config.tools.config_tools import     writeConfig
+
 from .module.config.tools.ini_file_parser import IniFileParser
 from .module.config.tools.template_parser import TemplateParser
 from .module.config.tools.validation_model_gen import CoreValidationModelGenerator
@@ -214,8 +208,6 @@ __all__ = [
     "ValidationInfo",
     "CoreValidationModelGenerator",
     "asyncReadPipe",
-    "backupConfig",
-    "checkMissingFields",
     "core_signalbus",
     "dictLookup",
     "formatListForDisplay",
@@ -223,14 +215,11 @@ __all__ = [
     "getDictNestingLevel",
     "insertDictValue",
     "iterToString",
-    "loadConfig",
     "logger",
     "makeAppArgs",
     "retrieveDictValue",
-    "upgradeConfig",
     "validateLoglevel",
     "validatePath",
     "validateTheme",
-    "validateValue",
     "writeConfig",
 ]
