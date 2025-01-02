@@ -21,5 +21,6 @@ class TestSettingsInterface(CoreSettingsInterface):
                 template=CoreTemplate(),
                 Generator=CardGenerator,
                 CardStack=PivotCardStack,
+                title=self.tr(f"{CoreConfig().getConfigName()} Settings")
             ),
         )

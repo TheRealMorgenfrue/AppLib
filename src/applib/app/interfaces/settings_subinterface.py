@@ -20,6 +20,7 @@ class CoreSettingsSubInterface(ScrollArea):
         template: AnyTemplate,
         Generator: AnyCardGenerator,
         CardStack: AnyCardStack,
+        title: Optional[str] = None,
         icons: dict[str, Union[str, QIcon, FluentIconBase]] = None,
         parent: Optional[QWidget] = None,
         **generator_kwargs
@@ -44,6 +45,10 @@ class CoreSettingsSubInterface(ScrollArea):
             Lays out GUI elements using the layout style of the particular `CardStack`.
             NOTE: Must be a class reference.
 
+        title : str
+            The display title of the interface.
+            By default `None`.
+
         icons : dict[str, Union[str, QIcon, FluentIconBase]]
             The icons shown in the pivot for each GUI element section, if supported by the `CardStack`.
             Must be a dict mapping a GUI element section, as defined in `template`, to an icon.
@@ -64,6 +69,7 @@ class CoreSettingsSubInterface(ScrollArea):
             self._Generator = Generator
             self._CardStack = CardStack
             self._icons = icons
+            self._title = title
 
             if "parent" not in generator_kwargs:
                 generator_kwargs |= {"parent": self}
@@ -95,15 +101,15 @@ class CoreSettingsSubInterface(ScrollArea):
             config=self._config, template=self._template, **self._generator_kwargs
         )
 
-        kwargs = {}
+        cardstack_kwargs = {}
         if self._icons:
-            kwargs = {"icons": self._icons}
+            cardstack_kwargs = {"icons": self._icons}
 
         card_stack = self._CardStack(
             generator=generator,
-            labeltext=self.tr(f"{self._config.getConfigName()} Settings"),
+            labeltext=self._title,
             parent=self,
-            **kwargs
+            **cardstack_kwargs
         )
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(card_stack)
         self.vGeneralLayout.addWidget(card_stack)
