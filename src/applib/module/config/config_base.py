@@ -84,7 +84,9 @@ class ConfigBase:
         if self._config_name == config_name:
             self.saveConfig()
 
-    def _checkMissingFields(self, config: dict, template_model: dict, error_prefix: str = "") -> None:
+    def _checkMissingFields(
+        self, config: dict, template_model: dict, error_prefix: str = ""
+    ) -> None:
         """
         Compare the config against the template_model for missing
         sections/settings and vice versa.
@@ -264,9 +266,11 @@ class ConfigBase:
         try:
             old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
             validator(self._config, self._config_name)
-        except KeyError as err:
+        except KeyError:
             is_error = True
-            self._logger.error(f"{msg_prefix} {err.args[0]}")
+            self._logger.error(
+                f"{msg_prefix} Could not validate value for missing key '{key}' {f"(within parent key '{parent_key}')" if parent_key else ""}"
+            )
         except ValidationError as err:
             is_error, is_valid = True, False
             insertDictValue(
@@ -369,9 +373,9 @@ class ConfigBase:
             self._logger.warning(err_msg)
             if do_write_config:
                 self._logger.info(f"{msg_prefix} Repairing config")
-                repairedConfig = self._repairConfig(raw_config, template_model)
+                repaired_config = self._repairConfig(raw_config, template_model)
                 self.backupConfig()
-                writeConfig(repairedConfig, self._config_path)
+                writeConfig(repaired_config, self._config_path)
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(f"{msg_prefix} {err.args[0]}")
@@ -556,7 +560,7 @@ class ConfigBase:
         )
         if value is None:
             self._logger.warning(
-                f"Config '{self._config_name}': Could not find key '{key}' in the config. Returning default: '{default}'"
+                f"Config '{self._config_name}': Could not find key '{key}'{f", within parent key '{parent_key}'," if parent_key else ""}. Returning default: '{default}'"
             )
         return value
 
