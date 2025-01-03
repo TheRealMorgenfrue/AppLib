@@ -25,6 +25,7 @@ class BaseSetting(QWidget):
         current_value: Any,
         default_value: Any,
         notify_disabled: bool = True,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -58,6 +59,9 @@ class BaseSetting(QWidget):
             Notify the associated Setting Card if this setting is disabled.
             By default `True`.
 
+        parent_key : str | None, optional
+            Search for `config_key` within the scope of a parent key.
+
         parent : QWidget, optional
             Parent of this class.
             By default `None`.
@@ -71,6 +75,7 @@ class BaseSetting(QWidget):
         self.backup_value = None
         self.is_disabled = False
         self.notify_disabled = notify_disabled
+        self.parent_key = parent_key
 
         # The value which disables this setting.
         self.disable_self_value = (
@@ -196,7 +201,7 @@ class BaseSetting(QWidget):
     def setValue(self, value: Any) -> bool:
         success = None
         if self.current_value != value or self.backup_value == value:
-            if self.config.setValue(self.config_key, value, self.config_name):
+            if self.config.setValue(self.config_key, value, self.parent_key):
                 self.current_value = value
                 self.maybeDisableParent(value)
                 success = True

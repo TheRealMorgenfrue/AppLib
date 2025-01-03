@@ -59,6 +59,7 @@ class CoreLineEdit(BaseSetting):
             default_value=config.getValue(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
+            parent_key=parent_key,
             parent=parent,
         )
         try:

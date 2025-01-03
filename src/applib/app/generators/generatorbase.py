@@ -42,7 +42,7 @@ class GeneratorBase:
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        config_name_override: Optional[str] = None,
+        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         if config.getFailureStatus():
@@ -51,14 +51,19 @@ class GeneratorBase:
         self._config = config
         self._template = template
         self._template_name = self._template.getName()
-        self._config_name = config_name_override if config_name_override else config.getConfigName()
+        self._config_name = parent_key if parent_key else config.getConfigName()
         self._default_group = default_group
         self._hide_group_label = hide_group_label
         self._is_tight = is_tight
+        self._parent_key = parent_key
         self._parent = parent
-        self._card_sort_order = {} # type: dict[str, list] # Mapping of the correct card sort order.
-        self._card_list = [] # type: list[AnyCardGroup] # Temp placement of unsorted cards.
-        self._cards = [] # type: list[AnyCardGroup] # The cards sorted correctly.
+
+        # type: dict[str, list] # Mapping of the correct card sort order.
+        self._card_sort_order = {}
+        # type: list[AnyCardGroup] # Temp placement of unsorted cards.
+        self._card_list = []
+        # type: list[AnyCardGroup] # The cards sorted correctly.
+        self._cards = []
 
     @abstractmethod
     def _createCard(
@@ -138,6 +143,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=setting_name,
                 options=options,
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.COLOR_PICKER:
@@ -145,6 +151,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=setting_name,
                 options=options,
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.COMBOBOX:
@@ -153,6 +160,7 @@ class GeneratorBase:
                 config_key=setting_name,
                 options=options,
                 texts=options["values"],
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.FILE_SELECTION:
@@ -164,6 +172,7 @@ class GeneratorBase:
                 directory=f"{CoreArgs.app_dir}",  # Starting directory
                 filter=options["ui_file_filter"],
                 initial_filter=options["ui_file_filter"],
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.LINE_EDIT:
@@ -176,6 +185,7 @@ class GeneratorBase:
                     options["ui_invalidmsg"] if "ui_invalidmsg" in options else ""
                 ),
                 tooltip=None,
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.SLIDER:
@@ -186,6 +196,7 @@ class GeneratorBase:
                 num_range=[options["min"], options["max"]],
                 is_tight=self._is_tight,
                 baseunit=parseUnit(setting_name, options, self._config_name),
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.SPINBOX:
@@ -194,6 +205,7 @@ class GeneratorBase:
                 config_key=setting_name,
                 options=options,
                 min_value=options["min"],
+                parent_key=self._parent_key,
                 parent=parent,
             )
         elif card_type == UITypes.SWITCH:
@@ -201,6 +213,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=setting_name,
                 options=options,
+                parent_key=self._parent_key,
                 parent=parent,
             )
         else:
