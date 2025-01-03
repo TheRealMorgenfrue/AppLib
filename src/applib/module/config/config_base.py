@@ -266,19 +266,19 @@ class ConfigBase:
             validator(self._config, self._config_name)
         except KeyError as err:
             is_error = True
-            logger.error(f"{msg_prefix} {err.args[0]}")
+            self._logger.error(f"{msg_prefix} {err.args[0]}")
         except ValidationError as err:
             is_error, is_valid = True, False
             insertDictValue(
                 self._config, key, old_value, parent_key=parent_key
             )  # Restore value
-            logger.warning(
+            self._logger.warning(
                 f"{msg_prefix} Unable to validate value '{value}' for setting '{key}': "
                 + formatValidationError(err)
             )
         except Exception:
             is_error = True
-            logger.error(
+            self._logger.error(
                 f"{msg_prefix} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
                 + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
@@ -332,7 +332,7 @@ class ConfigBase:
         NotImplementedError
             The file at the config path is not a supported format.
         """
-        is_error, failure, reload_failure = False, False, False
+        failure, reload_failure = False, False
         can_reload = do_write_config or not use_validator_on_error
         config = None
         msg_prefix = f"{self._config_name}:"
@@ -355,56 +355,58 @@ class ConfigBase:
             else:
                 config = raw_config
         except ValidationError as err:
-            is_error, is_recoverable = True, True
-            logger.warning(f"{msg_prefix} Could not validate '{filename}'")
-            logger.debug(formatValidationError(err))
+            is_recoverable = True
+            self._logger.warning(f"{msg_prefix} Could not validate '{filename}'")
+            self._logger.debug(formatValidationError(err))
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except MissingFieldError as err:
-            is_error, is_recoverable = True, True
+            is_recoverable = True
             err_msg = f"{msg_prefix} Detected incorrect fields in '{filename}':\n"
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
-            logger.warning(err_msg)
+            self._logger.warning(err_msg)
             if do_write_config:
-                logger.info(f"{msg_prefix} Repairing config")
-                repairedConfig = self._repairConfig(raw_config)
+                self._logger.info(f"{msg_prefix} Repairing config")
+                repairedConfig = self._repairConfig(raw_config, template_model)
                 self.backupConfig()
                 writeConfig(repairedConfig, self._config_path)
         except (InvalidMasterKeyError, AssertionError) as err:
-            is_error, is_recoverable = True, True
-            logger.warning(f"{msg_prefix} {err.args[0]}")
+            is_recoverable = True
+            self._logger.warning(f"{msg_prefix} {err.args[0]}")
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
-            is_error, is_recoverable = True, True
-            logger.warning(
+            is_recoverable = True
+            self._logger.warning(
                 f"{msg_prefix} Failed to parse '{filename}':\n  {err.args[0]}\n"
             )
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except FileNotFoundError:
-            is_error, is_recoverable = True, True
-            logger.info(f"{msg_prefix} Creating '{filename}'")
+            is_recoverable = True
+            self._logger.info(f"{msg_prefix} Creating '{filename}'")
             if do_write_config:
                 writeConfig(template_model, self._config_path)
         except Exception:
-            is_error, is_recoverable = True, False
-            logger.error(
+            is_recoverable = False
+            self._logger.error(
                 f"{msg_prefix} An unexpected error occurred while loading '{filename}'\n"
                 + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
         finally:
-            if is_error:
+            error_msg = traceback.format_exc(limit=1)
+            if error_msg:
+                self._logger.debug(f"Debugging erorr:\n{error_msg}")
                 if can_reload and retries > 0 and is_recoverable:
                     reload_msg = f"{msg_prefix} Reloading '{filename}'"
                     if not use_validator_on_error:
                         reload_msg += " with compatibility mode"
-                    logger.info(reload_msg)
+                    self._logger.info(reload_msg)
                     config, reload_failure = self._loadConfig(
                         validator=validator if use_validator_on_error else None,
                         template_model=template_model,
@@ -419,14 +421,14 @@ class ConfigBase:
                     if template_model:
                         load_failure_msg += ". Loading template as config"
                         config = template_model  # Use the template_model as config if all else fails
-                        logger.warning(load_failure_msg)
+                        self._logger.warning(load_failure_msg)
                     else:
-                        logger.error(load_failure_msg)
+                        self._logger.error(load_failure_msg)
             else:
-                logger.info(f"{msg_prefix} Config '{filename}' loaded!")
+                self._logger.info(f"{msg_prefix} Config '{filename}' loaded!")
             return config, failure or reload_failure
 
-    def _repairConfig(self, config: dict) -> dict:
+    def _repairConfig(self, config: dict, template_model: dict) -> dict:
         """
         Preserve all valid values in `config` when some of its fields are determined invalid.
         Fields are taken from the `config`'s associated template_model if they could not be preserved.
@@ -436,6 +438,9 @@ class ConfigBase:
         config : dict
             The config loaded from a file.
 
+        template_model : dict
+            A validated config created by the supplied validation model.
+
         Returns
         -------
         dict
@@ -443,7 +448,7 @@ class ConfigBase:
             preserved from `config`.
         """
         repaired_config = {}
-        for template_key, value in self._template_model.items():
+        for template_key, value in template_model.items():
             if isinstance(value, dict) and template_key in config:
                 # Search config/template_model recursively, depth-first
                 repaired_config |= {
@@ -614,10 +619,10 @@ class ConfigBase:
         try:
             file = os.path.split(self._config_path)[1]
             backup_file = Path(f"{self._config_path}.bak")
-            logger.debug(f"Creating backup of '{file}' to '{backup_file}'")
+            self._logger.debug(f"Creating backup of '{file}' to '{backup_file}'")
             shutil.copyfile(self._config_path, backup_file)
         except Exception:
-            logger.error(
+            self._logger.error(
                 f"Failed to create backup of '{self._config_path}'\n"
                 + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
