@@ -332,7 +332,7 @@ class ConfigBase:
         NotImplementedError
             The file at the config path is not a supported format.
         """
-        failure, reload_failure = False, False
+        is_error, failure, reload_failure = False, False, False
         can_reload = do_write_config or not use_validator_on_error
         config = None
         msg_prefix = f"{self._config_name}:"
@@ -355,14 +355,14 @@ class ConfigBase:
             else:
                 config = raw_config
         except ValidationError as err:
-            is_recoverable = True
+            is_error, is_recoverable = True, True
             self._logger.warning(f"{msg_prefix} Could not validate '{filename}'")
             self._logger.debug(formatValidationError(err))
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except MissingFieldError as err:
-            is_recoverable = True
+            is_error, is_recoverable = True, True
             err_msg = f"{msg_prefix} Detected incorrect fields in '{filename}':\n"
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
@@ -373,14 +373,14 @@ class ConfigBase:
                 self.backupConfig()
                 writeConfig(repairedConfig, self._config_path)
         except (InvalidMasterKeyError, AssertionError) as err:
-            is_recoverable = True
+            is_error, is_recoverable = True, True
             self._logger.warning(f"{msg_prefix} {err.args[0]}")
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
-            is_recoverable = True
+            is_error, is_recoverable = True, True
             self._logger.warning(
                 f"{msg_prefix} Failed to parse '{filename}':\n  {err.args[0]}\n"
             )
@@ -388,20 +388,18 @@ class ConfigBase:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except FileNotFoundError:
-            is_recoverable = True
+            is_error, is_recoverable = True, True
             self._logger.info(f"{msg_prefix} Creating '{filename}'")
             if do_write_config:
                 writeConfig(template_model, self._config_path)
         except Exception:
-            is_recoverable = False
+            is_error, is_recoverable = True, False
             self._logger.error(
                 f"{msg_prefix} An unexpected error occurred while loading '{filename}'\n"
                 + traceback.format_exc(limit=CoreArgs.traceback_limit)
             )
         finally:
-            error_msg = traceback.format_exc(limit=1)
-            if error_msg:
-                self._logger.debug(f"Debugging erorr:\n{error_msg}")
+            if is_error:
                 if can_reload and retries > 0 and is_recoverable:
                     reload_msg = f"{msg_prefix} Reloading '{filename}'"
                     if not use_validator_on_error:
