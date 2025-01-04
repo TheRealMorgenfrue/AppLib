@@ -7,12 +7,14 @@ from ...tools.utilities import decodeInput
 
 class IniFileParser:
     @classmethod
-    def _getBool(cls, value: str):
-        if value.lower() == "true":
+    def _getBool(cls, value):
+        value = str(value).lower()
+        if value in ("y", "yes", "t", "true"):
             return True
-        elif value.lower() == "false":
+        elif value in ("n", "no", "f", "false"):
             return False
-        return None
+        else:
+            raise ValueError(f"invalid truth value '{value}'")
 
     @classmethod
     def _getNumber(cls, value: str) -> Union[float, int, str]:
@@ -44,30 +46,34 @@ class IniFileParser:
         config = {}
         kv_list, sections, keys, values = [], [], [], []
         current_section = None
-        #                     Contains 3 capture groups: Section, Key, Value
-        pattern = re.compile(r"(?<!.)\[(.*)\]|(?<!.)(.+)=(?(2)(.*))")
+        # Contains 2 capture groups: Section, Key/Value
+        pattern = re.compile(r"(?<!.)\[(.*)\]|((?<!.).+)")
         for i, line in enumerate(file_content):
             if line == "":
                 continue
             match = re.search(pattern, line)
-            #          Full match           Section             Key                 Value
-            # print(f"{match.group(0)} | {match.group(1)} | {match.group(2)} | {match.group(3)}")
-            if match is None:
-                err_msg = f"Unexpected input '{line}' at line {i+1}"
-                raise IniParseError(err_msg)
 
             found_section = match.group(1)
-            key = match.group(2)
-            value = match.group(3)
+            if found_section is None:
+                try:
+                    key, value = match.group(2).split("=", maxsplit=1)
+                except ValueError:
+                    err_msg = f"Unexpected input '{line}' at line {i+1}"
+                    raise IniParseError(err_msg) from None
 
-            if key is not None:
+                if not key:
+                    err_msg = f"Illegal key '{key}' at line {i+1}"
+                    raise IniParseError(err_msg)
+
+                # Add key/value pair to list of parsed pairs
                 keys.append(key.strip())
-                boolVal = cls._getBool(value)
-                values.append(
-                    boolVal if boolVal is not None else cls._getNumber(value.strip())
-                )
-
-            if found_section is not None:
+                value = value.strip()
+                try:
+                    converted_value = cls._getBool(value)
+                except ValueError:
+                    converted_value = cls._getNumber(value)
+                values.append(converted_value)
+            else:
                 # Save the current section's key/value pairs
                 if current_section is not None:
                     kv_list.append(dict(zip(keys, values)))
