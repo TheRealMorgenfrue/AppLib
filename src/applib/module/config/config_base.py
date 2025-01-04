@@ -215,7 +215,7 @@ class ConfigBase:
         self._checkMissingFields(raw_config, config)
         return config
 
-    def _validate(self, config: dict) -> None:
+    def _validate(self, config: dict, **kwargs) -> None:
         """
         Validates the config when a value is changed,
         ensuring only valid values exists at any given time.
@@ -236,9 +236,10 @@ class ConfigBase:
         value: Any,
         validator: Callable[[dict], dict],
         parent_key: Optional[str] = None,
+        **validator_kwargs,
     ) -> tuple[bool, bool]:
         """
-        Insert and validate a value in `config`.
+        Insert and validate a value in the config.
 
         Parameters
         ----------
@@ -249,30 +250,31 @@ class ConfigBase:
             The value to insert. Maps to `key`.
 
         validator : Callable[[dict], dict]
-            The validator callable that validates `config`.
+            The validator callable that validates the config.
 
         parent_key : str | None, optional
             Search for `key` within the scope of a parent key.
 
+        **validator_kwargs | dict
+            Extra keyword arguments for the validator.
+
         Returns
         -------
-        tuple[bool, bool]
-            Returns a tuple of values:
-            * [0]: True if an error occured.
-            * [1]: False if a validation error occurred.
+        bool
+            True if an error occured.
         """
-        is_error, is_valid = False, True
+        is_error = False
         msg_prefix = f"Config '{self._config_name}':"
         try:
             old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
-            validator(self._config, parent_key)
+            validator(self._config, **validator_kwargs)
         except KeyError:
             is_error = True
             self._logger.error(
                 f"{msg_prefix} Could not validate value for missing key '{key}' {f"(within parent key '{parent_key}')" if parent_key else ""}"
             )
         except ValidationError as err:
-            is_error, is_valid = True, False
+            is_error = True
             insertDictValue(
                 self._config, key, old_value, parent_key=parent_key
             )  # Restore value
@@ -287,7 +289,15 @@ class ConfigBase:
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
-            return is_error, is_valid
+            if is_error:
+                core_signalbus.configStateChange.emit(
+                    False, "Failed to save setting", ""
+                )
+            else:
+                core_signalbus.configUpdated.emit(self._config_name, key, (value,))
+                self._is_modified = True
+
+            return is_error
 
     def _loadConfig(
         self,
@@ -308,12 +318,12 @@ class ConfigBase:
 
         template_model : dict | None, optional
             A validated config created by the supplied validation model.
-            NOTE: Must be supplied if `do_write_config` is True.
+            NOTE: Must be supplied if `do_write_config` is `True`.
             By default `None`.
 
         do_write_config : bool, optional
             Manipulate with files on the file system to recover from soft errors.
-            By default True.
+            By default `True`.
 
         use_validator_on_error : bool, optional
             Use the validator function for the next config reload,
@@ -322,7 +332,7 @@ class ConfigBase:
         retries : int, optional
             Reload the config X times if soft errors occur.
             Note: This has no effect if `do_write_config` is False.
-            By default 1.
+            By default `1`.
 
         Returns
         -------
@@ -585,18 +595,12 @@ class ConfigBase:
             Whether the config was validated successfully after `value` was inserted.
             True == invalid (i.e. the value was NOT saved).
         """
-        is_error, is_invalid = self._validateValue(
+        return self._validateValue(
             key=key,
             value=value,
             validator=self._validate,
             parent_key=parent_key,
         )
-        if is_error:
-            core_signalbus.configStateChange.emit(False, "Failed to save setting", "")
-        else:
-            core_signalbus.configUpdated.emit(self._config_name, key, (value,))
-            self._is_modified = True
-        return is_invalid
 
     def saveConfig(self) -> None:
         """Write config to disk"""
