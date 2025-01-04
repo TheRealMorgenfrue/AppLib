@@ -4,20 +4,21 @@ from typing import Iterable
 
 
 def iterToString(arg: Iterable, separator: str = "") -> str:
-    """Converts an iterable into a string, optionally separated by a string
+    """
+    Converts an iterable into a string, optionally separated by a string.
 
     Parameters
     ----------
     arg : Iterable
-        An iterable which may contain arbitrary objects
+        An iterable which may contain arbitrary objects.
 
     separator : str, optional
-        Separate each element in iterable with this string
+        Separate each element in iterable with this string.
 
     Returns
     -------
     str
-        The iterable converted to a string
+        The iterable converted to a string.
     """
     if arg is None:
         return f"{arg}"
@@ -32,7 +33,8 @@ def iterToString(arg: Iterable, separator: str = "") -> str:
 
 
 def dictLookup(input: dict, search_param: Any) -> Any:
-    """Searches provided dictionary for first occurence of search_param.\n
+    """
+    Searches provided dictionary for first occurence of search_param.
     This search include both keys and values, starting with values.
 
     Note: This search is NOT recursive!
@@ -40,17 +42,17 @@ def dictLookup(input: dict, search_param: Any) -> Any:
     Explanation
     ----------
         search_param:
-            Key or Value to search for
+            Key or value to search for.
 
         returns:
-            Key if search_param == Value (or vice versa)\n
-            None if search_param wasn't found in the input
+            Key if `search_param` == value (or vice versa).
+            `None` if `search_param` wasn't found in the input.
 
     """
     if isinstance(input, dict):
-        value = input.get(search_param, None)  # searchParam is a key mapping to value
+        value = input.get(search_param, None)  # search_param is a key mapping to value
         if not value:
-            for k, v in input.items():  # searchParam is a value mapping to key
+            for k, v in input.items():  # search_param is a value mapping to key
                 if v == search_param:
                     return k
         return value
@@ -59,7 +61,8 @@ def dictLookup(input: dict, search_param: Any) -> Any:
 def formatValidationError(
     err: ValidationError, include_url: bool = False, include_input: bool = True
 ) -> str:
-    """Format a validation error
+    """
+    Format a validation error.
 
     Parameters
     ----------
@@ -68,22 +71,23 @@ def formatValidationError(
 
     include_url : bool, optional
         Include a url to the Pydantic help page for this error.
-        Defaults to False.
+        By default `False`.
 
     include_input : bool, optional
         Include the user input which caused this error.
-        Defaults to True.
+        By default `True`.
 
     Returns
     -------
     str
         A formatted string of the ValidationError instance.
     """
-    assert isinstance(
-        err, ValidationError
-    ), f"Must be an instance of {ValidationError.__name__}"
-    errors = err.errors(include_url=include_url, include_input=include_input)
+    if not isinstance(err, ValidationError):
+        raise TypeError(
+            f"must be an instance of {ValidationError.__name__}. Got '{type(err).__name__}'"
+        )
 
+    errors = err.errors(include_url=include_url, include_input=include_input)
     error_count = err.error_count()
     msg = f"{error_count} validation error{"s" if error_count > 1 else ""} for '{err.title}'\n"
     for error in errors:
@@ -131,23 +135,24 @@ def getDictNestingLevel(input: dict, stop_at: int) -> int:
 def formatListForDisplay(
     input: list[str], display_items: int = 15, join_string: str = "\n"
 ) -> str:
-    """Format arbitrary length lists for screen (or log) display.
+    """
+    Format arbitrary length lists for screen (or log) display.
 
     Parameters
     ----------
     input : list[str]
-        List to format
+        List to format.
 
     display_items : int, optional
-        How many list items to display before truncating, by default 15
+        How many list items to display before truncating, by default `15`.
 
     join_string : str, optional
-        String used to join() strings in the list, by default "\\n"
+        String used to join() strings in the list, by default `\\n`.
 
     Returns
     -------
     list[str]
-        The formatted list
+        The formatted list.
     """
     input_size = len(input)
     do_truncate = display_items != -1 and input_size > display_items + 1
@@ -174,16 +179,17 @@ def retrieveDictValue(
     default: Any = None,
     get_parent_key: bool = False,
 ) -> Any | tuple[Any, str]:
-    """Return first value found.
+    """
+    Return first value found.
     If key does not exists, return default.
 
     Has support for defining search scope with the parent key.
-    A value will only be returned if it is within parent key's scope
+    A value will only be returned if it is within parent key's scope.
 
     Parameters
     ----------
     d : dict
-        The dictionary to search for key.
+        The dictionary to search for `key`.
 
     key : str
         The key to search for.
@@ -192,22 +198,21 @@ def retrieveDictValue(
         Limit the search scope to the children of this key.
 
     default : Any, optional
-        The value to return if the key was not found.
-        Defaults to None.
+        The value to return if `key` was not found.
+        Defaults to `None`.
 
     get_parent_key : bool, optional
-        Return the immediate parent of the supplied key.
-        Defaults to False.
+        Return the immediate parent of `key`.
+        Defaults to `False`.
 
     Returns
     -------
     Any
-        The value mapped to the key, if it exists. Otherwise, default.
+        The value mapped to `key`, if it exists. Otherwise, `default`.
 
     tuple[Any, str]
-        If `get_parent_key` is True
         [0]: The value mapped to the key, if it exists. Otherwise, default.
-        [1]: The immediate parent of the supplied key, if any. Otherwise, None.
+        [1]: The immediate parent of the supplied key, if `get_parent_key` is `True`. Otherwise, `None`.
     """
     stack = [iter(d.items())]
     parent_keys = []
@@ -278,12 +283,11 @@ def insertDictValue(
     Raises
     ------
     KeyError
-        If the key was not found in the config.
+        If `key` was not found in the config.
     """
     old_value = []  # Modified in-place by traverseDict
     parent_keys = []
 
-    # Nested function is ONLY used in this function. Placement of source code considered more readable here.
     def traverseDict(
         _input: dict, search_key: str, value: Any, _parent_key: str
     ) -> None:

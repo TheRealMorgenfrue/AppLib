@@ -15,12 +15,12 @@ class TestSettingsInterface(CoreSettingsInterface):
         super().__init__(parent=parent)
         self.addSubInterface(
             icon=FIF.AIRPLANE,
-            title=CoreArgs.app_name,
+            title=CoreArgs._core_app_name,
             widget=CoreSettingsSubInterface(
                 config=CoreConfig(),
                 template=CoreTemplate(),
                 Generator=CardGenerator,
                 CardStack=PivotCardStack,
-                title=self.tr(f"{CoreConfig().getConfigName()} Settings")
+                title=self.tr(f"{CoreConfig().getConfigName()} Settings"),
             ),
         )

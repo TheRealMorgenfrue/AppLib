@@ -34,7 +34,7 @@ class CoreConfig(ConfigBase):
             super().__init__(
                 template_model=validation_model.model_construct().model_dump(),
                 validation_model=validation_model,
-                config_name=CoreArgs.app_config_name,
-                config_path=CoreArgs.app_config_path,
+                config_name=CoreArgs._core_main_config_name,
+                config_path=CoreArgs._core_main_config_path,
             )
             self._created = True

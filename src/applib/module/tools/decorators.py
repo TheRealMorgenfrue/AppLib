@@ -1,30 +1,5 @@
-import sys
-
-
-def export(func):
-    """Function decorator for adding function to __all__ automatically.
-
-    Usage:
-    -----
-    ```py
-    @export
-    def foo(): pass
-    ```
-    """
-    # Python module/packaging system explainer: https://stackoverflow.com/a/35710527
-    mod = sys.modules[func.__module__]
-    if hasattr(mod, "__all__"):
-        mod.__all__.append(func.__name__)
-    else:
-        mod.__all__ = [func.__name__]
-    return func
-
-
 def makeAppArgs(cls):
-    """Class decorator for declaring a class as the main arguments for the app.
-
-    Must only be used once!
-    """
+    """Class decorator for declaring a class as the main arguments for the app."""
     from ..config.internal.core_args import CoreArgs
 
     for k, v in cls.__dict__.items():

@@ -97,7 +97,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
 
     def _setLabelText(self, value: int) -> None:
         if self.baseunit:
-            unit = dictLookup(CoreArgs.config_units, self.baseunit)
+            unit = dictLookup(CoreArgs._core_config_units, self.baseunit)
 
             # Found a unit definition for the base unit
             if unit is not None:
