@@ -145,7 +145,6 @@ class AppLibLogger:
                 self.logger_nocolor = createLogger(
                     name=f"{CoreArgs._core_app_name}_nocolor",
                     level="INFO",
-                    format=CoreArgs._core_log_format,
                     use_color=False,
                     log_dir=CoreArgs._core_log_dir,
                     log_filename=CoreArgs._core_log_filename,
