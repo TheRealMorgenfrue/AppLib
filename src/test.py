@@ -22,23 +22,9 @@
 ##########################
 # Set initial CWD
 import os
-from pathlib import Path
-import sys
-
 
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
-# Running in a Nuitka onefile binary
-if Path(sys.argv[0]) != Path(__file__):
-    setattr(sys, "nuitka", True)
-
-# # Running in a PyInstaller bundle
-# elif getattr(sys, "frozen", False):
-#     pass
-# # Running in a normal python process
-# else:
-#     pass
-##########################
 
 from applib.app.core_app import CoreApp
 from test.interfaces.mainwindow import TestMainWindow

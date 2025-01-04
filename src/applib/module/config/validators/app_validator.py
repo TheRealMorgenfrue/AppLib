@@ -21,10 +21,10 @@ def validateLoglevel(loglevel: str) -> str:
         The loglevel is invalid
     """
     loglevel = loglevel.upper()
-    if not loglevel in CoreArgs.template_loglevels:
+    if not loglevel in CoreArgs._core_template_loglevels:
         err_msg = (
             f"Invalid log level '{loglevel}'. "
-            + f"Expected one of '{iterToString(CoreArgs.template_loglevels, separator=", ")}'"
+            + f"Expected one of '{iterToString(CoreArgs._core_template_loglevels, separator=", ")}'"
         )
         raise AssertionError(err_msg)
     return loglevel
@@ -48,7 +48,7 @@ def validateTheme(theme: str) -> str:
     AssertionError
         The theme is invalid
     """
-    if not theme in CoreArgs.template_themes:
-        err_msg = f"Invalid theme '{theme}'. Expected one of '{iterToString(CoreArgs.template_themes, separator=", ")}'"
+    if not theme in CoreArgs._core_template_themes:
+        err_msg = f"Invalid theme '{theme}'. Expected one of '{iterToString(CoreArgs._core_template_themes, separator=", ")}'"
         raise AssertionError(err_msg)
     return theme

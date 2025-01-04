@@ -1,7 +1,8 @@
-import os
 from qfluentwidgets import StyleSheetBase, Theme, qconfig
-
 from enum import Enum
+
+from ...module.config.internal.core_args import CoreArgs
+
 
 class CoreStyleSheet(StyleSheetBase, Enum):
     # Interfaces
@@ -23,4 +24,4 @@ class CoreStyleSheet(StyleSheetBase, Enum):
 
     def path(self, theme=Theme.AUTO):
         theme = qconfig.theme if theme == Theme.AUTO else theme
-        return f"{os.environ["APPLIB_PATH"]}/assets/qss/{theme.value.lower()}/{self.value}.qss"
+        return f"{CoreArgs._core_qss_dir}/{theme.value.lower()}/{self.value}.qss"

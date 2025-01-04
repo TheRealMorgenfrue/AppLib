@@ -25,7 +25,7 @@ class BannerWidget(QWidget):
     def __init__(
         self,
         main_config: AnyConfig,
-        banner_path: StrPath = f"{CoreArgs.asset_images_dir}{os.sep}banner.jpg",
+        banner_path: StrPath = f"{CoreArgs._core_images_dir}/banner.jpg",
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent)
@@ -38,7 +38,7 @@ class BannerWidget(QWidget):
 
         self.vBoxLayout = QVBoxLayout(self)
         self.galleryLabel = QLabel(
-            f"{CoreArgs.app_name}\nv{CoreArgs.app_version}", self
+            f"{CoreArgs._core_app_name}\nv{CoreArgs._core_app_version}", self
         )
 
         shadow = QGraphicsDropShadowEffect()
@@ -74,7 +74,7 @@ class BannerWidget(QWidget):
             FluentIcon.GITHUB,
             self.tr("GitHub repo"),
             self.tr(""),
-            CoreArgs.link_github,
+            CoreArgs._core_link_github,
         )
         self._connectSignalToSlot()
 
