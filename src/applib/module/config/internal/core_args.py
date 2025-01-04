@@ -1,94 +1,47 @@
+from datetime import datetime
 import os
-import sys
 from pathlib import Path
 
 from ...tools.version import VERSION
 
 
-def getRuntimeMode() -> str:
-    """Returns whether we are frozen via PyInstaller, Nuitka or similar
-    This will affect how we find out where we are located.
-    """
-    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-        # print("Running in a PyInstaller bundle")
-        return "PYI"
-    elif getattr(sys, "nuitka", False):
-        # print("Running in a Nuitka onefile binary")
-        return "NUI"
-    # print("Running in a normal Python process")
-
-
-def getAppPath() -> Path:
-    """This will get us the program's directory,
-    even if we are frozen using PyInstaller, Nuitka or similar"""
-    mode = getRuntimeMode()
-    if mode == "PYI":
-        # The original path to the PyInstaller bundle
-        return os.path.dirname(sys.argv[0])
-    elif mode == "NUI":
-        # The original path to the binary executable
-        return os.path.dirname(sys.argv[0])
-    # cwd must be set elsewhere. Preferably in the main '.py' file (e.g. app.py)
-    return Path.cwd()
-
-
-def getAssetsPath() -> Path:
-    """This will get us the program's asset directory,
-    even if we are frozen using PyInstaller, Nuitka or similar"""
-    mode = getRuntimeMode()
-    if mode == "PYI":
-        # PyInstaller-specific way of getting path to extracted dir
-        return Path(sys._MEIPASS).resolve()
-    elif mode == "NUI":
-        # The temporary or permanent path the bootstrap executable unpacks to (i.e. the temp data folder created by Nuitka onefile binaries at runtime)
-        return Path.cwd()
-    # cwd must be set elsewhere. Preferably in the main '.py' file (e.g. app.py)
-    return Path.cwd()
-
-
 class CoreArgs:
+    # ┌───────────────────┐
+    # │ AppLib attributes │
+    # └───────────────────┘
     # General
-    app_version = VERSION
-    link_github = ""
-    is_release = False
-    traceback_limit = 0 if is_release else None
-    app_dir = getAppPath()
-
-    # Files
-    app_config_file = "app_config.toml"
-
-    # Names
-    app_name = "AppLib"
-    app_template_name = app_name
-    app_config_name = app_template_name
+    _core_app_name = "AppLib"
+    _core_app_version = VERSION
+    _core_link_github = "https://github.com/TheRealMorgenfrue/AppLib"
+    _core_is_release = False
+    _core_traceback_limit = 0 if _core_is_release else None
+    _core_app_dir = os.environ["APPLIB_PATH"]
 
     # Logging
-    log_dir = Path(app_dir, "logs")
-    log_format = "%(asctime)s - %(module)s - %(lineno)s - %(levelname)s - %(message)s"  # %(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    log_format_color = "%(asctime)s - %(module)s - %(lineno)s - %(levelname)s - %(message)s"  # %(asctime)s - %(module)s - %(lineno)s - %(levelname)s - %(message)s'
+    _core_log_dir = Path(_core_app_dir, "logs")
+    _core_log_format = "%(asctime)s - %(module)s - %(lineno)s - %(levelname)s - %(message)s"  # %(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    _core_log_use_color = True
+    _core_log_filename = datetime.now().strftime("%Y-%m-%d")
+    _core_log_disable_header = False
 
-    # Template Settings
-    config_units = {
-        # "second": "seconds",
-        # "retry": "retries",
-        # "tag": "tags",
-        # "day": "days",
-        # "kB": "",
-    }
+    # Templates
+    _core_main_template_name = _core_app_name
+    _core_config_units = {}
+    _core_template_loglevels = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
+    _core_template_themes = ["Light", "Dark", "System"]
 
     # Configs
-    config_dir = Path(app_dir, "configs")
-    app_config_path = Path(config_dir, app_config_file).resolve()
+    _core_config_dir = Path(_core_app_dir, "configs")
+    _core_main_config_name = _core_app_name
+    _core_main_config_file = f"{_core_main_config_name}_config.toml"
+    _core_main_config_path = str(Path(_core_config_dir, _core_main_config_file))
 
-    # Assets
-    assets_dir = Path(getAssetsPath(), "assets")
-    logo_dir = Path(assets_dir, "logo")
-    app_assets_dir = Path(assets_dir, "app")
-    asset_icon_dir = Path(app_assets_dir, "icons")
-    asset_images_dir = Path(app_assets_dir, "images")
-    qss_dir = Path(app_assets_dir, "qss")
+    # Asset directories
+    _core_assets_dir = Path(_core_app_dir, "assets")
+    _core_logo_dir = Path(_core_assets_dir, "logos")
+    _core_icon_dir = Path(_core_assets_dir, "icons")  # Not used atm.
+    _core_images_dir = Path(_core_assets_dir, "images")
+    _core_qss_dir = Path(_core_assets_dir, "qss")
 
-    # Template values - these are present to decouple several modules (logger, validators) from
-    # the app template to prevent circular imports. NOT ideal, but a workaround for now
-    template_loglevels = ["INFO", "WARN", "ERROR", "CRITICAL", "DEBUG"]
-    template_themes = ["Light", "Dark", "System"]
+    # Asset paths
+    _core_app_logo_path = str(Path(_core_logo_dir, "logo.png"))

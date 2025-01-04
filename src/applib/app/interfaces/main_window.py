@@ -31,28 +31,33 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 
-from ...module.config.core_config import CoreConfig
 from ...module.config.internal.core_args import CoreArgs
-from ...module.logging import logger
+from ...module.config.core_config import CoreConfig
+from ...module.logging import AppLibLogger
+from ...module.tools.decorators import makeAppArgs
 from ...module.tools.types.config import AnyConfig
 
 
 class CoreMainWindow(MSFluentWindow):
-    _logger = logger
-
     def __init__(
         self,
-        main_config: AnyConfig = None,
-        subinterfaces: list[
-            tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
+        setup_args,
+        MainConfig: Optional[AnyConfig] = None,
+        subinterfaces: Optional[
+            list[tuple[QWidget, Union[str, QIcon, FluentIconBase], str]]
         ] = None,
         settings_interface: Optional[
-            tuple[QWidget, Union[str, QIcon, FluentIconBase], str] | None
+            tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
         ] = None,
-        app_icon: Union[str, QIcon] = f"{CoreArgs.logo_dir}/logo.png",
     ):
+        # Copy setup_args attributes to CoreArgs if the setup_args instance is exactly CoreArgs,
+        # overriding its attributes if possible
+        makeAppArgs(setup_args) if type(setup_args) != type(CoreArgs) else None
+
+        # Initialize logger after setup_args is read
+        self._logger = AppLibLogger().getLogger()
+
         super().__init__()
-        self._app_icon = app_icon
         self._subinterfaces = subinterfaces
         self._settings_tuple = settings_interface
         self._error_log = []
@@ -66,16 +71,16 @@ class CoreMainWindow(MSFluentWindow):
         self._initWindow()
 
         try:
-            if main_config is None:
-                self.main_config = CoreConfig()
-            else:
-                self.main_config = main_config
+            # Initialize the main config
+            self.main_config = CoreConfig() if MainConfig is None else MainConfig()
 
             self._connectSignalToSlot()
             self._initNavigation()
             self._initBackground()
         except Exception:
-            self._error_log.append(traceback.format_exc(limit=CoreArgs.traceback_limit))
+            self._error_log.append(
+                traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+            )
 
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
@@ -109,7 +114,7 @@ class CoreMainWindow(MSFluentWindow):
                     created_interfaces.append(init_interface)
                 except Exception:
                     self._error_log.append(
-                        traceback.format_exc(limit=CoreArgs.traceback_limit)
+                        traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
             self._subinterfaces = created_interfaces
 
@@ -137,9 +142,11 @@ class CoreMainWindow(MSFluentWindow):
         self.setMinimumSize(960, 700)
         self.resize(1280, 720)
         self.setWindowIcon(
-            QIcon(self._app_icon) if isinstance(self._app_icon, str) else self._app_icon
+            QIcon(CoreArgs._core_app_logo_path)
+            if isinstance(CoreArgs._core_app_logo_path, str)
+            else CoreArgs._core_app_logo_path
         )
-        self.setWindowTitle(f"{CoreArgs.app_name} {CoreArgs.app_version}")
+        self.setWindowTitle(f"{CoreArgs._core_app_name} {CoreArgs._core_app_version}")
 
         # Create splash screen
         self.splashScreen = SplashScreen(self.windowIcon(), self)
