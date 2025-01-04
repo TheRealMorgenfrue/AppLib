@@ -3,8 +3,8 @@ QLabel {
     color: white;
     padding: 0;
     border: none;
-    /* background-color: transparent; */
-    background-color: rgb(121, 15, 228);
+    background-color: transparent;
+    /* background-color: rgb(121, 15, 228); */
 }
 
 /* QLabel#valueLabel {
