@@ -142,9 +142,9 @@ class CoreMainWindow(MSFluentWindow):
         self.setMinimumSize(960, 700)
         self.resize(1280, 720)
         self.setWindowIcon(
-            QIcon(CoreArgs._core_app_logo_path)
-            if isinstance(CoreArgs._core_app_logo_path, str)
-            else CoreArgs._core_app_logo_path
+            QIcon(CoreArgs._core_main_logo_path)
+            if isinstance(CoreArgs._core_main_logo_path, str)
+            else CoreArgs._core_main_logo_path
         )
         self.setWindowTitle(f"{CoreArgs._core_app_name} {CoreArgs._core_app_version}")
 

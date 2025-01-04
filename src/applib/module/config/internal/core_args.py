@@ -33,7 +33,7 @@ class CoreArgs:
     # Configs
     _core_config_dir = Path(_core_app_dir, "configs")
     _core_main_config_name = _core_app_name
-    _core_main_config_file = f"{_core_main_config_name}_config.toml"
+    _core_main_config_file = f"{_core_main_config_name.lower()}_config.toml"
     _core_main_config_path = str(Path(_core_config_dir, _core_main_config_file))
 
     # Asset directories
@@ -44,4 +44,4 @@ class CoreArgs:
     _core_qss_dir = Path(_core_assets_dir, "qss")
 
     # Asset paths
-    _core_app_logo_path = str(Path(_core_logo_dir, "logo.png"))
+    _core_main_logo_path = str(Path(_core_logo_dir, "logo.png"))
