@@ -5,14 +5,18 @@ from ..components.settingcards.card_base import DisableWrapper
 from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIGroups, UITypes
 from ...module.config.tools.template_options.groups import Group
-from ...module.logging import logger
+from ...module.logging import AppLibLogger
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
 from ...module.tools.types.gui_settings import AnyBoolSetting
 from ...module.tools.utilities import iterToString
 
 
+_logger_ = AppLibLogger().getLogger()
+
+
 class UIGrouping:
+
     @classmethod
     def _ensure_bool_child(cls, parent: AnyParentCard, child: AnyCard, group: Group):
         """Used for all sync/desync Groups"""
@@ -24,7 +28,7 @@ class UIGrouping:
         ):
             return True
         else:
-            logger.warning(
+            _logger_.warning(
                 f"UI Group '{group.getGroupName()}': "
                 + f"The option of both parent and child must be a strictly boolean setting (e.g. switch). "
                 + f"Parent '{parent.getCardName()}' has option of type '{type(parent_option).__name__}', "
@@ -73,7 +77,9 @@ class UIGrouping:
                 parent = group.getParentCard()
                 parent_option = parent.getOption()
             except Exception:
-                logger.error(traceback.format_exc(limit=CoreArgs.traceback_limit))
+                _logger_.error(
+                    traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                )
                 continue
 
             is_disabled = False
@@ -219,7 +225,7 @@ def inferType(setting: str, options: dict, config_name: str) -> UITypes | None:
     elif isinstance(options["default"], str):
         card_type = UITypes.LINE_EDIT  # FIXME: Temporary
     else:
-        logger.warning(
+        _logger_.warning(
             f"Config '{config_name}': Failed to infer ui_type for setting '{setting}'. "
             + f"The default value '{options["default"]}' has unsupported type '{type(options["default"])}'"
         )
@@ -230,9 +236,9 @@ def parseUnit(setting: str, options: dict, config_name: str) -> str | None:
     baseunit = None
     if "ui_unit" in options:
         baseunit = options["ui_unit"]
-        if baseunit not in CoreArgs.config_units.keys():
-            logger.warning(
+        if baseunit not in CoreArgs._core_config_units.keys():
+            _logger_.warning(
                 f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                + f"Expected one of '{iterToString(CoreArgs.config_units.keys(), separator=', ')}'"
+                + f"Expected one of '{iterToString(CoreArgs._core_config_units.keys(), separator=', ')}'"
             )
     return baseunit

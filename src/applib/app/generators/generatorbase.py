@@ -23,7 +23,7 @@ from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIFlags, UITypes
 from ...module.config.tools.template_options.groups import Group
 from ...module.config.tools.template_parser import TemplateParser
-from ...module.logging import logger
+from ...module.logging import AppLibLogger
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
@@ -33,7 +33,7 @@ from ...module.tools.utilities import iterToString
 
 
 class GeneratorBase:
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __init__(
         self,
@@ -169,7 +169,7 @@ class GeneratorBase:
                 config_key=setting_name,
                 options=options,
                 caption=options["ui_title"],
-                directory=f"{CoreArgs.app_dir}",  # Starting directory
+                directory=f"{CoreArgs._core_app_dir}",  # Starting directory
                 filter=options["ui_file_filter"],
                 initial_filter=options["ui_file_filter"],
                 parent_key=self._parent_key,
@@ -279,7 +279,7 @@ class GeneratorBase:
                 except Exception:
                     self._logger.error(
                         f"Config '{self._config_name}': Error creating setting card for setting '{setting}'\n"
-                        + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                        + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
                     card = None
                 if card:

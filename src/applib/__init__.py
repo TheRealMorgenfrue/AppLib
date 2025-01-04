@@ -10,9 +10,14 @@ Documentation is available in the docstrings.
 """
 
 import contextlib as __ctxl
+import os
+from pathlib import Path
 
+# Set path for library code
+os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[0]}"
+
+# Dirty fix to silence noisy software
 with __ctxl.redirect_stdout(None):
-    # Dirty fix to silence noisy software
     from qfluentwidgets import QConfig as __silence
 
 
@@ -88,7 +93,7 @@ from .module.config.templates.core_template import CoreTemplate
 from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
 from .module.config.tools.template_options.groups import Group
 from .module.config.tools.template_options.validation_info import ValidationInfo
-from .module.config.tools.config_tools import     writeConfig
+from .module.config.tools.config_tools import writeConfig
 
 from .module.config.tools.ini_file_parser import IniFileParser
 from .module.config.tools.template_parser import TemplateParser
@@ -97,9 +102,8 @@ from .module.config.validators import validatePath, validateLoglevel, validateTh
 
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
 
-from .module.logging import logger
+from .module.logging import AppLibLogger, createLogger
 
-from .module.tools.decorators import makeAppArgs
 from .module.tools.utilities import (
     iterToString,
     dictLookup,
@@ -139,6 +143,7 @@ __all__ = [
     "AnySettingCard",
     "AnySettingWidget",
     "AnyTemplate",
+    "AppLibLogger",
     "AutoTextWrap",
     "BaseTemplate",
     "CardBase",
@@ -209,14 +214,13 @@ __all__ = [
     "CoreValidationModelGenerator",
     "asyncReadPipe",
     "core_signalbus",
+    "createLogger",
     "dictLookup",
     "formatListForDisplay",
     "formatValidationError",
     "getDictNestingLevel",
     "insertDictValue",
     "iterToString",
-    "logger",
-    "makeAppArgs",
     "retrieveDictValue",
     "validateLoglevel",
     "validatePath",

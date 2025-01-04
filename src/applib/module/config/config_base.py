@@ -16,7 +16,7 @@ from .tools.ini_file_parser import IniFileParser
 from ..exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from .internal.core_args import CoreArgs
 from .tools.config_tools import writeConfig
-from ..logging import logger
+from ..logging import AppLibLogger
 from ..tools.types.general import Model, StrPath
 from ..tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
 
@@ -24,7 +24,7 @@ from ..tools.utilities import formatValidationError, insertDictValue, retrieveDi
 class ConfigBase:
     """Base class for all configs"""
 
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __init__(
         self,
@@ -265,7 +265,7 @@ class ConfigBase:
         msg_prefix = f"Config '{self._config_name}':"
         try:
             old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
-            validator(self._config, self._config_name)
+            validator(self._config, parent_key)
         except KeyError:
             is_error = True
             self._logger.error(
@@ -284,7 +284,7 @@ class ConfigBase:
             is_error = True
             self._logger.error(
                 f"{msg_prefix} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
             return is_error, is_valid
@@ -400,7 +400,7 @@ class ConfigBase:
             is_error, is_recoverable = True, False
             self._logger.error(
                 f"{msg_prefix} An unexpected error occurred while loading '{filename}'\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
             if is_error:
@@ -560,7 +560,7 @@ class ConfigBase:
         )
         if value is None:
             self._logger.warning(
-                f"Config '{self._config_name}': Could not find key '{key}'{f", within parent key '{parent_key}'," if parent_key else ""}. Returning default: '{default}'"
+                f"Config '{self._config_name}': Could not find key '{key}' {f"within parent key '{parent_key}'" if parent_key else ""}. Returning default: '{default}'"
             )
         return value
 
@@ -612,7 +612,7 @@ class ConfigBase:
             msg = "Failed to save the config"
             self._logger.error(
                 f"Config '{self._config_name}': {msg}\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             core_signalbus.configStateChange.emit(False, msg, "")
 
@@ -626,5 +626,5 @@ class ConfigBase:
         except Exception:
             self._logger.error(
                 f"Failed to create backup of '{self._config_path}'\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )

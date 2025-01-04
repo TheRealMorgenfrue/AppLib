@@ -8,8 +8,10 @@ from pathlib import Path
 
 from ..internal.core_args import CoreArgs
 
-from ...logging import logger
+from ...logging import AppLibLogger
 from ...tools.types.general import Model, StrPath
+
+_logger_ = AppLibLogger().getLogger()
 
 
 def writeConfig(
@@ -46,11 +48,11 @@ def writeConfig(
         elif extension.lower() == "json":
             _generateJSONConfig(config, dst_path)
         else:
-            logger.warning(f"Cannot write unsupported file '{file}'")
+            _logger_.warning(f"Cannot write unsupported file '{file}'")
     except Exception:
-        logger.error(
+        _logger_.error(
             f"Failed to write {file} to '{dst_path}'\n"
-            + traceback.format_exc(limit=CoreArgs.traceback_limit)
+            + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
         )
         raise
 
@@ -77,7 +79,7 @@ def _generateTOMLconfig(config: dict, dstPath: StrPath) -> None:
         doc.append(section, table)
 
     with open(dstPath, "w", encoding="utf-8") as file:
-        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
         tomlkit.dump(doc, file)
 
 
@@ -115,7 +117,7 @@ def _generateINIconfig(config: dict, dstPath: StrPath) -> None:
 
     fileName = os.path.split(dstPath)[1]
     with open(dstPath, "w", encoding="utf-8") as file:
-        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
         file.write("".join(document))
 
 
@@ -133,5 +135,5 @@ def _generateJSONConfig(config: dict, dstPath: StrPath) -> None:
     """
     fileName = os.path.split(dstPath)[1]
     with open(dstPath, "w", encoding="utf-8") as file:
-        logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+        _logger_.debug(f"Writing '{fileName}' to '{dstPath}'")
         file.write(json.dumps(config, indent=4))

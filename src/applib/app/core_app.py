@@ -10,24 +10,21 @@ class CoreApp:
         """
         The main class from which all other code is executed.
 
-        Only one instance of this may be running.
+        NOTE: Only one instance of this class may be running.
 
         Parameters
         ----------
         MainWindow : QWidget
             A reference to the main window class of the GUI.
         """
-        # enable dpi scale
-        QApplication.setHighDpiScaleFactorRoundingPolicy(
-            Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
-        )
-
-        app = QApplication(sys.argv)
-        app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
-
-        os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[1]}"
-
         try:
+            # Enable dpi scale
+            QApplication.setHighDpiScaleFactorRoundingPolicy(
+                Qt.HighDpiScaleFactorRoundingPolicy.PassThrough
+            )
+            app = QApplication(sys.argv)
+            app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
+
             w = MainWindow()
             sys.exit(app.exec())
         except Exception:
@@ -35,16 +32,27 @@ class CoreApp:
             from datetime import datetime
             import time
 
-            crashDir = Path(Path.cwd(), "crashes")
-            os.makedirs(crashDir, exist_ok=True)
-
             line = "─" * 20
             header = f"{line} Crash reported at {time.asctime()} {line}\n"
             content = traceback.format_exc()
             footer = "─" * len(header)
-            print(f"{header}\n{content}\n{footer}")  # For debugging
+            terminal_str = f"{header}\n{content}\n{footer}"
+
+            try:
+                from ..module.logging import createLogger
+
+                logger = createLogger("app_crash")
+                logger.debug(terminal_str)
+            except:  # Catch everything as we're crashing
+                print(terminal_str)
+
+            crash_dir = Path(Path.cwd(), "crashes")
+            os.makedirs(crash_dir, exist_ok=True)
             with open(
-                Path(crashDir, f"crash {datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt"),
+                Path(
+                    crash_dir,
+                    f"crash {datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt",
+                ),
                 "a",
                 encoding="utf-8",
             ) as file:

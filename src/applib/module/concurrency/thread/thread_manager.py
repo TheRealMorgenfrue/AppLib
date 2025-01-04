@@ -6,7 +6,7 @@ import traceback
 from ..process.process_base import ProcessBase
 from ..process.process_generator import ProcessGenerator
 from ...config.internal.core_args import CoreArgs
-from ...logging import logger
+from ...logging import AppLibLogger
 from ...tools.utilities import iterToString
 
 
@@ -14,13 +14,14 @@ from ...tools.utilities import iterToString
 # As such, it cannot receive any pyqtSignals, only emit
 # An eventloop can be instantiated by calling exec(), however, this call is thread blocking
 class ThreadManager(QThread):
-    """Base class for Thread Managers.
+    """
+    Base class for Thread Managers.
 
     The Thread Manager itself is running in a separate thread with its own QEvent loop.
     As such, all communication must be done using the signal/slot system.
     """
 
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     updateMaxThreads = pyqtSignal(int)
     threadsRemoved = pyqtSignal(list)  # list of threadIDs safe for removal
@@ -96,7 +97,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.error(
                 f"Failed to properly terminate process {process_id}\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             return False
 
@@ -199,7 +200,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.error(
                 f"{self.name.title()} has failed\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             self.kill.emit(True)
 
@@ -387,7 +388,7 @@ class ThreadManager(QThread):
         except Exception:
             self._logger.critical(
                 f"{self.name.title()} has failed\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             # Call terminate method directly as the event loop is not running at this point
             self._TerminateAllRequest(suicide=True)

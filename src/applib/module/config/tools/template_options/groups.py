@@ -1,7 +1,7 @@
 from typing import Any, Iterable, Self
 
 from ...templates.template_enums import UIGroups
-from ....logging import logger
+from ....logging import AppLibLogger
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
 from ....tools.utilities import iterToString
@@ -9,7 +9,7 @@ from ....tools.utilities import iterToString
 
 class Group:
     _instances: dict[str, dict[str, Self]] = {}
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __new__(cls, template_name: str, group_name: str) -> Self:
         """Specifies a relationship between parent and child settings.

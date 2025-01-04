@@ -11,11 +11,11 @@ from ..components.infobar_test import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
 
 from ...module.config.internal.core_args import CoreArgs
-from ...module.logging import logger
+from ...module.logging import AppLibLogger
 
 
 class CoreSettingsInterface(ScrollArea):
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __init__(self, parent: Optional[QWidget] = None):
         """
@@ -68,7 +68,7 @@ class CoreSettingsInterface(ScrollArea):
             InfoBar.error(
                 title=self.tr("Module is not available"),
                 content=self.tr(
-                    f"Please check the logs at:\n {CoreArgs.log_dir.resolve()}"
+                    f"Please check the logs at:\n {CoreArgs._core_log_dir.resolve()}"
                 ),
                 orient=Qt.Orientation.Vertical,
                 isClosable=False,
@@ -124,6 +124,6 @@ class CoreSettingsInterface(ScrollArea):
         except Exception:
             self._logger.error(
                 f"Failed to add subinterface '{type(widget).__name__}'\n"
-                + f"{traceback.format_exc(limit=CoreArgs.traceback_limit)}"
+                + f"{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}"
             )
             widget.deleteLater()

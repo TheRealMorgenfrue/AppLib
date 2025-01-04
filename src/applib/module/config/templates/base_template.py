@@ -6,7 +6,7 @@ from qfluentwidgets import FluentIconBase
 from PyQt6.QtGui import QIcon
 
 
-from ...logging import logger
+from ...logging import AppLibLogger
 from ...tools.types.general import NestedDict
 from ...tools.utilities import retrieveDictValue, insertDictValue
 
@@ -14,7 +14,7 @@ from ...tools.utilities import retrieveDictValue, insertDictValue
 class BaseTemplate:
     """Base class for all templates"""
 
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __init__(
         self,

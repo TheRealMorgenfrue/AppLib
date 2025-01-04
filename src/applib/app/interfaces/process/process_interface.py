@@ -20,12 +20,12 @@ from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from ....module.config.internal.core_args import CoreArgs
 from ....module.config.templates.core_template import CoreTemplate
-from ....module.logging import logger
+from ....module.logging import AppLibLogger
 from ....module.tools.types.config import AnyConfig
 
 
 class CoreProcessInterface(ScrollArea):
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     def __init__(
         self,
@@ -38,7 +38,9 @@ class CoreProcessInterface(ScrollArea):
             super().__init__(parent)
             self._view = QWidget(self)
             self.main_config = main_config
-            self.titleLabel = QLabel(self.tr(f"{CoreArgs.app_name} Process Manager"))
+            self.titleLabel = QLabel(
+                self.tr(f"{CoreArgs._core_app_name} Process Manager")
+            )
             self.terminateAllButton = PushButton(self.tr("Terminate All"))
             self.startButton = PrimaryPushButton(self.tr("Start All"))
             self.flowConsoles = FlowArea()
@@ -229,7 +231,7 @@ class CoreProcessInterface(ScrollArea):
         except Exception:
             self._logger.error(
                 f"Process Manager failed\n"
-                + traceback.format_exc(limit=CoreArgs.traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
 
     def _onThreadManagerFinished(self) -> None:

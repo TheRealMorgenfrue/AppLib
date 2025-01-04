@@ -8,11 +8,11 @@ from PyQt6.QtWidgets import (
     QStyle,
 )
 
-from ...module.logging import logger
+from ...module.logging import AppLibLogger
 
 
 class FluentLabel(QLabel):
-    test_logger = logger
+    test_logger = AppLibLogger().getLogger()
 
     def __init__(
         self,

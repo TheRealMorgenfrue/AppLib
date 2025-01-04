@@ -4,13 +4,13 @@ from typing import Any, Self, Union
 from ..templates.template_enums import UIFlags, UIGroups
 from .template_options.groups import Group
 from .template_options.validation_info import ValidationInfo
-from ...logging import logger
+from ...logging import AppLibLogger
 from ...tools.utilities import getDictNestingLevel, iterToString
 
 
 class TemplateParser:
     _instance = None
-    _logger = logger
+    _logger = AppLibLogger().getLogger()
 
     # Remember templates already parsed
     _parsed_templates: list[str] = []
