@@ -55,7 +55,7 @@ class CardWidgetGenerator(GeneratorBase):
             The config should originate from the same template.
 
         default_group : str, optional
-            The card group which is displayed on app start.
+            The card group which is displayed on application start.
             By default `None`.
 
         hide_group_label : bool, optional

@@ -33,7 +33,9 @@ class CoreArgs:
     # Configs
     _core_config_dir = Path(_core_app_dir, "configs")
     _core_main_config_name = _core_app_name
-    _core_main_config_file = f"{_core_main_config_name.lower()}_config.toml"
+    _core_main_config_file = (
+        f"{_core_main_config_name.replace(" ", "_").lower()}_config.toml"
+    )
     _core_main_config_path = str(Path(_core_config_dir, _core_main_config_file))
 
     # Asset directories

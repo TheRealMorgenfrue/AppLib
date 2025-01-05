@@ -106,10 +106,10 @@ class CardStackBase(ScrollArea):
 
         self.stackedWidget.setCurrentWidget(
             self._defaultGroup
-        )  # Set Group shown on app start
+        )  # Set Group shown on application start
         self.pivot.setCurrentItem(
             self._defaultGroup.objectName()
-        )  # Set Group marked as selected on app start
+        )  # Set Group marked as selected on application start
         qrouter.setDefaultRouteKey(
             self.stackedWidget, self._defaultGroup.objectName()
         )  # Set navigation history to default Group
