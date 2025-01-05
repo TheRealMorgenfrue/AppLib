@@ -1,5 +1,5 @@
-def makeAppArgs(cls):
-    """Class decorator for declaring a class as the main arguments for the app."""
+def makeSetupArgs(cls):
+    """Class decorator for declaring a class as the main setup arguments for the application."""
     from ..config.internal.core_args import CoreArgs
 
     for k, v in cls.__dict__.items():
