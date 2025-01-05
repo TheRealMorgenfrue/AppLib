@@ -34,7 +34,7 @@ from ..components.infobar_test import InfoBar, InfoBarPosition
 from ...module.config.internal.core_args import CoreArgs
 from ...module.config.core_config import CoreConfig
 from ...module.logging import AppLibLogger
-from ...module.tools.decorators import makeAppArgs
+from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig
 
 
@@ -50,10 +50,8 @@ class CoreMainWindow(MSFluentWindow):
             tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
         ] = None,
     ):
-        # Copy setup_args attributes to CoreArgs if the setup_args instance is exactly CoreArgs,
-        # overriding its attributes if possible
-        makeAppArgs(setup_args) if type(setup_args) != type(CoreArgs) else None
-
+        # Copy setup_args attributes to CoreArgs, overriding its attributes if possible
+        makeSetupArgs(setup_args)
         # Initialize logger after setup_args is read
         self._logger = AppLibLogger().getLogger()
 
