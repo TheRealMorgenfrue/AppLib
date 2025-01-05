@@ -19,9 +19,9 @@ from .process_subinterface import ProcessSubinterface
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from ....module.config.internal.core_args import CoreArgs
-from ....module.config.templates.core_template import CoreTemplate
 from ....module.logging import AppLibLogger
 from ....module.tools.types.config import AnyConfig
+from ....module.tools.types.templates import AnyTemplate
 
 
 class CoreProcessInterface(ScrollArea):
@@ -30,6 +30,7 @@ class CoreProcessInterface(ScrollArea):
     def __init__(
         self,
         main_config: AnyConfig,
+        process_template: AnyTemplate,
         ProcessGenerator: ProcessGenerator,
         ThreadManager: ThreadUIStreamer,
         parent: Optional[QWidget] = None,
@@ -45,7 +46,7 @@ class CoreProcessInterface(ScrollArea):
             self.startButton = PrimaryPushButton(self.tr("Start All"))
             self.flowConsoles = FlowArea()
             self.processSubinterface = ProcessSubinterface(
-                config=self.main_config, template=self._createProcessTemplate()
+                config=self.main_config, template=process_template
             )
 
             self.vGeneralLayout = QVBoxLayout(self._view)
@@ -70,17 +71,6 @@ class CoreProcessInterface(ScrollArea):
         except Exception:
             self.deleteLater()
             raise
-
-    def _createProcessTemplate(self) -> CoreTemplate:
-        # REVIEW: Consider creating new template class for use here instead of pulling stuff out from app template
-        app_template = CoreTemplate()
-        template_topkey = "Process"
-        template = CoreTemplate.createSubTemplate(
-            template_name=app_template.getName(),
-            template={template_topkey: app_template.getValue(template_topkey)},
-            icons=app_template.getIcons(),
-        )
-        return template
 
     def _initWidget(self) -> None:
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
