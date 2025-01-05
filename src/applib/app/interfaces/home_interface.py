@@ -25,7 +25,7 @@ class BannerWidget(QWidget):
     def __init__(
         self,
         main_config: AnyConfig,
-        banner_path: StrPath = f"{CoreArgs._core_images_dir}/banner.jpg",
+        banner_path: StrPath,
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent)
@@ -129,7 +129,9 @@ class CoreHomeInterface(ScrollArea):
     def __init__(self, main_config: AnyConfig, parent: Optional[QWidget] = None):
         super().__init__(parent=parent)
         self._view = QWidget(self)
-        self.banner = BannerWidget(main_config=main_config, parent=self)
+        self.banner = BannerWidget(
+            main_config=main_config, banner_path=CoreArgs._core_banner_path, parent=self
+        )
         self.vBoxLayout = QVBoxLayout(self._view)
         self._initWidget()
 

@@ -45,5 +45,6 @@ class CoreArgs:
     _core_images_dir = Path(_core_assets_dir, "images")
     _core_qss_dir = Path(_core_assets_dir, "qss")
 
-    # Asset paths
+    ## Asset paths
     _core_main_logo_path = str(Path(_core_logo_dir, "logo.png"))
+    _core_banner_path = str(Path(_core_images_dir, "banner.jpg"))
