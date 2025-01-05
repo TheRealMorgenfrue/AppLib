@@ -142,7 +142,7 @@ class TemplateParser:
                         + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
                         + f"Removing value"
                     )
-                    del options["ui_group_parent"][i]  # Remove the invalid value
+                    options["ui_flags"].pop(i)  # Remove the invalid value
 
     def _checkGroups(self, template_name: str) -> None:
         self._checkOrphanGroups(template_name)
