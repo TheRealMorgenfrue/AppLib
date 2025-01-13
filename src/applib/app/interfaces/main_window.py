@@ -82,13 +82,8 @@ class CoreMainWindow(MSFluentWindow):
 
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
-
-        if self._error_log:
-            self._displayErrors()
-            self._logger.warning("Application started with errors")
-        else:
-            self._logger.info("Application startup successful!")
-            self._checkSoftErrors()
+        self._checkSoftErrors()
+        self._displayErrors()
 
     def _initBackground(self):
         val = self.main_config.getValue("appBackground")
@@ -174,7 +169,11 @@ class CoreMainWindow(MSFluentWindow):
         core_signalbus.genericError.connect(self._onGenericError)
 
     def _onConfigUpdated(
-        self, config_name: str, config_key: str, value_tuple: tuple[Any,]
+        self,
+        config_name: str,
+        config_key: str,
+        parent_key: tuple[str | None],
+        value_tuple: tuple[Any,],
     ) -> None:
         if config_name == self.main_config.getConfigName():
             (value,) = value_tuple
@@ -281,7 +280,10 @@ class CoreMainWindow(MSFluentWindow):
     def toggleTheme(self) -> None:
         toggleTheme(lazy=True)
         core_signalbus.updateConfigSettings.emit(
-            self.main_config.getConfigName(), "appTheme", (theme().value,)
+            self.main_config.getConfigName(),
+            "appTheme",
+            (None,),
+            (theme().value,),
         )
         core_signalbus.doSaveConfig.emit(self.main_config.getConfigName())
 

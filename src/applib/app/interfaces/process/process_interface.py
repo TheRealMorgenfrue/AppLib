@@ -176,7 +176,11 @@ class CoreProcessInterface(ScrollArea):
         self.threadManager.clearConsole.connect(self._onClearConsole)
 
     def _onConfigUpdated(
-        self, config_name: str, config_key: str, value_tuple: tuple[Any,]
+        self,
+        config_name: str,
+        config_key: str,
+        parent_key: tuple[str | None],
+        value_tuple: tuple[Any,],
     ) -> None:
         if config_name == self.main_config.getConfigName():
             (value,) = value_tuple

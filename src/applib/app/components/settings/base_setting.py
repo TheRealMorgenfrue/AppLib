@@ -93,10 +93,15 @@ class BaseSetting(QWidget):
 
         self.buttonlayout = QHBoxLayout(self)
         self.buttonlayout.setContentsMargins(0, 0, 0, 0)
-        core_signalbus.configUpdated.emit(
-            self.config_name, self.config_key, (self.current_value,)
-        )
-        # Connect after emitting as we only want to notify others, not self
+
+        # Emit config updated to allow
+        # core_signalbus.configUpdated.emit(
+        #     self.config_name, self.config_key, (self.parent_key,), (self.current_value,)
+        # )
+
+        # Connect after emitting as we only want to notify others, not self.
+        # Additionally, the setting widget has not been created at this point,
+        # making it impossible to update anyway (don't move method call!!)
         self.__connectSignalToSlot()
 
     def hideEvent(self, e: QHideEvent | None) -> None:
@@ -110,18 +115,32 @@ class BaseSetting(QWidget):
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
     def _onConfigUpdated(
-        self, config_name: str, config_key: str, value: tuple[Any,]
+        self,
+        config_name: str,
+        config_key: str,
+        parent_key: tuple[str | None],
+        value: tuple[Any,],
     ) -> None:
         if (
-            self.setting
-            and config_name == self.config_name
-            and config_key == self.config_key
+            self.config_name == config_name
+            and self.config_key == config_key
+            and self.parent_key == parent_key
         ):
             self.setWidgetValue(value[0])
 
-    def _onUpdateConfigSettings(self, config_key: str, value: tuple[Any,]) -> None:
-        if self.setting and self.config_key == config_key:
-            self.setValue(value[0])
+    def _onUpdateConfigSettings(
+        self,
+        config_name: str,
+        config_key: str,
+        parent_key: tuple[str | None],
+        value: tuple[Any,],
+    ) -> None:
+        if (
+            self.config_name == config_name
+            and self.config_key == config_key
+            and self.parent_key == parent_key
+        ):
+            self.setConfigValue(value[0])
 
     def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
         if old_name == self.config_name:
@@ -176,7 +195,7 @@ class BaseSetting(QWidget):
                 value = self.backup_value
 
             if self._canGetDisabled() and save:
-                self.setValue(value)
+                self.setConfigValue(value)
 
     def _canGetDisabled(self) -> bool:
         return self.disable_self_value is not None
@@ -198,7 +217,7 @@ class BaseSetting(QWidget):
                     ("disable_other", (self.disable_other_value == value, save))
                 )
 
-    def setValue(self, value: Any) -> bool:
+    def setConfigValue(self, value: Any) -> bool:
         success = None
         if self.current_value != value or self.backup_value == value:
             if self.config.setValue(self.config_key, value, self.parent_key):
@@ -208,13 +227,13 @@ class BaseSetting(QWidget):
             else:
                 success = False
         else:
-            success = True  # The value is already present in config
+            success = True  # The value is already present in the config
         if success and self.reload_required:
             self._onReloadRequired()
         return success
 
     def resetValue(self) -> None:
-        self.setValue(self.default_value)
+        self.setConfigValue(self.default_value)
 
     @abstractmethod
     def setWidgetValue(self, value: Any) -> None: ...

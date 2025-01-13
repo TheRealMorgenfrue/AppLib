@@ -294,7 +294,9 @@ class ConfigBase:
                     False, "Failed to save setting", ""
                 )
             else:
-                core_signalbus.configUpdated.emit(self._config_name, key, (value,))
+                core_signalbus.configUpdated.emit(
+                    self._config_name, key, (parent_key,), (value,)
+                )
                 self._is_modified = True
 
             return is_error
