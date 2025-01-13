@@ -42,7 +42,7 @@ class UIGrouping:
         if isinstance(wrapper, DisableWrapper):
             child.getDisableSignal().emit(wrapper)
         else:
-            child.getOption().setValue(wrapper)
+            child.getOption().setConfigValue(wrapper)
 
     @classmethod
     def _desync_children(cls, wrapper: DisableWrapper | bool, child: AnyCard) -> None:
@@ -51,7 +51,7 @@ class UIGrouping:
             wrapper.is_disabled = not wrapper.is_disabled
             child.getDisableSignal().emit(wrapper)
         else:
-            child.getOption().setValue(not wrapper)
+            child.getOption().setConfigValue(not wrapper)
 
     @classmethod
     def _desync_true_children(
@@ -72,106 +72,110 @@ class UIGrouping:
     @classmethod
     def connectUIGroups(cls, ui_groups: Iterable[Group]):
         for group in ui_groups:
+            uiGroupParent = group.getUIGroupParent()
+            parent = group.getParentCard()
+            is_disabled = False
             try:
-                uiGroupParent = group.getUIGroupParent()
-                parent = group.getParentCard()
                 parent_option = parent.getOption()
-            except Exception:
-                _logger_.error(
-                    traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+            except AttributeError:
+                _logger_.warning(
+                    f"Template '{group.getTemplateName()}': Unable to connect cards in UI group '{group.getGroupName()}' due to missing card for parent setting '{group.getParentName()}'. Skipping UI group"
                 )
                 continue
+            try:
+                if (
+                    UIGroups.NESTED_CHILDREN in uiGroupParent
+                    or UIGroups.CLUSTERED in uiGroupParent
+                ):
+                    group.enforceLogicalNesting()
+                    for child in group.getChildCards():
+                        parent.addChild(child)
 
-            is_disabled = False
-
-            if (
-                UIGroups.NESTED_CHILDREN in uiGroupParent
-                or UIGroups.CLUSTERED in uiGroupParent
-            ):
-                group.enforceLogicalNesting()
-                for child in group.getChildCards():
-                    parent.addChild(child)
-
-            if UIGroups.DISABLE_CHILDREN in uiGroupParent:
-                for child in group.getChildCards():
-                    if UIGroups.SYNC_CHILDREN in uiGroupParent:
-                        is_disabled = True
-                        parent.getDisableChildrenSignal().connect(
-                            lambda wrapper, child=child: cls._sync_children(
-                                wrapper, child
+                if UIGroups.DISABLE_CHILDREN in uiGroupParent:
+                    for child in group.getChildCards():
+                        if UIGroups.SYNC_CHILDREN in uiGroupParent:
+                            is_disabled = True
+                            parent.getDisableChildrenSignal().connect(
+                                lambda wrapper, child=child: cls._sync_children(
+                                    wrapper, child
+                                )
                             )
-                        )
+
+                        if UIGroups.DESYNC_CHILDREN in uiGroupParent:
+                            is_disabled = True
+                            parent.getDisableChildrenSignal().connect(
+                                lambda wrapper, child=child: cls._desync_children(
+                                    wrapper, child
+                                )
+                            )
+
+                        if UIGroups.DESYNC_TRUE_CHILDREN in uiGroupParent:
+                            is_disabled = True
+                            parent.getDisableChildrenSignal().connect(
+                                lambda wrapper, child=child: cls._desync_true_children(
+                                    wrapper, child
+                                )
+                            )
+
+                        if UIGroups.DESYNC_FALSE_CHILDREN in uiGroupParent:
+                            is_disabled = True
+                            parent.getDisableChildrenSignal().connect(
+                                lambda wrapper, child=child: cls._desync_false_children(
+                                    wrapper, child
+                                )
+                            )
+
+                        if not is_disabled:
+                            parent.getDisableChildrenSignal().connect(
+                                child.getDisableSignal().emit
+                            )
+
+                if not is_disabled:
+                    if UIGroups.SYNC_CHILDREN in uiGroupParent:
+                        for child in group.getChildCards():
+                            if cls._ensure_bool_child(parent, child, group):
+                                parent_option.getCheckedSignal().connect(
+                                    lambda checked, child=child: cls._sync_children(
+                                        checked, child
+                                    )
+                                )
 
                     if UIGroups.DESYNC_CHILDREN in uiGroupParent:
-                        is_disabled = True
-                        parent.getDisableChildrenSignal().connect(
-                            lambda wrapper, child=child: cls._desync_children(
-                                wrapper, child
-                            )
-                        )
+                        for child in group.getChildCards():
+                            if cls._ensure_bool_child(parent, child, group):
+                                parent_option.getCheckedSignal().connect(
+                                    lambda checked, child=child: cls._desync_children(
+                                        checked, child
+                                    )
+                                )
 
                     if UIGroups.DESYNC_TRUE_CHILDREN in uiGroupParent:
-                        is_disabled = True
-                        parent.getDisableChildrenSignal().connect(
-                            lambda wrapper, child=child: cls._desync_true_children(
-                                wrapper, child
-                            )
-                        )
+                        for child in group.getChildCards():
+                            if cls._ensure_bool_child(parent, child, group):
+                                parent_option.getCheckedSignal().connect(
+                                    lambda checked, child=child: cls._desync_true_children(
+                                        checked, child
+                                    )
+                                )
 
                     if UIGroups.DESYNC_FALSE_CHILDREN in uiGroupParent:
-                        is_disabled = True
-                        parent.getDisableChildrenSignal().connect(
-                            lambda wrapper, child=child: cls._desync_false_children(
-                                wrapper, child
-                            )
-                        )
-
-                    if not is_disabled:
-                        parent.getDisableChildrenSignal().connect(
-                            child.getDisableSignal().emit
-                        )
-
-            if not is_disabled:
-                if UIGroups.SYNC_CHILDREN in uiGroupParent:
-                    for child in group.getChildCards():
-                        if cls._ensure_bool_child(parent, child, group):
-                            parent_option.getCheckedSignal().connect(
-                                lambda checked, child=child: cls._sync_children(
-                                    checked, child
+                        for child in group.getChildCards():
+                            if cls._ensure_bool_child(parent, child, group):
+                                parent_option.getCheckedSignal().connect(
+                                    lambda checked, child=child: cls._desync_false_children(
+                                        checked, child
+                                    )
                                 )
-                            )
 
-                if UIGroups.DESYNC_CHILDREN in uiGroupParent:
-                    for child in group.getChildCards():
-
-                        if cls._ensure_bool_child(parent, child, group):
-                            parent_option.getCheckedSignal().connect(
-                                lambda checked, child=child: cls._desync_children(
-                                    checked, child
-                                )
-                            )
-
-                if UIGroups.DESYNC_TRUE_CHILDREN in uiGroupParent:
-                    for child in group.getChildCards():
-                        if cls._ensure_bool_child(parent, child, group):
-                            parent_option.getCheckedSignal().connect(
-                                lambda checked, child=child: cls._desync_true_children(
-                                    checked, child
-                                )
-                            )
-
-                if UIGroups.DESYNC_FALSE_CHILDREN in uiGroupParent:
-                    for child in group.getChildCards():
-                        if cls._ensure_bool_child(parent, child, group):
-                            parent_option.getCheckedSignal().connect(
-                                lambda checked, child=child: cls._desync_false_children(
-                                    checked, child
-                                )
-                            )
-
-            # Update parent's and its children's disable status
-            if not group.isNestedChild():
-                parent.notifyCard.emit(("updateState", None))
+                # Update parent's and its children's disable status
+                if not group.isNestedChild():
+                    parent.notifyCard.emit(("updateState", None))
+            except Exception:
+                _logger_.error(
+                    f"Template '{group.getTemplateName()}': An unknown error occurred while connecting cards in UI group '{group.getGroupName()}'\n"
+                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                )
+                continue
 
 
 def updateCardGrouping(
