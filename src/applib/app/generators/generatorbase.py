@@ -291,15 +291,15 @@ class GeneratorBase:
                     ):
                         self._updateCardSortOrder(card, card_group)
                 else:
-                    try:
-                        if main_group:
+                    if main_group:
+                        try:
                             # Remove the failed card from its group
                             main_group.removeChild(setting)
-                    except KeyError:
-                        # This card is a parent card
-                        main_group.removeGroup(
-                            self._template_name, main_group.getGroupName()
-                        )
+                        except KeyError:
+                            # This card is a parent card
+                            main_group.removeGroup(
+                                self._template_name, main_group.getGroupName()
+                            )
                     failed_cards += 1
 
             if self._hide_group_label:
@@ -347,7 +347,7 @@ class GeneratorBase:
                     f"Config '{self._config_name}': Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
                 )
                 card_group.deleteLater()
-                del self._getCardList()[i]
+                self._getCardList().pop(i)
 
     def _getCardList(self) -> list[AnyCardGroup]:
         """Temp placement of unsorted cards"""

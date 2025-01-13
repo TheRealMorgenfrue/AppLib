@@ -100,9 +100,7 @@ class TemplateParser:
                                     + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
                                     + f"Removing value"
                                 )
-                                del options["ui_group_parent"][
-                                    i
-                                ]  # Remove the invalid value
+                                options["ui_group_parent"].pop(i)
 
                         # Add this setting as the parent setting of its ui_group
                         group.setParentName(setting)
@@ -114,7 +112,6 @@ class TemplateParser:
                 # This setting is a child of this group
                 else:
                     group.addChildName(setting)
-
                     # This group has no parent associated
                     if (
                         group.getParentName() is None
@@ -142,7 +139,7 @@ class TemplateParser:
                         + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
                         + f"Removing value"
                     )
-                    options["ui_flags"].pop(i)  # Remove the invalid value
+                    options["ui_flags"].pop(i)
 
     def _checkGroups(self, template_name: str) -> None:
         self._checkOrphanGroups(template_name)
