@@ -143,6 +143,9 @@ class Group:
     def getGroupName(self) -> str:
         return self._group_name
 
+    def getTemplateName(self) -> str:
+        return self._template_name
+
     def setParentCardGroup(self, card_group: AnyCardGroup) -> None:
         self._parent_card_group = card_group
 
@@ -163,7 +166,7 @@ class Group:
 
     def getParentName(self) -> str | None:
         try:
-            return iter(self._parent.keys()).__next__()
+            return next(iter(self._parent.keys()))
         except StopIteration:
             return None
 
