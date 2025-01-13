@@ -84,7 +84,9 @@ class CoreLineEdit(BaseSetting):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.editingFinished.connect(lambda: self.setValue(self.setting.text()))
+        self.setting.editingFinished.connect(
+            lambda: self.setConfigValue(self.setting.text())
+        )
         self.setting.textChanged.connect(self._resizeTextBox)
 
     def _resizeTextBox(self) -> None:
@@ -103,8 +105,8 @@ class CoreLineEdit(BaseSetting):
     def setMinWidth(self, width: int) -> None:
         self.minWidth = width if 0 < width < self.maxWidth else 0
 
-    def setValue(self, value: str) -> None:
-        success = super().setValue(value)
+    def setConfigValue(self, value: str) -> None:
+        success = super().setConfigValue(value)
         if success:
             if not self.is_disabled:
                 self.setWidgetValue(value)
@@ -114,7 +116,7 @@ class CoreLineEdit(BaseSetting):
             core_signalbus.configValidationError.emit(
                 self.config_name, self.invalidmsg[0], self.invalidmsg[1]
             )
-            self.setting.setText(self.current_value)
+            self.setWidgetValue(value)
 
     @override
     def setWidgetValue(self, value: str) -> None:

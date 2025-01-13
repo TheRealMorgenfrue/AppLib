@@ -72,13 +72,13 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.checkedChanged.connect(self.setValue)
+        self.setting.checkedChanged.connect(self.setConfigValue)
 
     def getCheckedSignal(self) -> pyqtBoundSignal:
         return self.setting.checkedChanged
 
-    def setValue(self, value: bool) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: bool) -> None:
+        if super().setConfigValue(value):
             self.setWidgetValue(value)
 
     @override

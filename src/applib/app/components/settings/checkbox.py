@@ -64,13 +64,15 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.stateChanged.connect(lambda state: self.setValue(bool(state)))
+        self.setting.stateChanged.connect(
+            lambda state: self.setConfigValue(bool(state))
+        )
 
     def getCheckedSignal(self) -> pyqtBoundSignal:
         return self.setting.stateChanged
 
-    def setValue(self, value: bool) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: bool) -> None:
+        if super().setConfigValue(value):
             self.setWidgetValue(value)
 
     @override

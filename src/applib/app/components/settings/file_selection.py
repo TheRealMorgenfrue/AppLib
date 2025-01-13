@@ -109,14 +109,15 @@ class CoreFileSelect(BaseSetting):
             initialFilter=self.initial_filter,
         )
         if file[0]:
-            self.setValue(file[0])
+            self.setConfigValue(file[0])
             self.directory = os.path.split(file[0])[0]
 
-    def setValue(self, value: StrPath) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: StrPath) -> None:
+        if super().setConfigValue(value):
             self.notifyParent.emit(("content", self.current_value))
 
     @override
     def setWidgetValue(self, value: StrPath) -> None:
-        # Present for API compatibility
+        # Not used as the "file" setting is just a push button
+        # File changes are handled by `notifyParent` signal
         pass

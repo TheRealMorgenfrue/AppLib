@@ -79,10 +79,10 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.setValue)
+        self.setting.valueChanged.connect(self.setConfigValue)
 
-    def setValue(self, value: int) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: int) -> None:
+        if super().setConfigValue(value):
             if self.notify_disabled:
                 self.notify_disabled = False
                 self.setWidgetValue(value)

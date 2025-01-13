@@ -73,11 +73,11 @@ class CoreComboBox(BaseSetting):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.currentIndexChanged.connect(
-            lambda index: self.setValue(self.setting.itemData(index))
+            lambda index: self.setConfigValue(self.setting.itemData(index))
         )
 
-    def setValue(self, value: str) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: str) -> None:
+        if super().setConfigValue(value):
             self.setWidgetValue(value)
 
     @override

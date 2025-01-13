@@ -86,14 +86,15 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             # Add label and slider to layout
             self.buttonlayout.addWidget(self.valueLabel)
             self.buttonlayout.addWidget(self.setting)
-            self.buttonlayout.addSpacing(-10)
+            # Add extra margin for slider handle
+            self.buttonlayout.setContentsMargins(8, 0, 8, 0)
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.setValue)
+        self.setting.valueChanged.connect(self.setConfigValue)
 
     def _setLabelText(self, value: int) -> None:
         if self.baseunit:
@@ -110,8 +111,8 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         else:
             self.valueLabel.setNum(value)
 
-    def setValue(self, value: int) -> None:
-        if super().setValue(value):
+    def setConfigValue(self, value: int) -> None:
+        if super().setConfigValue(value):
             if self.notify_disabled:
                 self.notify_disabled = False
                 self.setWidgetValue(value)

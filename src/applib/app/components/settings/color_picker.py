@@ -73,13 +73,13 @@ class CoreColorPicker(BaseSetting):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.colorChanged.connect(self.setValue)
+        self.setting.colorChanged.connect(self.setConfigValue)
 
-    def setValue(self, color: QColor | str) -> None:
+    def setConfigValue(self, color: QColor | str) -> None:
         if not isinstance(color, QColor):
             color = QColor(color)
 
-        if super().setValue(color.name()):
+        if super().setConfigValue(color.name()):
             self.setWidgetValue(color)
 
     @override
