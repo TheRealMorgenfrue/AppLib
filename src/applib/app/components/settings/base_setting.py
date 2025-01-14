@@ -93,15 +93,6 @@ class BaseSetting(QWidget):
 
         self.buttonlayout = QHBoxLayout(self)
         self.buttonlayout.setContentsMargins(0, 0, 0, 0)
-
-        # Emit config updated to allow
-        # core_signalbus.configUpdated.emit(
-        #     self.config_name, self.config_key, (self.parent_key,), (self.current_value,)
-        # )
-
-        # Connect after emitting as we only want to notify others, not self.
-        # Additionally, the setting widget has not been created at this point,
-        # making it impossible to update anyway (don't move method call!!)
         self.__connectSignalToSlot()
 
     def hideEvent(self, e: QHideEvent | None) -> None:
