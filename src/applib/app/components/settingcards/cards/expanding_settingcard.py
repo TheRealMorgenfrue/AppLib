@@ -139,7 +139,7 @@ class HeaderSettingCard(FluentSettingCard):
         path.addRoundedRect(QRectF(self.rect().adjusted(1, 1, -1, -1)), 6, 6)
 
         # set the bottom border radius to 0 if parent is expanded
-        if p.isExpand:
+        if p.is_expand:
             path.addRect(1, self.height() - 8, self.width() - 2, 8)
 
         painter.drawPath(path.simplified())
@@ -193,14 +193,15 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self.borderWidget = ExpandBorderWidget(self)
 
         self.is_disabled = False
-        self.isExpand = False
+        self.is_expand = False
+        self.resize_allowed = True
 
         # Expand animation
         self.expandAni = QPropertyAnimation(self.verticalScrollBar(), b"value", self)
 
         self._initWidget()
         self._initLayout()
-        self._connectSignalToSlot()
+        self.__connectSignalToSlot()
 
     def _initWidget(self) -> None:
         self.setWidget(self.scrollWidget)
@@ -231,21 +232,25 @@ class ExpandSettingCard(CardBase, QScrollArea):
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self.card)
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self)
 
-    def _connectSignalToSlot(self) -> None:
-        self.expandAni.valueChanged.connect(self._onExpandValueChanged)
+    def __connectSignalToSlot(self) -> None:
+        self.expandAni.finished.connect(self.__onExpandFinished)
+        self.expandAni.valueChanged.connect(self.__onExpandValueChanged)
         self.card.expandButton.clicked.connect(self.toggleExpand)
 
-    def _onExpandValueChanged(self) -> None:
+    def __onExpandValueChanged(self) -> None:
         vh = self.viewLayout.sizeHint().height()
         h = self.viewportMargins().top()
         self.resize(self.width(), max(h + vh - self.verticalScrollBar().value(), h))
         # self.setFixedHeight(max(h + vh - self.verticalScrollBar().value(), h))
 
+    def __onExpandFinished(self) -> None:
+        self.resize_allowed = True
+
     def _adjustViewSize(self) -> None:
         h = self.viewLayout.sizeHint().height()
         self.spaceWidget.setFixedHeight(h)
 
-        if self.isExpand:
+        if self.is_expand:
             self.resize(self.width(), self.card.height() + h)
 
     def wheelEvent(self, e: QWheelEvent) -> None:
@@ -257,7 +262,10 @@ class ExpandSettingCard(CardBase, QScrollArea):
             self.parentWidget().wheelEvent(e)
 
     def resizeEvent(self, e: QResizeEvent) -> None:
-        if self.isExpand:
+        if not self.resize_allowed:
+            return
+
+        if self.is_expand:
             self._adjustViewSize()
         else:
             ch = self.card.height()
@@ -267,36 +275,34 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self.scrollWidget.resize(self.width(), self.scrollWidget.height())
         # print(f"card: {self.card.size()} | self: {self.size()}")
 
-    # FIXME: The retract animation is instant
-    def setExpand(self, isExpand: bool) -> None:
-        """set the expand status of card"""
-        if self.isExpand == isExpand:
+    def setExpand(self, is_expand: bool) -> None:
+        """Set the expand status of card"""
+        if self.is_expand == is_expand:
             return
+        self.resize_allowed = False
 
-        # update style sheet
-        self.isExpand = isExpand
-        self.setProperty("isExpand", isExpand)
+        # Update style sheet
+        self.is_expand = is_expand
+        self.setProperty("isExpand", is_expand)
         self.setStyle(QApplication.style())
 
-        # start expand animation
-        if isExpand:
-            h = self.viewLayout.sizeHint().height()
+        # Start expand animation
+        h = self.viewLayout.sizeHint().height()
+        if is_expand:
             self.verticalScrollBar().setValue(h)
             self.expandAni.setStartValue(h)
             self.expandAni.setEndValue(0)
         else:
             self.expandAni.setStartValue(0)
-            self.expandAni.setEndValue(self.verticalScrollBar().maximum())
-
+            self.expandAni.setEndValue(h)
         self.expandAni.start()
-        self.card.expandButton.setExpand(isExpand)
 
     def toggleExpand(self) -> None:
-        """toggle expand status"""
-        self.setExpand(not self.isExpand)
+        """Toggle expand status"""
+        self.setExpand(not self.is_expand)
 
     def addWidget(self, widget: QWidget) -> None:
-        """add widget to tail"""
+        """Add widget to tail"""
         self.card.addWidget(widget)
 
 
@@ -357,12 +363,12 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
                 hasDisableButton=hasDisableButton,
                 parent=parent,
             )
-            self._connectSignalToSlot()
+            self.__connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def _connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
         self.card.disableCard.connect(self.disableCard.emit)
