@@ -160,11 +160,7 @@ class CoreMainWindow(MSFluentWindow):
 
     def _connectSignalToSlot(self) -> None:
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
-        core_signalbus.configValidationError.connect(
-            lambda config_name, title, content: self._onConfigValidationFailed(
-                title, content
-            )
-        )
+        core_signalbus.configValidationError.connect(self._onConfigValidationFailed)
         core_signalbus.configStateChange.connect(self._onConfigStateChange)
         core_signalbus.genericError.connect(self._onGenericError)
 
@@ -210,7 +206,9 @@ class CoreMainWindow(MSFluentWindow):
             parent=self,
         )
 
-    def _onConfigValidationFailed(self, title: str, content: str) -> None:
+    def _onConfigValidationFailed(
+        self, config_name: str, title: str, content: str
+    ) -> None:
         if not title:
             title = "Invalid value (no information given)"  # Placeholder message when no message is given
             InfoBar.warning(
