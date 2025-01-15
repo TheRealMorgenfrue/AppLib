@@ -203,12 +203,14 @@ class TemplateParser:
 
     def _getFieldType(self, setting: str, options: dict) -> Any:
         field_type = None
-        if "type" in options:
-            if options["default"] is None:
+        default_in = "default" in options
+        type_in = "type" in options
+        if type_in:
+            if default_in and options["default"] is None:
                 field_type = Union[options["type"], type(None)]
             else:
                 field_type = options["type"]
-        elif "default" in options:
+        elif default_in:
             field_type = type(options["default"])
         else:
             self._logger.warning(
