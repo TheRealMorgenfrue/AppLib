@@ -33,18 +33,18 @@ class SettingCardBase(CardBase, QFrame):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(cardName=setting, parent=parent)
+        super().__init__(card_name=setting, parent=parent)
         self.iconLabel = SettingIconWidget(icon)
         self.titleLabel = FluentLabel(title)
         self.contentLabel = FluentLabel(content)
         self.hBoxLayout = QHBoxLayout()
         self.vBoxLayout = QVBoxLayout()
 
-        self.hasDisableButton = hasDisableButton
-        self.hideOption = True
+        self.has_disable_button = has_disable_button
+        self.hide_option = True
         self.is_disabled = False
 
         self.__initLayout()
@@ -60,22 +60,20 @@ class SettingCardBase(CardBase, QFrame):
             QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding
         )
 
-        hasContent = bool(self.contentLabel.text())
-        if not hasContent:
+        if not self.contentLabel.text():
             self.contentLabel.setHidden(True)
-        margin = 16
 
-        self.hBoxLayout.setSpacing(0)
+        margin = 16
         self.hBoxLayout.setContentsMargins(margin, margin, margin, margin)
+        self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.hBoxLayout.addWidget(self.iconLabel, 0, Qt.AlignmentFlag.AlignLeft)
+        self.hBoxLayout.addSpacing(16)
+        self.hBoxLayout.addLayout(self.vBoxLayout)
+
         self.vBoxLayout.setSpacing(0)
         self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
         self.vBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-
-        self.hBoxLayout.addWidget(self.iconLabel, 0, Qt.AlignmentFlag.AlignLeft)
-        self.hBoxLayout.addSpacing(16)
-
-        self.hBoxLayout.addLayout(self.vBoxLayout)
         self.vBoxLayout.addWidget(self.titleLabel, 0, Qt.AlignmentFlag.AlignLeft)
         self.vBoxLayout.addWidget(self.contentLabel, 0, Qt.AlignmentFlag.AlignLeft)
 
@@ -88,17 +86,17 @@ class SettingCardBase(CardBase, QFrame):
 
 
 class SettingCardMixin:
-    def __init__(self, isFrameless: bool = False, **kwargs) -> None:
+    def __init__(self, is_frameless: bool = False, **kwargs) -> None:
         """Setting card Mixin Class
 
         Parameters
         ----------
-        isFrameless : bool
+        is_frameless : bool
             Whether to draw a frame around the card. Defaults to False
         """
         super().__init__(**kwargs)
-        self.isFrameless = isFrameless
-        self.currentHeight = 0
+        self.is_frameless = is_frameless
+        self.current_height = 0
 
         self.buttonLayout = QHBoxLayout()
         self.option = None  # type: AnySetting | None
@@ -151,13 +149,12 @@ class SettingCardMixin:
         m = self.hBoxLayout.contentsMargins()
         h = max(sizes) + m.top() + m.bottom()
 
-        if self.currentHeight != h:
-            self.currentHeight = h
-            s = QSize(self.width(), h)
-            self.resize(s)
+        if self.current_height != h:
+            self.current_height = h
+            self.resize(self.width(), h)
 
     def paintEvent(self, e: QPaintEvent) -> None:
-        if not self.isFrameless:
+        if not self.is_frameless:
             painter = QPainter(self)
             painter.setRenderHints(QPainter.RenderHint.Antialiasing)
 
@@ -182,7 +179,7 @@ class SettingCardMixin:
             self.disableChildren.emit(wrapper)
             if self.option and not othersOnly:
                 self.option.notify.emit(("disable", (is_disabled, save)))
-                if self.hasDisableButton and self.hideOption:
+                if self.has_disable_button and self.hide_option:
                     self.option.setHidden(is_disabled)
 
             if self.disableButton:
@@ -213,7 +210,7 @@ class SettingCardMixin:
         self.buttonLayout.addWidget(self.option, 0, alignment)
 
         # Disable button
-        if self.hasDisableButton:
+        if self.has_disable_button:
             self._createDisableButton(alignment)
 
         # Reset button
@@ -229,7 +226,7 @@ class SettingCardMixin:
         self.addToLayout(self.buttonLayout)
 
     @abstractmethod
-    def addToLayout(self, buttonLayout: QLayout) -> None: ...
+    def addToLayout(self, layout: QLayout) -> None: ...
 
 
 class GenericSettingCard(SettingCardMixin, SettingCardBase):
@@ -239,8 +236,8 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
-        isFrameless: bool = False,
+        has_disable_button: bool,
+        is_frameless: bool = False,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
@@ -249,12 +246,12 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
                 icon=icon,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
-                isFrameless=isFrameless,
+                has_disable_button=has_disable_button,
+                is_frameless=is_frameless,
                 parent=parent,
             )
-            self.contentSize = 70
-            self.titleOnlySize = 60
+            self.title_size_nocontent = 60
+            self.content_size = 70
             self.setLayout(self.hBoxLayout)
             self.adjustSize()
         except Exception:
@@ -268,14 +265,14 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
             self.adjustSize()
 
     @override
-    def addToLayout(self, buttonLayout: QLayout) -> None:
-        self.hBoxLayout.addLayout(buttonLayout)
+    def addToLayout(self, layout: QLayout) -> None:
+        self.hBoxLayout.addLayout(layout)
 
     def adjustSize(self) -> None:
         content = self.contentLabel.text()
         n = content.count("\n")
         self.setFixedHeight(
-            self.contentSize + 15 * n if content else self.titleOnlySize
+            self.content_size + 15 * n if content else self.title_size_nocontent
         )
 
 
@@ -286,8 +283,8 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
-        isFrameless: bool = False,
+        has_disable_button: bool,
+        is_frameless: bool = False,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
@@ -296,8 +293,8 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
                 icon=icon,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
-                isFrameless=isFrameless,
+                has_disable_button=has_disable_button,
+                is_frameless=is_frameless,
                 parent=parent,
             )
             self.setLayout(self.hBoxLayout)
@@ -308,8 +305,8 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
             raise
 
     @override
-    def addToLayout(self, buttonLayout: QLayout) -> None:
-        self.hBoxLayout.addLayout(buttonLayout)
+    def addToLayout(self, layout: QLayout) -> None:
+        self.hBoxLayout.addLayout(layout)
 
 
 class FormSettingCard(SettingCardMixin, SettingCardBase):
@@ -319,8 +316,8 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
-        isFrameless: bool = False,
+        has_disable_button: bool,
+        is_frameless: bool = False,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
@@ -329,8 +326,8 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
                 icon=icon,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
-                isFrameless=isFrameless,
+                has_disable_button=has_disable_button,
+                is_frameless=is_frameless,
                 parent=parent,
             )
             self.formLayout = QFormLayout(self)
@@ -378,8 +375,8 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
-        isFrameless: bool = False,
+        has_disable_button: bool,
+        is_frameless: bool = False,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
@@ -388,8 +385,8 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
                 icon=icon,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
-                isFrameless=isFrameless,
+                has_disable_button=has_disable_button,
+                is_frameless=is_frameless,
                 parent=parent,
             )
             self.flowLayout = FlowLayout(self)
