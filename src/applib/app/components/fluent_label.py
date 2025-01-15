@@ -1,7 +1,5 @@
 from typing import Optional
 from PyQt6.QtCore import Qt, QSize, QRect
-
-from PyQt6.QtGui import QResizeEvent
 from PyQt6.QtWidgets import (
     QLabel,
     QWidget,
@@ -52,10 +50,6 @@ class FluentLabel(QLabel):
                 cr.setBottom(cr.bottom() - indent)
         return cr
 
-    # def resizeEvent(self, e: QResizeEvent | None) -> None:
-    #     super().resizeEvent(e)
-    #     self.test_logger.debug(f"{f"{self.text()[0:8]} | " if self.text() else ""}old: {e.oldSize()} | new: {e.size()}")
-
     def sizeHint(self) -> QSize:
         self.updateGeometry()
         if self.isHidden() or not self.text():
@@ -78,5 +72,4 @@ class FluentLabel(QLabel):
             .width()
         )
         h = self.heightForWidth(www)
-        # print(f"{self.text()[0:8]} | w: {w} | h: {h} | www: {www}")
         return QSize(w, h)
