@@ -18,11 +18,11 @@ from .generator_tools import (
     parseUnit,
     updateCardGrouping,
 )
-
 from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIFlags, UITypes
 from ...module.config.tools.template_options.groups import Group
 from ...module.config.tools.template_parser import TemplateParser
+from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import AppLibLogger
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
@@ -57,6 +57,7 @@ class GeneratorBase:
         self._is_tight = is_tight
         self._parent_key = parent_key
         self._parent = parent
+        self._prefix_msg = f"Config '{self._config_name}':"
 
         # type: dict[str, list] # Mapping of the correct card sort order.
         self._card_sort_order = {}
@@ -218,7 +219,7 @@ class GeneratorBase:
             )
         else:
             err_msg = (
-                f"Config '{self._config_name}': Invalid ui_type '{card_type}' for setting '{setting_name}'. "
+                f"{self._prefix_msg} Invalid ui_type '{card_type}' for setting '{setting_name}'. "
                 + f"Expected one of '{iterToString(UITypes._member_names_, separator=', ')}'"
             )
             raise TypeError(err_msg)
@@ -231,26 +232,28 @@ class GeneratorBase:
         failed_cards = 0
 
         for section_name, section in template.items():
-            card_group = CardGroup(
-                f"{section_name}", self._parent
-            )  # type: AnyCardGroup
+            card_group = CardGroup(section_name, self._parent)  # type: AnyCardGroup
             for setting, options in section.items():
-
                 if "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]:
                     self._logger.debug(
-                        f"Config '{self._config_name}': Excluding setting '{setting}' from GUI"
+                        f"{self._prefix_msg} Excluding setting '{setting}' from GUI"
                     )
                     continue
 
                 # Get the raw ui_group
                 raw_group = f"{options["ui_group"]}" if "ui_group" in options else None
-
-                # Split the ui_groups associated with this setting
-                formatted_groups = (
-                    template_parser.formatGroup(self._template_name, raw_group)
-                    if raw_group
-                    else None
-                )
+                try:
+                    # Split the ui_groups associated with this setting
+                    formatted_groups = (
+                        template_parser.formatRawGroup(self._template_name, raw_group)
+                        if raw_group
+                        else None
+                    )
+                except OrphanGroupWarning:
+                    self._logger.warning(
+                        f"{self._prefix_msg} Cannot create card for orphan setting '{setting}'"
+                    )
+                    continue
 
                 # If multiple groups are defined for a setting, the first is considered the main group
                 main_group = (
@@ -258,15 +261,6 @@ class GeneratorBase:
                     if formatted_groups
                     else None
                 )
-                all_groups = []
-                if formatted_groups:
-                    for format_group in formatted_groups:
-                        group = Group.getGroup(self._template_name, format_group)
-                        if group:
-                            all_groups.append(group)
-                if not all_groups:
-                    all_groups = None
-
                 try:
                     card = self._createCard(
                         card_type=inferType(setting, options, self._config_name),
@@ -278,11 +272,19 @@ class GeneratorBase:
                     )
                 except Exception:
                     self._logger.error(
-                        f"Config '{self._config_name}': Error creating setting card for setting '{setting}'\n"
+                        f"{self._prefix_msg} Error creating setting card for setting '{setting}'\n"
                         + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
                     card = None
                 if card:
+                    all_groups = []
+                    if formatted_groups:
+                        for format_group in formatted_groups:
+                            group = Group.getGroup(self._template_name, format_group)
+                            if group:
+                                all_groups.append(group)
+                    if not all_groups:
+                        all_groups = None
                     if updateCardGrouping(
                         setting=setting,
                         card_group=card_group,
@@ -304,17 +306,14 @@ class GeneratorBase:
 
             if self._hide_group_label:
                 card_group.getTitleLabel().setHidden(True)
-
             if self._default_group:
                 if self._default_group == card_group.getTitleLabel().text():
                     self._default_group = card_group
             else:
                 self._default_group = card_group
-
             self._card_list.append(card_group)
 
         final_all_groups = Group.getAllGroups(self._template_name)
-
         if final_all_groups:
             UIGrouping.connectUIGroups(final_all_groups)
         self._addCardsBySortOrder()
@@ -325,7 +324,6 @@ class GeneratorBase:
                 f"Failed to create {failed_cards} {setting_grammar}",
                 "See log for details",
             )
-
         return self._card_list
 
     def _updateCardSortOrder(
@@ -337,17 +335,17 @@ class GeneratorBase:
         self._card_sort_order.get(card_group_name).append(card)
 
     def _addCardsBySortOrder(self) -> None:
-        for i, card_group in enumerate(self._getCardList()):
+        for card_group in list(self._getCardList()):
             cards = self._card_sort_order.get(f"{card_group}")
             if cards:
                 for card in cards:
                     card_group.addSettingCard(card)
             else:
                 self._logger.warning(
-                    f"Config '{self._config_name}': Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
+                    f"{self._prefix_msg} Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
                 )
                 card_group.deleteLater()
-                self._getCardList().pop(i)
+                self._getCardList().remove(card_group)
 
     def _getCardList(self) -> list[AnyCardGroup]:
         """Temp placement of unsorted cards"""
