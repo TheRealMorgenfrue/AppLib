@@ -41,7 +41,7 @@ from ...module.tools.types.config import AnyConfig
 class CoreMainWindow(MSFluentWindow):
     def __init__(
         self,
-        setup_args,
+        MainArgs,
         MainConfig: Optional[AnyConfig] = None,
         subinterfaces: Optional[
             list[tuple[QWidget, Union[str, QIcon, FluentIconBase], str]]
@@ -50,8 +50,8 @@ class CoreMainWindow(MSFluentWindow):
             tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
         ] = None,
     ):
-        # Copy setup_args attributes to CoreArgs, overriding its attributes if possible
-        makeSetupArgs(setup_args)
+        # Copy MainArgs attributes to CoreArgs, overriding its attributes if possible
+        makeSetupArgs(MainArgs)
         # Initialize logger after setup_args is read
         self._logger = AppLibLogger().getLogger()
 
@@ -75,6 +75,7 @@ class CoreMainWindow(MSFluentWindow):
             self._connectSignalToSlot()
             self._initNavigation()
             self._initBackground()
+            self._checkSoftErrors()
         except Exception:
             self._error_log.append(
                 traceback.format_exc(limit=CoreArgs._core_traceback_limit)
@@ -82,7 +83,6 @@ class CoreMainWindow(MSFluentWindow):
 
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
-        self._checkSoftErrors()
         self._displayErrors()
 
     def _initBackground(self):
