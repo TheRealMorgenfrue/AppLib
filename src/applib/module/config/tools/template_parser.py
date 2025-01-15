@@ -1,6 +1,7 @@
 from pydantic import Field
 from typing import Any, Self, Union
 
+from ...exceptions import OrphanGroupWarning
 from ..templates.template_enums import UIFlags, UIGroups
 from .template_options.groups import Group
 from .template_options.validation_info import ValidationInfo
@@ -60,7 +61,7 @@ class TemplateParser:
         # Check if this setting belongs to a ui_group
         if "ui_group" in options:
             # Make ui_group option a formatted list of strings
-            groups = self.formatGroup(template_name, options["ui_group"])
+            groups = self.formatRawGroup(template_name, options["ui_group"])
             # This group is a child of these groups
             parent_groups = groups[1 : len(groups)] if len(groups) > 1 else None
 
@@ -83,47 +84,85 @@ class TemplateParser:
                     # Check if a parent is defined for this group
                     if group.getParentName():
                         self._logger.warning(
-                            f"Template '{template_name}': Can't assign ui_group_parent to setting '{setting}'. "
-                            + f"The setting '{group.getParentName()}' is already designated as parent for "
-                            + f"group '{group.getGroupName()}'"
+                            f"Template '{template_name}': Unable to assign setting '{setting}' as group parent "
+                            + f"for group '{group.getGroupName()}'. Setting '{group.getParentName()}' is already designated as parent. "
+                            + f"Adding as child to existing group"
+                        )
+                        self._addChild(
+                            setting=setting,
+                            options=options,
+                            group=group,
+                            group_name=group_name,
+                            template_name=template_name,
                         )
                     else:
-                        # Convert the value of ui_group_parent to a list if it isn't one already
-                        if not isinstance(options["ui_group_parent"], list):
-                            options["ui_group_parent"] = [options["ui_group_parent"]]
-
-                        # Check that the values of the ui_group_parent list are "UIGroups" enums
-                        for i, value in enumerate(options["ui_group_parent"]):
-                            if not value.name in UIGroups._member_names_:
-                                self._logger.error(
-                                    f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
-                                    + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
-                                    + f"Removing value"
-                                )
-                                options["ui_group_parent"].pop(i)
-
-                        # Add this setting as the parent setting of its ui_group
-                        group.setParentName(setting)
-                        group.setUIGroupParent(options["ui_group_parent"])
-
-                        # A parent for this group was found
-                        if group_name in self._orphan_groups[template_name]:
-                            self._orphan_groups[template_name].remove(group_name)
+                        self._addParent(
+                            setting=setting,
+                            options=options,
+                            group=group,
+                            group_name=group_name,
+                            template_name=template_name,
+                        )
                 # This setting is a child of this group
                 else:
-                    group.addChildName(setting)
-                    # This group has no parent associated
-                    if (
-                        group.getParentName() is None
-                        and group.getGroupName()
-                        not in self._orphan_groups[template_name]
-                    ):
-                        self._orphan_groups[template_name].append(group_name)
+                    self._addChild(
+                        setting=setting,
+                        options=options,
+                        group=group,
+                        group_name=group_name,
+                        template_name=template_name,
+                    )
         # This setting has wrong options; it is not in a group yet is still a group parent
         elif "ui_group_parent" in options:
             self._logger.warning(
-                f"Template '{template_name}': Group parent setting '{setting}' is not in a group. Skipping"
+                f"Template '{template_name}': Group parent '{setting}' is not in a group. Skipping group assignment"
             )
+
+    def _addParent(
+        self,
+        setting: str,
+        options: dict,
+        group: Group,
+        group_name: str,
+        template_name: str,
+    ) -> None:
+        # Convert the value of ui_group_parent to a list if it isn't one already
+        if not isinstance(options["ui_group_parent"], list):
+            options["ui_group_parent"] = [options["ui_group_parent"]]
+
+        # Check that the values of the ui_group_parent list are "UIGroups" enums
+        for i, value in enumerate(options["ui_group_parent"]):
+            if not value.name in UIGroups._member_names_:
+                self._logger.error(
+                    f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
+                    + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
+                    + f"Removing value"
+                )
+                options["ui_group_parent"].pop(i)
+
+        # Add this setting as the parent setting of its ui_group
+        group.setParentName(setting)
+        group.setUIGroupParent(options["ui_group_parent"])
+
+        # A parent for this group was found
+        if group_name in self._orphan_groups[template_name]:
+            self._orphan_groups[template_name].remove(group_name)
+
+    def _addChild(
+        self,
+        setting: str,
+        options: dict,
+        group: Group,
+        group_name: str,
+        template_name: str,
+    ) -> None:
+        group.addChildName(setting)
+        # This group has no parent associated
+        if (
+            group.getParentName() is None
+            and group.getGroupName() not in self._orphan_groups[template_name]
+        ):
+            self._orphan_groups[template_name].append(group_name)
 
     def _parseFlags(
         self, setting: str, options: dict[str, Any], template_name: str
@@ -255,15 +294,35 @@ class TemplateParser:
             self._validation_infos |= {template_name: validation_info}
             self._parsed_templates.append(template_name)
 
-    def formatGroup(self, template_name, ui_group: Any) -> list[str]:
-        group_list = f"{ui_group}".replace(" ", "").split(",")
+    def formatRawGroup(self, template_name, raw_ui_group: str) -> list[str]:
+        """
+        Format a raw template Group string.
 
-        # Ensure orphan groups are excluded when external components
-        # need raw access to template groups
+        Parameters
+        ----------
+        template_name : _type_
+            The template where `raw_ui_group` originates.
+
+        raw_ui_group : str
+            The raw ui_group string.
+
+        Returns
+        -------
+        list[str]
+            A list of formatted ui group strings.
+
+        Raises
+        ------
+        OrphanGroupWarning
+            If any of the groups are orphans, and thus invalid.
+        """
+        group_list = f"{raw_ui_group}".replace(" ", "").split(",")
         if template_name in self._parsed_templates and group_list:
             for group in group_list:
                 if group in self._orphan_groups[template_name]:
-                    group_list.remove(group)
+                    raise OrphanGroupWarning(
+                        f"Template {template_name}: Group '{group}' is an orphan"
+                    )
         return group_list
 
     def getValidationInfo(self, template_name: str) -> ValidationInfo | None:
