@@ -209,14 +209,12 @@ class BaseSetting(QWidget):
                 )
 
     def setConfigValue(self, value: Any) -> bool:
-        success = None
         if self.current_value != value or self.backup_value == value:
-            if self.config.setValue(self.config_key, value, self.parent_key):
+            error = self.config.setValue(self.config_key, value, self.parent_key)
+            success = not error
+            if success:
                 self.current_value = value
                 self.maybeDisableParent(value)
-                success = True
-            else:
-                success = False
         else:
             success = True  # The value is already present in the config
         if success and self.reload_required:
