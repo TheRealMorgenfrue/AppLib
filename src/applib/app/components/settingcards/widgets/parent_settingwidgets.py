@@ -32,14 +32,14 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
         setting: str,
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
             setting=setting,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=parent,
         )
         self.vGeneralLayout = QVBoxLayout(self)
@@ -48,7 +48,7 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
             setting=setting,
             title=self._title,
             content=self._content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=self,
         )
         self.__initLayout()
@@ -84,14 +84,14 @@ class NestedSettingWidget(ParentSettingWidget):
         setting: str,
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
             setting=setting,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=parent,
         )
         self.hBoxLayout = QHBoxLayout()
@@ -128,14 +128,14 @@ class ClusteredSettingWidget(ParentSettingWidget):
         setting: str,
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
             setting=setting,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=parent,
         )
 

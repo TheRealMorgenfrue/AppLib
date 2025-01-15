@@ -26,10 +26,10 @@ class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(cardName=setting, parent=parent)
+        super().__init__(card_name=setting, parent=parent)
         self.viewLayout = QVBoxLayout(self)
 
         self.card = FluentSettingCard(
@@ -37,7 +37,7 @@ class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
             icon=icon,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
         )
         self._setQss()
         self._connectSignalToSlot()

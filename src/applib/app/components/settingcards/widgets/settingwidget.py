@@ -16,13 +16,13 @@ class SettingWidgetBase(CardBase, QWidget):
         setting: str,
         title: Optional[str],
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(cardName=setting, parent=parent)
+        super().__init__(card_name=setting, parent=parent)
         self._title = title
         self._content = content
-        self.hasDisableButton = hasDisableButton
+        self.has_disable_button = has_disable_button
         self.is_disabled = False
 
         CoreStyleSheet.SETTING_WIDGET.apply(self)
@@ -49,7 +49,7 @@ class SettingWidget(SettingWidgetBase):
         setting: str,
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
@@ -57,7 +57,7 @@ class SettingWidget(SettingWidgetBase):
                 setting=setting,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
+                has_disable_button=has_disable_button,
                 parent=parent,
             )
             self.hBoxLayout = QHBoxLayout(self)
@@ -145,7 +145,7 @@ class SettingWidget(SettingWidgetBase):
         self.option.notifyParent.connect(self._onParentNotified)
         self.option.notify.emit(("content", None))
 
-        if self.hasDisableButton:
+        if self.has_disable_button:
             # The disable button contains the title as well
             self._createDisableButton()
             self.titleLabel.setHidden(True)

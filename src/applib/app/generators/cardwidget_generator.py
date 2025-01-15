@@ -128,7 +128,7 @@ class CardWidgetGenerator(GeneratorBase):
                     setting=setting,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
+                    has_disable_button=has_disable_button,
                     parent=parent,
                 )
             elif isClusteredGroup:
@@ -136,7 +136,7 @@ class CardWidgetGenerator(GeneratorBase):
                     setting=setting,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
+                    has_disable_button=has_disable_button,
                     parent=parent,
                 )
             else:
@@ -144,7 +144,7 @@ class CardWidgetGenerator(GeneratorBase):
                     setting=setting,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
+                    has_disable_button=has_disable_button,
                     parent=parent,
                 )
             card.setOption(widget)

@@ -142,7 +142,7 @@ class CardGenerator(GeneratorBase):
                     icon=icon,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
+                    has_disable_button=has_disable_button,
                     parent=parent,
                 )
             elif isClusteredGroup and setting == group.getParentName():
@@ -151,7 +151,7 @@ class CardGenerator(GeneratorBase):
                     icon=icon,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
+                    has_disable_button=has_disable_button,
                     parent=parent,
                 )
             else:
@@ -160,8 +160,8 @@ class CardGenerator(GeneratorBase):
                     icon=icon,
                     title=title,
                     content=content,
-                    hasDisableButton=has_disable_button,
-                    isFrameless=isNestingGroup,
+                    has_disable_button=has_disable_button,
+                    is_frameless=isNestingGroup,
                     parent=parent,
                 )
             card.setOption(widget)

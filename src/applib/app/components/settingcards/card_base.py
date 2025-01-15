@@ -19,9 +19,9 @@ class CardBase:
     disableCard = pyqtSignal(DisableWrapper)
     disableChildren = pyqtSignal(DisableWrapper)
 
-    def __init__(self, cardName: str, **kwargs) -> None:
+    def __init__(self, card_name: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._cardName = cardName
+        self._cardName = card_name
 
     def getCardName(self) -> str:
         return self._cardName
