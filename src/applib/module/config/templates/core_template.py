@@ -5,7 +5,6 @@ from .base_template import BaseTemplate
 from .template_enums import UIGroups, UITypes
 from ..validators import validateLoglevel, validateTheme
 from ..validators.generic_validator import validatePath
-from ...tools.types.general import NestedDict
 
 
 class CoreTemplate(BaseTemplate):
@@ -27,7 +26,7 @@ class CoreTemplate(BaseTemplate):
             self._created = True
 
     @override
-    def _createTemplate(self) -> NestedDict:
+    def _createTemplate(self) -> dict:
         return {
             "General": {
                 "loglevel": {

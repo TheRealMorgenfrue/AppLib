@@ -115,7 +115,7 @@ from .module.tools.utilities import (
 )
 from .module.tools.version import VERSION
 from .module.tools.types.config import AnyConfig
-from .module.tools.types.general import StrPath, Model, NestedDict
+from .module.tools.types.general import StrPath, Model
 from .module.tools.types.gui_cardgroups import AnyCardGroup
 from .module.tools.types.gui_cards import (
     AnyCard,
@@ -187,7 +187,6 @@ __all__ = [
     "MessageBoxBase",
     "MissingFieldError",
     "Model",
-    "NestedDict",
     "NestedSettingWidget",
     "ParentCardBase",
     "PivotCardStack",

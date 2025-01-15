@@ -7,7 +7,6 @@ from PyQt6.QtGui import QIcon
 
 
 from ...logging import AppLibLogger
-from ...tools.types.general import NestedDict
 from ...tools.utilities import retrieveDictValue, insertDictValue
 
 
@@ -19,7 +18,7 @@ class BaseTemplate:
     def __init__(
         self,
         template_name: str,
-        template: NestedDict,
+        template: dict,
         icons: Optional[dict[str, Union[str, QIcon, FluentIconBase]]] = None,
     ) -> None:
         self._template_name = template_name
@@ -30,7 +29,7 @@ class BaseTemplate:
     def createSubTemplate(
         cls,
         template_name: str,
-        template: NestedDict,
+        template: dict,
         icons: dict[str, Union[str, QIcon, FluentIconBase]],
     ) -> Self:
         instance = super().__new__(cls)
@@ -50,15 +49,9 @@ class BaseTemplate:
         """
         value = retrieveDictValue(d=self.getTemplate(), key=key, parent_key=parent_key)
         if value is None:
-            if parent_key:
-                self._logger.warning(
-                    f"Could not find key '{key}' inside the scope of parent key '{parent_key}' in the template. "
-                    + f"Returning default: '{default}'"
-                )
-            else:
-                self._logger.warning(
-                    f"Could not find key '{key}' in the template. Returning default: '{default}'"
-                )
+            self._logger.warning(
+                f"Template '{self._template_name}': Could not find key '{key}'{f" within parent key '{parent_key}'" if parent_key else ""}. Returning default: '{default}'"
+            )
         return default if value is None else value
 
     def setValue(self, key: str, value: Any, parent_key: Optional[str] = None) -> None:
@@ -67,14 +60,11 @@ class BaseTemplate:
                 input=self._template, key=key, value=value, parent_key=parent_key
             )
         except KeyError:
-            if parent_key:
-                self._logger.warning(
-                    f"Could not find key '{key}' inside the scope of parent key '{parent_key}' in the template."
-                )
-            else:
-                self._logger.warning(f"Could not find key '{key}' in the template")
+            self._logger.warning(
+                f"Failed to insert value for missing key '{key}'{f" within parent key '{parent_key}'" if parent_key else ""}"
+            )
 
-    def getTemplate(self) -> NestedDict:
+    def getTemplate(self) -> dict:
         return self._template
 
     def getName(self) -> str:
@@ -87,4 +77,4 @@ class BaseTemplate:
         self._template_name = name
 
     @abstractmethod
-    def _createTemplate(self) -> NestedDict: ...
+    def _createTemplate(self) -> dict: ...
