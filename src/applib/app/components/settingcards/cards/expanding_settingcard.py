@@ -85,7 +85,7 @@ class HeaderSettingCard(FluentSettingCard):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
@@ -93,15 +93,16 @@ class HeaderSettingCard(FluentSettingCard):
             icon=icon,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=parent,
         )
         self.expandButton = ExpandButton(self)
-
         self.hBoxLayout.addWidget(self.expandButton, 0, Qt.AlignmentFlag.AlignRight)
         self.hBoxLayout.addSpacing(8)
 
         self.installEventFilter(self)
+        self.titleLabel.installEventFilter(self)
+        self.contentLabel.installEventFilter(self)
 
     def eventFilter(self, obj: QObject, e: QEvent) -> None:
         if obj is self:
@@ -120,7 +121,13 @@ class HeaderSettingCard(FluentSettingCard):
             ):
                 self.expandButton.setPressed(False)
                 self.expandButton.click()
-
+        elif (
+            obj in [self.titleLabel, self.contentLabel]
+            and e.type() == QEvent.Type.Resize
+        ):
+            self.resizeEvent(e)
+            if self.parentWidget():
+                self.parentWidget().resizeEvent(e)
         return super().eventFilter(obj, e)
 
     def paintEvent(self, e: QPaintEvent) -> None:
@@ -138,7 +145,7 @@ class HeaderSettingCard(FluentSettingCard):
         path.setFillRule(Qt.FillRule.WindingFill)
         path.addRoundedRect(QRectF(self.rect().adjusted(1, 1, -1, -1)), 6, 6)
 
-        # set the bottom border radius to 0 if parent is expanded
+        # Set the bottom border radius to 0 if parent is expanded
         if p.is_expand:
             path.addRect(1, self.height() - 8, self.width() - 2, 8)
 
@@ -154,10 +161,10 @@ class HeaderSettingCard(FluentSettingCard):
         self.hBoxLayout.addSpacing(8)
 
     @override
-    def addToLayout(self, buttonLayout: QLayout) -> None:
+    def addToLayout(self, layout: QLayout) -> None:
         N = self.hBoxLayout.count()
-        self.hBoxLayout.insertLayout(N - 2, buttonLayout)
-        self.buttonLayout.addSpacing(8)
+        self.hBoxLayout.insertLayout(N - 2, layout)
+        # self.buttonLayout.addSpacing(8)
 
 
 class ExpandSettingCard(CardBase, QScrollArea):
@@ -172,10 +179,10 @@ class ExpandSettingCard(CardBase, QScrollArea):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(cardName=setting, parent=parent)
+        super().__init__(card_name=setting, parent=parent)
         self.scrollWidget = QFrame(self)
         self._view = QFrame(self.scrollWidget)
         self.card = HeaderSettingCard(
@@ -183,32 +190,27 @@ class ExpandSettingCard(CardBase, QScrollArea):
             icon=icon,
             title=title,
             content=content,
-            hasDisableButton=hasDisableButton,
+            has_disable_button=has_disable_button,
             parent=self,
         )
-
         self.scrollLayout = QVBoxLayout(self.scrollWidget)
         self.viewLayout = QVBoxLayout(self._view)
         self.spaceWidget = SpaceWidget(self.scrollWidget)
         self.borderWidget = ExpandBorderWidget(self)
-
         self.is_disabled = False
         self.is_expand = False
         self.resize_allowed = True
+        self.expandAni = QPropertyAnimation(
+            self.verticalScrollBar(), b"value", self
+        )  # Expand animation
 
-        # Expand animation
-        self.expandAni = QPropertyAnimation(self.verticalScrollBar(), b"value", self)
-
-        self._initWidget()
-        self._initLayout()
+        self.__initWidget()
+        self.__initLayout()
         self.__connectSignalToSlot()
 
-    def _initWidget(self) -> None:
+    def __initWidget(self) -> None:
         self.setWidget(self.scrollWidget)
         self.setWidgetResizable(True)
-        sh = self.card.sizeHint().height()
-        self.resize(self.width(), sh)
-        self.setViewportMargins(0, sh, 0, 0)
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
@@ -216,16 +218,15 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self.expandAni.setEasingCurve(QEasingCurve.Type.OutQuad)
         self.expandAni.setDuration(200)
 
-        self._setQss()
-        self.card.installEventFilter(self)
+        self.__setQss()
 
-    def _initLayout(self) -> None:
+    def __initLayout(self) -> None:
         self.scrollLayout.setContentsMargins(0, 0, 0, 0)
         self.scrollLayout.setSpacing(0)
         self.scrollLayout.addWidget(self._view)
         self.scrollLayout.addWidget(self.spaceWidget)
 
-    def _setQss(self) -> None:
+    def __setQss(self) -> None:
         self._view.setObjectName("view")
         self.scrollWidget.setObjectName("scrollWidget")
         self.setProperty("isExpand", False)
@@ -241,7 +242,6 @@ class ExpandSettingCard(CardBase, QScrollArea):
         vh = self.viewLayout.sizeHint().height()
         h = self.viewportMargins().top()
         self.resize(self.width(), max(h + vh - self.verticalScrollBar().value(), h))
-        # self.setFixedHeight(max(h + vh - self.verticalScrollBar().value(), h))
 
     def __onExpandFinished(self) -> None:
         self.resize_allowed = True
@@ -249,9 +249,6 @@ class ExpandSettingCard(CardBase, QScrollArea):
     def _adjustViewSize(self) -> None:
         h = self.viewLayout.sizeHint().height()
         self.spaceWidget.setFixedHeight(h)
-
-        if self.is_expand:
-            self.resize(self.width(), self.card.height() + h)
 
     def wheelEvent(self, e: QWheelEvent) -> None:
         """
@@ -265,14 +262,18 @@ class ExpandSettingCard(CardBase, QScrollArea):
         if not self.resize_allowed:
             return
 
+        ch = self.card.height()
+        sw = self.width()
+        vlsh = self.viewLayout.sizeHint().height()
+        sch = self.scrollWidget.height()
         if self.is_expand:
             self._adjustViewSize()
+            self.resize(sw, ch + vlsh)
         else:
-            ch = self.card.height()
-            self.resize(self.width(), ch)
+            self.resize(sw, ch)
             self.setViewportMargins(0, ch, 0, 0)
-        self.card.resize(self.width(), self.card.height())
-        self.scrollWidget.resize(self.width(), self.scrollWidget.height())
+        self.card.resize(sw, ch)
+        self.scrollWidget.resize(sw, sch)
         # print(f"card: {self.card.size()} | self: {self.size()}")
 
     def setExpand(self, is_expand: bool) -> None:
@@ -309,7 +310,7 @@ class ExpandSettingCard(CardBase, QScrollArea):
 class ExpandGroupSettingCard(ExpandSettingCard):
     """Expand group setting card
 
-    Courtesy of qfluentwidgets
+    Courtesy of qfluentwidgets (with modification)
     """
 
     def addGroupWidget(self, widget: QWidget) -> None:
@@ -329,7 +330,7 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
-        hasDisableButton: bool,
+        has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         """Expanding Setting card which holds child cards
@@ -348,7 +349,7 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
         content : str, optional
             Extra text. Sort of a description. Defaults to None.
 
-        hasDisableButton : bool
+        has_disable_button : bool
             Create a disable button for this card.
 
         parent : QWidget, optional
@@ -360,7 +361,7 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
                 icon=icon,
                 title=title,
                 content=content,
-                hasDisableButton=hasDisableButton,
+                has_disable_button=has_disable_button,
                 parent=parent,
             )
             self.__connectSignalToSlot()
@@ -402,8 +403,8 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
     ) -> None:
         if isinstance(option, AnyBoolSetting):
             # Take manual control of disable button
-            self.card.hasDisableButton = True
-            self.card.hideOption = False
+            self.card.has_disable_button = True
+            self.card.hide_option = False
             option.setHidden(True)
 
         self.card.setOption(option, alignment)
