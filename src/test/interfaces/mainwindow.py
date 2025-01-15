@@ -6,13 +6,15 @@ from applib.app.interfaces.main_window import CoreMainWindow
 from test.interfaces.home import TestHomeInterface
 from test.interfaces.process import TestProcessInterface
 from test.interfaces.settings import TestSettingsInterface
+from test.modules.config.test_args import TestArgs
+from test.modules.config.test_config import TestConfig
 
 
 class TestMainWindow(CoreMainWindow):
     def __init__(self):
         super().__init__(
-            setup_args=CoreArgs,
-            MainConfig=CoreConfig,
+            MainArgs=TestArgs,
+            MainConfig=TestConfig,
             subinterfaces=[
                 (TestHomeInterface, FIF.HOME, "Home"),
                 (TestProcessInterface, FIF.IOT, "Process"),
