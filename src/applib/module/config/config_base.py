@@ -59,16 +59,13 @@ class ConfigBase:
         self._load_failure = False  # The config failed to load
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
-
-        # Prevent excessive disk writing (with multiple write requests in a short time span)
-        self._last_save_time = time()
-
+        self._last_save_time = time()  # Prevent excessive disk writing
         self._config_name = config_name
         self._config_path = config_path
         self._template_model = template_model
         self._validation_model = validation_model
         self._connectSignalToSlot()
-
+        self.prefix_msg = f"Config {self._config_name}:"
         # Initialize config after everything's set up
         self._config = self._initConfig()
 
@@ -264,14 +261,13 @@ class ConfigBase:
             True if an error occured.
         """
         is_error = False
-        msg_prefix = f"Config '{self._config_name}':"
         try:
             old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
             validator(self._config, **validator_kwargs)
         except KeyError:
             is_error = True
             self._logger.error(
-                f"{msg_prefix} Could not validate value for missing key '{key}' {f"(within parent key '{parent_key}')" if parent_key else ""}"
+                f"{self.prefix_msg} Could not validate value for missing key '{key}' {f"(within parent key '{parent_key}')" if parent_key else ""}"
             )
         except ValidationError as err:
             is_error = True
@@ -279,13 +275,13 @@ class ConfigBase:
                 self._config, key, old_value, parent_key=parent_key
             )  # Restore value
             self._logger.warning(
-                f"{msg_prefix} Unable to validate value '{value}' for setting '{key}': "
+                f"{self.prefix_msg} Unable to validate value '{value}' for setting '{key}': "
                 + formatValidationError(err)
             )
         except Exception:
             is_error = True
             self._logger.error(
-                f"{msg_prefix} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
+                f"{self.prefix_msg} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
@@ -351,7 +347,6 @@ class ConfigBase:
         is_error, failure, reload_failure = False, False, False
         can_reload = do_write_config or not use_validator_on_error
         config = None
-        msg_prefix = f"{self._config_name}:"
         filename = os.path.split(self._config_path)[1]
         extension = os.path.splitext(filename)[1].strip(".")
         try:
@@ -363,7 +358,7 @@ class ConfigBase:
                 elif extension.lower() == "json":
                     raw_config = json.load(file)
                 else:
-                    err_msg = f"{msg_prefix} Cannot load unsupported file '{self._config_path}'"
+                    err_msg = f"{self.prefix_msg} Cannot load unsupported file '{self._config_path}'"
                     raise NotImplementedError(err_msg)
 
             if validator:
@@ -372,25 +367,25 @@ class ConfigBase:
                 config = raw_config
         except ValidationError as err:
             is_error, is_recoverable = True, True
-            self._logger.warning(f"{msg_prefix} Could not validate '{filename}'")
+            self._logger.warning(f"{self.prefix_msg} Could not validate '{filename}'")
             self._logger.debug(formatValidationError(err))
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
-            err_msg = f"{msg_prefix} Detected incorrect fields in '{filename}':\n"
+            err_msg = f"{self.prefix_msg} Detected incorrect fields in '{filename}':\n"
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
             self._logger.warning(err_msg)
             if do_write_config:
-                self._logger.info(f"{msg_prefix} Repairing config")
+                self._logger.info(f"{self.prefix_msg} Repairing config")
                 repaired_config = self._repairConfig(raw_config, template_model)
                 self.backupConfig()
                 writeConfig(repaired_config, self._config_path)
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
-            self._logger.warning(f"{msg_prefix} {err.args[0]}")
+            self._logger.warning(f"{self.prefix_msg} {err.args[0]}")
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
@@ -398,26 +393,26 @@ class ConfigBase:
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
-                f"{msg_prefix} Failed to parse '{filename}':\n  {err.args[0]}\n"
+                f"{self.prefix_msg} Failed to parse '{filename}':\n  {err.args[0]}\n"
             )
             if do_write_config:
                 self.backupConfig()
                 writeConfig(template_model, self._config_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
-            self._logger.info(f"{msg_prefix} Creating '{filename}'")
+            self._logger.info(f"{self.prefix_msg} Creating '{filename}'")
             if do_write_config:
                 writeConfig(template_model, self._config_path)
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
-                f"{msg_prefix} An unexpected error occurred while loading '{filename}'\n"
+                f"{self.prefix_msg} An unexpected error occurred while loading '{filename}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
             if is_error:
                 if can_reload and retries > 0 and is_recoverable:
-                    reload_msg = f"{msg_prefix} Reloading '{filename}'"
+                    reload_msg = f"{self.prefix_msg} Reloading '{filename}'"
                     if not use_validator_on_error:
                         reload_msg += " with compatibility mode"
                     self._logger.info(reload_msg)
@@ -431,7 +426,7 @@ class ConfigBase:
                         failure = True
                 else:
                     failure = True
-                    load_failure_msg = f"{msg_prefix} Failed to load '{filename}'"
+                    load_failure_msg = f"{self.prefix_msg} Failed to load '{filename}'"
                     if template_model:
                         load_failure_msg += ". Loading template as config"
                         config = template_model  # Use the template_model as config if all else fails
@@ -439,7 +434,7 @@ class ConfigBase:
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.info(f"{msg_prefix} Config '{filename}' loaded!")
+                self._logger.info(f"{self.prefix_msg} Config '{filename}' loaded!")
             return config, failure or reload_failure
 
     def _repairConfig(self, config: dict, template_model: dict) -> dict:
@@ -572,7 +567,7 @@ class ConfigBase:
         )
         if value is None:
             self._logger.warning(
-                f"Config '{self._config_name}': Could not find key '{key}' {f"within parent key '{parent_key}'" if parent_key else ""}. Returning default: '{default}'"
+                f"{self.prefix_msg} Could not find key '{key}'{f" within parent key '{parent_key}'" if parent_key else ""}. Returning default: '{default}'"
             )
         return value
 
@@ -617,7 +612,7 @@ class ConfigBase:
         except Exception:
             msg = "Failed to save the config"
             self._logger.error(
-                f"Config '{self._config_name}': {msg}\n"
+                f"{self.prefix_msg} {msg}\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             core_signalbus.configStateChange.emit(False, msg, "")

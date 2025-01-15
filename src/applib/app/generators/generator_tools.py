@@ -79,7 +79,8 @@ class UIGrouping:
                 parent_option = parent.getOption()
             except AttributeError:
                 _logger_.warning(
-                    f"Template '{group.getTemplateName()}': Unable to connect cards in UI group '{group.getGroupName()}' due to missing card for parent setting '{group.getParentName()}'. Skipping UI group"
+                    f"Template '{group.getTemplateName()}': Unable to connect cards in UI group '{group.getGroupName()}' "
+                    + f"due to missing card for parent setting '{group.getParentName()}'. Skipping UI group"
                 )
                 continue
             try:
@@ -175,7 +176,6 @@ class UIGrouping:
                     f"Template '{group.getTemplateName()}': An unknown error occurred while connecting cards in UI group '{group.getGroupName()}'\n"
                     + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                 )
-                continue
 
 
 def updateCardGrouping(
