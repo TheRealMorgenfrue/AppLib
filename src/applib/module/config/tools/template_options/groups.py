@@ -189,7 +189,7 @@ class Group:
         if isinstance(child, str):
             self._children.pop(child)
         else:
-            for name, card in self._children:
+            for name, card in self._children.items():
                 if child == card:
                     self._children.pop(name)
                     break
