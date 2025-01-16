@@ -21,10 +21,10 @@ class CardBase:
 
     def __init__(self, card_name: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._cardName = card_name
+        self._card_name = card_name
 
     def getCardName(self) -> str:
-        return self._cardName
+        return self._card_name
 
     def getDisableSignal(self) -> pyqtBoundSignal:
         return self.disableCard
