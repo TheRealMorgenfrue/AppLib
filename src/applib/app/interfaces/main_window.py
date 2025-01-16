@@ -30,7 +30,6 @@ from PyQt6.QtCore import QSize, Qt
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
-
 from ...module.config.internal.core_args import CoreArgs
 from ...module.config.core_config import CoreConfig
 from ...module.logging import AppLibLogger
@@ -52,8 +51,12 @@ class CoreMainWindow(MSFluentWindow):
     ):
         # Copy MainArgs attributes to CoreArgs, overriding its attributes if possible
         makeSetupArgs(MainArgs)
-        # Initialize logger after setup_args is read
-        self._logger = AppLibLogger().getLogger()
+
+        # Initialize logger after MainArgs is read
+        applogger = AppLibLogger()
+        applogger.setLogDir(CoreArgs._core_log_dir)
+        applogger.writeHeaderToLog()
+        self._logger = applogger.getLogger()
 
         super().__init__()
         self._subinterfaces = subinterfaces
