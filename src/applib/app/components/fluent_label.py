@@ -1,10 +1,6 @@
 from typing import Optional
 from PyQt6.QtCore import Qt, QSize, QRect
-from PyQt6.QtWidgets import (
-    QLabel,
-    QWidget,
-    QStyle,
-)
+from PyQt6.QtWidgets import QLabel, QWidget, QStyle, QSizePolicy
 
 from ...module.logging import AppLibLogger
 
@@ -18,6 +14,9 @@ class FluentLabel(QLabel):
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(text, parent)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding
+        )
 
     def _documentRect(self) -> QRect:
         """
