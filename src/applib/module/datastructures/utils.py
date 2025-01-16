@@ -3,7 +3,7 @@ import numpy
 w = 32
 
 
-def new_array(n, dtype=numpy.object):
+def new_array(n, dtype=object):
     return numpy.empty(n, dtype)
 
 
