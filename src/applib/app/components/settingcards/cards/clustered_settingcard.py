@@ -1,14 +1,14 @@
 from qfluentwidgets import (
     FluentIconBase,
-    FluentStyleSheet,
     isDarkTheme,
 )
 from PyQt6.QtGui import QIcon, QPainter, QColor, QResizeEvent, QPaintEvent
 from PyQt6.QtWidgets import QWidget, QFrame, QVBoxLayout
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QObject, QEvent
 
 from typing import Optional, Union, override
 
+from ....common.core_stylesheet import CoreStyleSheet
 from ..card_base import (
     CardBase,
     DisableWrapper,
@@ -19,42 +19,65 @@ from .settingcard import FluentSettingCard
 from .....module.tools.types.gui_settings import AnySetting
 
 
+class ClusterHeaderSettingCard(FluentSettingCard):
+    def __init__(
+        self,
+        card_name: str,
+        icon: Union[str, QIcon, FluentIconBase],
+        title: str,
+        content: Optional[str],
+        has_disable_button: bool,
+        is_frameless: bool = False,
+        parent: Optional[QWidget] = None,
+    ):
+        super().__init__(
+            card_name, icon, title, content, has_disable_button, is_frameless, parent
+        )
+        self.titleLabel.installEventFilter(self)
+        self.contentLabel.installEventFilter(self)
+
+    def eventFilter(self, obj: QObject, e: QEvent) -> None:
+        if (
+            obj in [self.titleLabel, self.contentLabel]
+            and e.type() == QEvent.Type.Resize
+        ):
+            self.resizeEvent(e)
+            if self.parentWidget():
+                self.parentWidget().resizeEvent(e)
+        return super().eventFilter(obj, e)
+
+
 class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(card_name=setting, parent=parent)
+        super().__init__(card_name=card_name, parent=parent)
         self.viewLayout = QVBoxLayout(self)
-
-        self.card = FluentSettingCard(
-            setting=setting,
+        self.card = ClusterHeaderSettingCard(
+            card_name=card_name,
             icon=icon,
             title=title,
             content=content,
             has_disable_button=has_disable_button,
         )
-        self._setQss()
-        self._connectSignalToSlot()
+        self.__setQss()
+        self.__connectSignalToSlot()
         self.addChild(self.card)
 
-    def _setQss(self) -> None:
-        FluentStyleSheet.EXPAND_SETTING_CARD.apply(self)
+    def __setQss(self) -> None:
+        CoreStyleSheet.SETTING_CARD.apply(self)
 
-    def _connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self.card.notifyCard.emit)
         self.disableCard.connect(self.setDisableAll)
 
     def resizeEvent(self, e: QResizeEvent | None) -> None:
-        # FIXME: Resize bug with FluentSettingCards when initially loaded where a card reports incorrect sizeHint
-        # causing the ClusteredSettingCard's height to be too large. The issue resolves itself when the user manually
-        # resizes the window causing the affected widgets to recalculate their sizes correctly - however it does look odd.
-        # The bug occurs because the FluentLabel reports incorrect sizeHint initially - but ONLY in a ClusteredSettingCard
         self.resize(self.width(), self.viewLayout.sizeHint().height())
 
     def paintEvent(self, e: QPaintEvent | None) -> None:
@@ -75,7 +98,6 @@ class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
         # Add separator
         if self.viewLayout.count() >= 1:
             self.viewLayout.addWidget(GroupSeparator())
-
         self.viewLayout.addWidget(child)
 
     @override
