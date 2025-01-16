@@ -120,6 +120,9 @@ from .module.config.tools.template_parser import TemplateParser
 from .module.config.tools.validation_model_gen import CoreValidationModelGenerator
 from .module.config.validators import validatePath, validateLoglevel, validateTheme
 
+# Datastructures
+from .module.datastructures.yfasttrie import YFastTrie
+
 # Exceptions
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
 
@@ -256,4 +259,5 @@ __all__ = [
     "validatePath",
     "validateTheme",
     "writeConfig",
+    "YFastTrie",
 ]
