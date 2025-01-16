@@ -81,15 +81,15 @@ class HeaderSettingCard(FluentSettingCard):
 
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
-    ) -> None:
+    ):
         super().__init__(
-            setting=setting,
+            card_name=card_name,
             icon=icon,
             title=title,
             content=content,
@@ -175,18 +175,18 @@ class ExpandSettingCard(CardBase, QScrollArea):
 
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(card_name=setting, parent=parent)
+        super().__init__(card_name=card_name, parent=parent)
         self.scrollWidget = QFrame(self)
         self._view = QFrame(self.scrollWidget)
         self.card = HeaderSettingCard(
-            setting=setting,
+            card_name=card_name,
             icon=icon,
             title=title,
             content=content,
@@ -269,12 +269,12 @@ class ExpandSettingCard(CardBase, QScrollArea):
         if self.is_expand:
             self._adjustViewSize()
             self.resize(sw, ch + vlsh)
+            self.setViewportMargins(0, ch, 0, 0)
         else:
             self.resize(sw, ch)
             self.setViewportMargins(0, ch, 0, 0)
         self.card.resize(sw, ch)
         self.scrollWidget.resize(sw, sch)
-        # print(f"card: {self.card.size()} | self: {self.size()}")
 
     def setExpand(self, is_expand: bool) -> None:
         """Set the expand status of card"""
@@ -326,38 +326,39 @@ class ExpandGroupSettingCard(ExpandSettingCard):
 class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        """Expanding Setting card which holds child cards
+        """
+        Expanding setting card which holds child cards.
 
         Parameters
         ----------
-        setting : str
-            The name used for this card in the template
+        card_name : str
+            The name of the template key which this card represents.
 
         icon : Union[str, QIcon, FluentIconBase]
-            Display icon
+            Display icon.
 
         title : str
-            Title of this card
+            Card title.
 
         content : str, optional
-            Extra text. Sort of a description. Defaults to None.
+            Card description. By default `None`.
 
         has_disable_button : bool
             Create a disable button for this card.
 
         parent : QWidget, optional
-            The parent of this card. Defaults to None.
+            The parent of this card. Defaults to `None`.
         """
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 icon=icon,
                 title=title,
                 content=content,
@@ -406,5 +407,4 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
             self.card.has_disable_button = True
             self.card.hide_option = False
             option.setHidden(True)
-
         self.card.setOption(option, alignment)
