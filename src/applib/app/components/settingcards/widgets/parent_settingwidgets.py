@@ -98,9 +98,7 @@ class NestedSettingWidget(ParentSettingWidget):
 
     def __initLayout(self) -> None:
         self.widget.titleLabel.setObjectName("nestedTitleLabel")
-        self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.hBoxLayout.addWidget(self.widget)
-        self.hBoxLayout.addStretch(1)  # Push option widget to the left in the layout
         self.vGeneralLayout.insertLayout(0, self.hBoxLayout)
 
     @override
