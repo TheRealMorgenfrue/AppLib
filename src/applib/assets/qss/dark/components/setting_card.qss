@@ -10,6 +10,9 @@ QLabel {
 QLabel#contentLabel {
     font: 11px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
     color: rgb(208, 208, 208);
+    padding: 0;
+    background: transparent;
+    border: none;
     /* background-color: green; */
 }
 

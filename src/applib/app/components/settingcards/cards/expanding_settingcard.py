@@ -98,7 +98,7 @@ class HeaderSettingCard(FluentSettingCard):
         )
         self.expandButton = ExpandButton(self)
         self.hBoxLayout.addWidget(self.expandButton, 0, Qt.AlignmentFlag.AlignRight)
-        self.hBoxLayout.addSpacing(8)
+        # self.hBoxLayout.addSpacing(8)
 
         self.installEventFilter(self)
         self.titleLabel.installEventFilter(self)
@@ -164,7 +164,7 @@ class HeaderSettingCard(FluentSettingCard):
     def addToLayout(self, layout: QLayout) -> None:
         N = self.hBoxLayout.count()
         self.hBoxLayout.insertLayout(N - 2, layout)
-        # self.buttonLayout.addSpacing(8)
+        self.hBoxLayout.insertSpacing(N - 1, 8)
 
 
 class ExpandSettingCard(CardBase, QScrollArea):
@@ -230,7 +230,6 @@ class ExpandSettingCard(CardBase, QScrollArea):
         self._view.setObjectName("view")
         self.scrollWidget.setObjectName("scrollWidget")
         self.setProperty("isExpand", False)
-        FluentStyleSheet.EXPAND_SETTING_CARD.apply(self.card)
         FluentStyleSheet.EXPAND_SETTING_CARD.apply(self)
 
     def __connectSignalToSlot(self) -> None:
