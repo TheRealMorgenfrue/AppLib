@@ -5,7 +5,7 @@ An application component library for building small GUI apps easily.
 
 Documentation is available in the docstrings.
 
-:copyright: (c) 2024 by TheRealMorgenfrue.
+:copyright: (c) 2025 by TheRealMorgenfrue.
 :license: BSD 3-Clause
 """
 
@@ -20,13 +20,16 @@ os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[0]}"
 with __ctxl.redirect_stdout(None):
     from qfluentwidgets import QConfig as __silence
 
-
+# Common
 from .app.common.auto_wrap import AutoTextWrap
 from .app.common.core_signalbus import core_signalbus
 from .app.common.core_stylesheet import CoreStyleSheet
 
+# Component dialogs
 from .app.components.dialogs.messagebox_base import Dialog, MessageBoxBase
 from .app.components.dialogs.messagebox import TextMessageBox
+
+# Component progress cards
 from .app.components.progresscards.progress_bar_card import (
     ProgressBarCard,
     IndeterminateProgressBarCard,
@@ -37,6 +40,7 @@ from .app.components.progresscards.progress_ring_card import (
 )
 from .app.components.progresscards.progress_card import ProgressCard
 
+# Component setting cards
 from .app.components.settingcards.card_base import CardBase, ParentCardBase
 from .app.components.settingcards.cards.clustered_settingcard import (
     ClusteredSettingCard,
@@ -52,12 +56,25 @@ from .app.components.settingcards.cards.settingcard import (
     FormSettingCard,
     FlowSettingCard,
 )
+
+# Component setting widgets
 from .app.components.settingcards.widgets.parent_settingwidgets import (
     ClusteredSettingWidget,
     NestedSettingWidget,
 )
 from .app.components.settingcards.widgets.settingwidget import SettingWidget
 
+# Components
+from .app.components.settings import (
+    CoreCheckBox,
+    CoreColorPicker,
+    CoreComboBox,
+    CoreFileSelect,
+    CoreLineEdit,
+    CoreSlider,
+    CoreSpinBox,
+    CoreSwitch,
+)
 from .app.components.cardstack import PivotCardStack, SegmentedPivotCardStack
 from .app.components.console_view import ConsoleView
 from .app.components.flow_area import FlowArea
@@ -68,10 +85,12 @@ from .app.components.link_card import LinkCard, LinkCardView
 from .app.components.menu_list_view import MenuListView
 from .app.components.sample_card import SampleCard, SampleCardView
 
+# Generators
 from .app.generators.card_generator import CardGenerator
 from .app.generators.cardwidget_generator import CardWidgetGenerator
 from .app.generators.generatorbase import GeneratorBase
 
+# Interfaces
 from .app.core_app import CoreApp
 from .app.interfaces.home_interface import CoreHomeInterface
 from .app.interfaces.main_window import CoreMainWindow
@@ -79,12 +98,14 @@ from .app.interfaces.process.process_interface import CoreProcessInterface
 from .app.interfaces.settings_interface import CoreSettingsInterface
 from .app.interfaces.settings_subinterface import CoreSettingsSubInterface
 
+# Concurrency
 from .module.concurrency.process.process_base import ProcessBase
 from .module.concurrency.process.process_generator import ProcessGenerator
 from .module.concurrency.process.stream_reader import asyncReadPipe
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 
+# Config
 from .module.config.config_base import ConfigBase
 from .module.config.core_config import CoreConfig
 from .module.config.internal.core_args import CoreArgs
@@ -94,16 +115,18 @@ from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
 from .module.config.tools.template_options.groups import Group
 from .module.config.tools.template_options.validation_info import ValidationInfo
 from .module.config.tools.config_tools import writeConfig
-
 from .module.config.tools.ini_file_parser import IniFileParser
 from .module.config.tools.template_parser import TemplateParser
 from .module.config.tools.validation_model_gen import CoreValidationModelGenerator
 from .module.config.validators import validatePath, validateLoglevel, validateTheme
 
+# Exceptions
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
 
+# Logging
 from .module.logging import AppLibLogger, createLogger
 
+# Tools
 from .module.tools.utilities import (
     iterToString,
     dictLookup,
@@ -163,6 +186,14 @@ __all__ = [
     "CoreSettingsInterface",
     "CoreSettingsSubInterface",
     "CoreStyleSheet",
+    "CoreCheckBox",
+    "CoreColorPicker",
+    "CoreComboBox",
+    "CoreFileSelect",
+    "CoreLineEdit",
+    "CoreSlider",
+    "CoreSpinBox",
+    "CoreSwitch",
     "Dialog",
     "ExpandingSettingCard",
     "FlowArea",
