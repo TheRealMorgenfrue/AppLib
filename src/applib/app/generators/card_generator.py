@@ -12,10 +12,7 @@ from ..components.settingcards.cards.scroll_settingcardgroup import (
     ScrollSettingCardGroup,
 )
 from ..components.settingcards.cards.settingcard import (
-    FlowSettingCard,
     FluentSettingCard,
-    FormSettingCard,
-    GenericSettingCard,
 )
 from .generatorbase import GeneratorBase
 
@@ -138,7 +135,7 @@ class CardGenerator(GeneratorBase):
             # Create Setting Card
             if isNestingGroup and setting == group.getParentName():
                 card = ExpandingSettingCard(
-                    setting=setting,
+                    card_name=setting,
                     icon=icon,
                     title=title,
                     content=content,
@@ -147,7 +144,7 @@ class CardGenerator(GeneratorBase):
                 )
             elif isClusteredGroup and setting == group.getParentName():
                 card = ClusteredSettingCard(
-                    setting=setting,
+                    card_name=setting,
                     icon=icon,
                     title=title,
                     content=content,
@@ -156,7 +153,7 @@ class CardGenerator(GeneratorBase):
                 )
             else:
                 card = FluentSettingCard(
-                    setting=setting,
+                    card_name=setting,
                     icon=icon,
                     title=title,
                     content=content,

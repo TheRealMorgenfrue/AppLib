@@ -16,7 +16,6 @@ from PyQt6.QtWidgets import (
     QWidget,
     QFormLayout,
     QLayout,
-    QSizePolicy,
 )
 from typing import Any, Optional, Union, override
 
@@ -29,14 +28,14 @@ from .....module.tools.types.gui_settings import AnySetting
 class SettingCardBase(CardBase, QFrame):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(card_name=setting, parent=parent)
+        super().__init__(card_name=card_name, parent=parent)
         self.iconLabel = SettingIconWidget(icon)
         self.titleLabel = FluentLabel(title)
         self.contentLabel = FluentLabel(content)
@@ -51,17 +50,10 @@ class SettingCardBase(CardBase, QFrame):
         self._setQss()
 
     def __initLayout(self) -> None:
-        self.iconLabel.setFixedSize(16, 16)
-
-        self.titleLabel.setSizePolicy(
-            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding
-        )
-        self.contentLabel.setSizePolicy(
-            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding
-        )
-
         if not self.contentLabel.text():
             self.contentLabel.setHidden(True)
+
+        self.iconLabel.setFixedSize(16, 16)
 
         margin = 16
         self.hBoxLayout.setContentsMargins(margin, margin, margin, margin)
@@ -87,12 +79,13 @@ class SettingCardBase(CardBase, QFrame):
 
 class SettingCardMixin:
     def __init__(self, is_frameless: bool = False, **kwargs) -> None:
-        """Setting card Mixin Class
+        """
+        Setting card mixin class.
 
         Parameters
         ----------
         is_frameless : bool
-            Whether to draw a frame around the card. Defaults to False
+            Whether to draw a frame around the card. Defaults to `False`.
         """
         super().__init__(**kwargs)
         self.is_frameless = is_frameless
@@ -119,7 +112,7 @@ class SettingCardMixin:
         if type == "disable":
             self.disableCard.emit(DisableWrapper(value[0], save=value[1]))
         elif type == "disable_other":
-            self.disableCard.emit(DisableWrapper(value[0], othersOnly=True))
+            self.disableCard.emit(DisableWrapper(value[0], others_only=True))
         elif type == "content":
             self.contentLabel.setText(value)
             self.contentLabel.setHidden(not bool(value))
@@ -169,15 +162,15 @@ class SettingCardMixin:
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        is_disabled, othersOnly, save = (
+        is_disabled, others_only, save = (
             wrapper.is_disabled,
-            wrapper.othersOnly,
+            wrapper.others_only,
             wrapper.save,
         )
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
             self.disableChildren.emit(wrapper)
-            if self.option and not othersOnly:
+            if self.option and not others_only:
                 self.option.notify.emit(("disable", (is_disabled, save)))
                 if self.has_disable_button and self.hide_option:
                     self.option.setHidden(is_disabled)
@@ -232,7 +225,7 @@ class SettingCardMixin:
 class GenericSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
@@ -242,7 +235,7 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
     ) -> None:
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 icon=icon,
                 title=title,
                 content=content,
@@ -279,7 +272,7 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
 class FluentSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
@@ -289,7 +282,7 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
     ) -> None:
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 icon=icon,
                 title=title,
                 content=content,
@@ -312,7 +305,7 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
 class FormSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
@@ -322,7 +315,7 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
     ) -> None:
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 icon=icon,
                 title=title,
                 content=content,
@@ -371,7 +364,7 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
 class FlowSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         icon: Union[str, QIcon, FluentIconBase],
         title: str,
         content: Optional[str],
@@ -381,7 +374,7 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
     ) -> None:
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 icon=icon,
                 title=title,
                 content=content,

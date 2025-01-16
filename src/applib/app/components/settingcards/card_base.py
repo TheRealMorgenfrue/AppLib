@@ -7,10 +7,10 @@ from ....module.tools.types.gui_settings import AnySetting
 
 class DisableWrapper:
     def __init__(
-        self, is_disabled: bool, othersOnly: bool = False, save: bool = True
+        self, is_disabled: bool, others_only: bool = False, save: bool = True
     ) -> None:
         self.is_disabled = is_disabled
-        self.othersOnly = othersOnly
+        self.others_only = others_only
         self.save = save
 
 

@@ -125,7 +125,7 @@ class CardWidgetGenerator(GeneratorBase):
             # Create Setting Card Widget
             if isNestingGroup:
                 card = NestedSettingWidget(
-                    setting=setting,
+                    card_name=setting,
                     title=title,
                     content=content,
                     has_disable_button=has_disable_button,
@@ -133,7 +133,7 @@ class CardWidgetGenerator(GeneratorBase):
                 )
             elif isClusteredGroup:
                 card = ClusteredSettingWidget(
-                    setting=setting,
+                    card_name=setting,
                     title=title,
                     content=content,
                     has_disable_button=has_disable_button,
@@ -141,7 +141,7 @@ class CardWidgetGenerator(GeneratorBase):
                 )
             else:
                 card = SettingWidget(
-                    setting=setting,
+                    card_name=setting,
                     title=title,
                     content=content,
                     has_disable_button=has_disable_button,
