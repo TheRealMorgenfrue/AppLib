@@ -161,7 +161,7 @@ class CardGenerator(GeneratorBase):
                     is_frameless=isNestingGroup,
                     parent=parent,
                 )
-            card.enableTightMode(self._is_tight)
+                card.enableTightMode(self._is_tight)
             card.setOption(widget)
             return card
         except Exception:
