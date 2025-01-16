@@ -1,5 +1,3 @@
-from applib.module.config.core_config import CoreConfig
-from applib.module.config.internal.core_args import CoreArgs
 from qfluentwidgets import FluentIcon as FIF
 
 from applib.app.interfaces.main_window import CoreMainWindow
