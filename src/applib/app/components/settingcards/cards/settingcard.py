@@ -55,8 +55,7 @@ class SettingCardBase(CardBase, QFrame):
 
         self.iconLabel.setFixedSize(16, 16)
 
-        margin = 16
-        self.hBoxLayout.setContentsMargins(margin, margin, margin, margin)
+        self.enableTightMode(False)
         self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.hBoxLayout.addWidget(self.iconLabel, 0, Qt.AlignmentFlag.AlignLeft)
@@ -75,6 +74,16 @@ class SettingCardBase(CardBase, QFrame):
     def _setQss(self) -> None:
         self.contentLabel.setObjectName("contentLabel")
         CoreStyleSheet.SETTING_CARD.apply(self)
+
+    def _setMargins(self, mw: int, mh: int) -> None:
+        self.hBoxLayout.setContentsMargins(mw, mh, mw, mh)
+
+    def enableTightMode(self, is_tight: bool) -> None:
+        if is_tight:
+            mw, mh = 12, 8
+        else:
+            mw, mh = 16, 12
+        self._setMargins(mw, mh)
 
 
 class SettingCardMixin:
