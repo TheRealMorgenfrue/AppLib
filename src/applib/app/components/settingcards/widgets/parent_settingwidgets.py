@@ -12,13 +12,13 @@ from .settingwidget import (
 from .....module.tools.types.gui_settings import AnySetting
 
 
-class AppLibCardWidget(CardWidget):
+class WidgetFrame(CardWidget):
     def __init__(self, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.vCardLayout = QVBoxLayout(self)
 
     def addChild(self, child: QWidget) -> None:
-        self.vCardLayout.addWidget(child)
+        self.vCardLayout.addWidget(child, 0, alignment=Qt.AlignmentFlag.AlignTop)
 
     def removeChild(self, child: QWidget) -> None:
         self.vCardLayout.removeWidget(child)
@@ -29,27 +29,26 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
 
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
-            setting=setting,
+            card_name=card_name,
             title=title,
             content=content,
             has_disable_button=has_disable_button,
             parent=parent,
         )
         self.vGeneralLayout = QVBoxLayout(self)
-        self._cardWidget = AppLibCardWidget()
-        self.settingWidget = SettingWidget(
-            setting=setting,
+        self._widgetView = WidgetFrame()
+        self.widget = SettingWidget(
+            card_name=card_name,
             title=self._title,
             content=self._content,
             has_disable_button=has_disable_button,
-            parent=self,
         )
         self.__initLayout()
         self.__connectSignalToSlot()
@@ -57,12 +56,12 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
     def __initLayout(self) -> None:
         self.vGeneralLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.vGeneralLayout.setContentsMargins(0, 0, 0, 0)
-        self.vGeneralLayout.addWidget(self._cardWidget)
+        self.vGeneralLayout.addWidget(self._widgetView)
 
     def __connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self._onParentNotified)
         self.disableCard.connect(self.setDisableAll)
-        self.settingWidget.disableCard.connect(self.disableCard.emit)
+        self.widget.disableCard.connect(self.disableCard.emit)
 
     def _onParentNotified(self, values: tuple[str, Any]) -> None:
         type, value = values
@@ -71,37 +70,36 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
 
     @override
     def getOption(self) -> AnySetting:
-        return self.settingWidget.getOption()
+        return self.widget.getOption()
 
     @override
     def addChild(self, child: QWidget) -> None:
-        self._cardWidget.addChild(child)
+        self._widgetView.addChild(child)
 
 
 class NestedSettingWidget(ParentSettingWidget):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
-            setting=setting,
+            card_name=card_name,
             title=title,
             content=content,
             has_disable_button=has_disable_button,
             parent=parent,
         )
         self.hBoxLayout = QHBoxLayout()
-        self._initLayout()
+        self.__initLayout()
 
-    def _initLayout(self) -> None:
-        self.settingWidget.titleLabel.setObjectName("nestedTitleLabel")
-
+    def __initLayout(self) -> None:
+        self.widget.titleLabel.setObjectName("nestedTitleLabel")
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.hBoxLayout.addWidget(self.settingWidget)
+        self.hBoxLayout.addWidget(self.widget)
         self.hBoxLayout.addStretch(1)  # Push option widget to the left in the layout
         self.vGeneralLayout.insertLayout(0, self.hBoxLayout)
 
@@ -110,7 +108,7 @@ class NestedSettingWidget(ParentSettingWidget):
         is_disabled = wrapper.is_disabled
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            self._cardWidget.setDisabled(is_disabled)
+            self._widgetView.setDisabled(is_disabled)
             self.disableChildren.emit(wrapper)
 
     @override
@@ -119,39 +117,39 @@ class NestedSettingWidget(ParentSettingWidget):
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft,
     ) -> None:
-        self.settingWidget.setOption(option, alignment)
+        self.widget.setOption(option, alignment)
 
 
 class ClusteredSettingWidget(ParentSettingWidget):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         title: str,
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
         super().__init__(
-            setting=setting,
+            card_name=card_name,
             title=title,
             content=content,
             has_disable_button=has_disable_button,
             parent=parent,
         )
+        self.__connectSignalToSlot()
+        self.addChild(self.widget)
 
-        self._connectSignalToSlot()
-        self.addChild(self.settingWidget)
+    def __connectSignalToSlot(self) -> None:
+        self.notifyCard.connect(self.widget.notifyCard.emit)
 
-    def _connectSignalToSlot(self) -> None:
-        self.notifyCard.connect(self.settingWidget.notifyCard.emit)
-
+    @override
     def addChild(self, child: QWidget):
-        child.hBoxLayout.setSpacing(20)
+        child.hBoxLayout.setSpacing(10)
         super().addChild(child)
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        self.settingWidget.setDisableAll(wrapper)
+        self.widget.setDisableAll(wrapper)
 
     @override
     def setOption(
@@ -159,4 +157,4 @@ class ClusteredSettingWidget(ParentSettingWidget):
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,
     ) -> None:
-        self.settingWidget.setOption(option, alignment)
+        self.widget.setOption(option, alignment)

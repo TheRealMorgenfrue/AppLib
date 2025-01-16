@@ -1,5 +1,6 @@
 from qfluentwidgets import CheckBox, ToolTipFilter, ToolTipPosition, TextWrap
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
+from PyQt6.QtGui import QResizeEvent
 from PyQt6.QtCore import Qt
 
 from typing import Any, Optional, override
@@ -13,18 +14,17 @@ from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 class SettingWidgetBase(CardBase, QWidget):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         title: Optional[str],
         content: Optional[str],
         has_disable_button: bool,
         parent: Optional[QWidget] = None,
     ) -> None:
-        super().__init__(card_name=setting, parent=parent)
+        super().__init__(card_name=card_name, parent=parent)
         self._title = title
         self._content = content
         self.has_disable_button = has_disable_button
         self.is_disabled = False
-
         CoreStyleSheet.SETTING_WIDGET.apply(self)
 
     def _createToolTip(
@@ -32,21 +32,21 @@ class SettingWidgetBase(CardBase, QWidget):
         widget: QWidget | None,
         content: str | None,
         duration: int = 10000,
-        showDelay: int = 300,
+        show_delay: int = 300,
         position: ToolTipPosition = ToolTipPosition.TOP,
     ) -> None:
         if content and widget:
             widget.setToolTip(TextWrap.wrap(content, 70, False)[0])
             widget.setToolTipDuration(duration)
             widget.installEventFilter(
-                ToolTipFilter(parent=widget, showDelay=showDelay, position=position)
+                ToolTipFilter(parent=widget, showDelay=show_delay, position=position)
             )
 
 
 class SettingWidget(SettingWidgetBase):
     def __init__(
         self,
-        setting: str,
+        card_name: str,
         title: str,
         content: Optional[str],
         has_disable_button: bool,
@@ -54,7 +54,7 @@ class SettingWidget(SettingWidgetBase):
     ) -> None:
         try:
             super().__init__(
-                setting=setting,
+                card_name=card_name,
                 title=title,
                 content=content,
                 has_disable_button=has_disable_button,
@@ -66,24 +66,24 @@ class SettingWidget(SettingWidgetBase):
             self.option = None  # type: AnySetting | None
             self.disableButton = None  # type: CheckBox | None
 
-            self._initLayout()
-            self._connectSignalToSlot()
+            self.__initLayout()
+            self.__connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def _initLayout(self) -> None:
+    def __initLayout(self) -> None:
         self.hBoxLayout.addWidget(self.titleLabel)
 
-    def _connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self) -> None:
         self.disableCard.connect(self.setDisableAll)
 
-    def _onParentNotified(self, values: tuple[str, Any]) -> None:
+    def __onParentNotified(self, values: tuple[str, Any]) -> None:
         type, value = values
         if type == "disable":
             self.disableCard.emit(DisableWrapper(value[0], save=value[1]))
         elif type == "disable_other":
-            self.disableCard.emit(DisableWrapper(value[0], othersOnly=True))
+            self.disableCard.emit(DisableWrapper(value[0], others_only=True))
         elif type == "content":
             self._createToolTip(self.titleLabel, value)
             self._createToolTip(self.option, value)
@@ -97,7 +97,6 @@ class SettingWidget(SettingWidgetBase):
         self.hBoxLayout.insertWidget(
             0, self.disableButton, alignment=Qt.AlignmentFlag.AlignLeft
         )
-
         self._createToolTip(self.disableButton, self._getDisableMsg(), 5000)
         self.disableButton.stateChanged.connect(
             lambda state: self.disableCard.emit(DisableWrapper(not state))
@@ -110,16 +109,19 @@ class SettingWidget(SettingWidgetBase):
             else self.tr(f"{self._title} is enabled")
         )
 
+    def resizeEvent(self, e: QResizeEvent | None) -> None:
+        self.titleLabel.sizeHint()  # Recalculate size of wordwrapped text
+
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
-        is_disabled, othersOnly, save = (
+        is_disabled, others_only, save = (
             wrapper.is_disabled,
-            wrapper.othersOnly,
+            wrapper.others_only,
             wrapper.save,
         )
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            if self.option and not othersOnly:
+            if self.option and not others_only:
                 self.option.notify.emit(("disable", (is_disabled, save)))
 
             if self.disableButton:
@@ -142,15 +144,15 @@ class SettingWidget(SettingWidgetBase):
         self.option = option
 
         # Setup communication between option and card
-        self.option.notifyParent.connect(self._onParentNotified)
+        self.option.notifyParent.connect(self.__onParentNotified)
         self.option.notify.emit(("content", None))
 
+        # The disable button contains the title as well
         if self.has_disable_button:
-            # The disable button contains the title as well
             self._createDisableButton()
             self.titleLabel.setHidden(True)
 
-            # The disable button does the same thing as a bool setting
+            # Hide bool option as the disable button does the same thing
             if isinstance(self.option, AnyBoolSetting):
                 self.option.setHidden(True)
 
