@@ -1,24 +1,16 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-requirements-tx"]
 build-backend = "hatchling.build"
 
 [project]
 name = "AppLib"
+description = "The Application Component Library for all my GUI apps"
 authors = [
   { name="TheRealMorgenfrue" }
 ]
-dynamic = ["version"]
-description = "The Application Component Library for all my GUI apps"
 readme = "README.md"
 requires-python = ">=3.12"
-
-dependencies = [
-  "tomlkit",
-  "pydantic",
-  "colorama==0.4.6",
-  "PyQt6-Fluent-Widgets==1.6.6",
-  "PyQt6==6.7.1"
-]
+dynamic = ["version", "dependencies"]
 
 [tool.hatch.build.targets.sdist]
 exclude = [
@@ -28,3 +20,6 @@ exclude = [
 
 [tool.hatch.version]
 path = "src/applib/module/tools/version.py"
+
+[tool.hatch.metadata.hooks.requirements_txt]
+files = ["requirements.txt"]
