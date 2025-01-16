@@ -11,11 +11,10 @@ from time import time
 from pydantic import ValidationError
 
 from ...app.common.core_signalbus import core_signalbus
-
 from .tools.ini_file_parser import IniFileParser
 from ..exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from .internal.core_args import CoreArgs
-from .tools.config_tools import writeConfig
+from .tools.config_tools import ConfigUtils
 from ..logging import AppLibLogger
 from ..tools.types.general import Model, StrPath
 from ..tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
@@ -371,7 +370,7 @@ class ConfigBase:
             self._logger.debug(formatValidationError(err))
             if do_write_config:
                 self.backupConfig()
-                writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self._config_path)
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
             err_msg = f"{self.prefix_msg} Detected incorrect fields in '{filename}':\n"
@@ -382,13 +381,13 @@ class ConfigBase:
                 self._logger.info(f"{self.prefix_msg} Repairing config")
                 repaired_config = self._repairConfig(raw_config, template_model)
                 self.backupConfig()
-                writeConfig(repaired_config, self._config_path)
+                ConfigUtils.writeConfig(repaired_config, self._config_path)
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(f"{self.prefix_msg} {err.args[0]}")
             if do_write_config:
                 self.backupConfig()
-                writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self._config_path)
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
@@ -397,12 +396,12 @@ class ConfigBase:
             )
             if do_write_config:
                 self.backupConfig()
-                writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self._config_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
             self._logger.info(f"{self.prefix_msg} Creating '{filename}'")
             if do_write_config:
-                writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self._config_path)
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
@@ -607,7 +606,7 @@ class ConfigBase:
                 and (self._last_save_time + self._save_interval) < time()
             ):
                 self._last_save_time = time()
-                writeConfig(self._config, self._config_path)
+                ConfigUtils.writeConfig(self._config, self._config_path)
                 self._is_modified = False
         except Exception:
             msg = "Failed to save the config"

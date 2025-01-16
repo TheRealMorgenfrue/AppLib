@@ -12,10 +12,8 @@ from ...module.tools.types.gui_settings import AnyBoolSetting
 from ...module.tools.utilities import iterToString
 
 
-_logger_ = AppLibLogger().getLogger()
-
-
-class UIGrouping:
+class GeneratorUtils:
+    _logger = AppLibLogger().getLogger()
 
     @classmethod
     def _ensure_bool_child(cls, parent: AnyParentCard, child: AnyCard, group: Group):
@@ -28,7 +26,7 @@ class UIGrouping:
         ):
             return True
         else:
-            _logger_.warning(
+            cls._logger.warning(
                 f"UI Group '{group.getGroupName()}': "
                 + f"The option of both parent and child must be a strictly boolean setting (e.g. switch). "
                 + f"Parent '{parent.getCardName()}' has option of type '{type(parent_option).__name__}', "
@@ -78,7 +76,7 @@ class UIGrouping:
             try:
                 parent_option = parent.getOption()
             except AttributeError:
-                _logger_.warning(
+                cls._logger.warning(
                     f"Template '{group.getTemplateName()}': Unable to connect cards in UI group '{group.getGroupName()}' "
                     + f"due to missing card for parent setting '{group.getParentName()}'. Skipping UI group"
                 )
@@ -172,77 +170,78 @@ class UIGrouping:
                 if not group.isNestedChild():
                     parent.notifyCard.emit(("updateState", None))
             except Exception:
-                _logger_.error(
+                cls._logger.error(
                     f"Template '{group.getTemplateName()}': An unknown error occurred while connecting cards in UI group '{group.getGroupName()}'\n"
                     + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                 )
 
+    @classmethod
+    def updateCardGrouping(
+        cls,
+        setting: str,
+        card_group: AnyCardGroup,
+        card: AnyCard,
+        groups: Iterable[Group] | None,
+    ) -> bool:
+        not_nested = True
+        if groups:
+            for group in groups:
+                if setting == group.getParentName():
+                    # Note: parents are not added to the setting card group here,
+                    # since a parent can be a child of another parent
+                    group.setParentCard(card)
+                    group.setParentCardGroup(
+                        card_group
+                    )  # Instead, save a reference to the card group
+                else:
+                    uiGroups = group.getUIGroupParent()
+                    if (
+                        UIGroups.NESTED_CHILDREN in uiGroups
+                        or UIGroups.CLUSTERED in uiGroups
+                    ):
+                        not_nested = False  # Any nested setting must not be added directly to the card group
+                    group.addChildCard(card)
+                    group.addChildCardGroup(setting, card_group)
+        return not_nested
 
-def updateCardGrouping(
-    setting: str,
-    card_group: AnyCardGroup,
-    card: AnyCard,
-    groups: Iterable[Group] | None,
-) -> bool:
-    not_nested = True
-    if groups:
-        for group in groups:
-            if setting == group.getParentName():
-                # Note: parents are not added to the setting card group here,
-                # since a parent can be a child of another parent
-                group.setParentCard(card)
-                group.setParentCardGroup(
-                    card_group
-                )  # Instead, save a reference to the card group
-            else:
-                uiGroups = group.getUIGroupParent()
-                if (
-                    UIGroups.NESTED_CHILDREN in uiGroups
-                    or UIGroups.CLUSTERED in uiGroups
-                ):
-                    not_nested = False  # Any nested setting must not be added directly to the card group
-                group.addChildCard(card)
-                group.addChildCardGroup(setting, card_group)
-    return not_nested
-
-
-def inferType(setting: str, options: dict, config_name: str) -> UITypes | None:
-    """Infer card type from various options in the template"""
-    card_type = None
-    if "ui_type" in options:
-        card_type = options["ui_type"]
-    elif "ui_invalidmsg" in options:
-        card_type = (
-            UITypes.LINE_EDIT
-        )  # TODO: ui_invalidmsg should apply to all free-form input
-    elif (
-        "max" in options
-        and options["max"] is None
-        or "max" not in options
-        and "min" in options
-    ):
-        card_type = UITypes.SPINBOX
-    elif isinstance(options["default"], bool):
-        card_type = UITypes.SWITCH
-    elif isinstance(options["default"], int):
-        card_type = UITypes.SLIDER
-    elif isinstance(options["default"], str):
-        card_type = UITypes.LINE_EDIT  # FIXME: Temporary
-    else:
-        _logger_.warning(
-            f"Config '{config_name}': Failed to infer ui_type for setting '{setting}'. "
-            + f"The default value '{options["default"]}' has unsupported type '{type(options["default"])}'"
-        )
-    return card_type
-
-
-def parseUnit(setting: str, options: dict, config_name: str) -> str | None:
-    baseunit = None
-    if "ui_unit" in options:
-        baseunit = options["ui_unit"]
-        if baseunit not in CoreArgs._core_config_units.keys():
-            _logger_.warning(
-                f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                + f"Expected one of '{iterToString(CoreArgs._core_config_units.keys(), separator=', ')}'"
+    @classmethod
+    def inferType(cls, setting: str, options: dict, config_name: str) -> UITypes | None:
+        """Infer card type from various options in the template"""
+        card_type = None
+        if "ui_type" in options:
+            card_type = options["ui_type"]
+        elif "ui_invalidmsg" in options:
+            card_type = (
+                UITypes.LINE_EDIT
+            )  # TODO: ui_invalidmsg should apply to all free-form input
+        elif (
+            "max" in options
+            and options["max"] is None
+            or "max" not in options
+            and "min" in options
+        ):
+            card_type = UITypes.SPINBOX
+        elif isinstance(options["default"], bool):
+            card_type = UITypes.SWITCH
+        elif isinstance(options["default"], int):
+            card_type = UITypes.SLIDER
+        elif isinstance(options["default"], str):
+            card_type = UITypes.LINE_EDIT  # FIXME: Temporary
+        else:
+            cls._logger.warning(
+                f"Config '{config_name}': Failed to infer ui_type for setting '{setting}'. "
+                + f"The default value '{options["default"]}' has unsupported type '{type(options["default"])}'"
             )
-    return baseunit
+        return card_type
+
+    @classmethod
+    def parseUnit(cls, setting: str, options: dict, config_name: str) -> str | None:
+        baseunit = None
+        if "ui_unit" in options:
+            baseunit = options["ui_unit"]
+            if baseunit not in CoreArgs._core_config_units.keys():
+                cls._logger.warning(
+                    f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
+                    + f"Expected one of '{iterToString(CoreArgs._core_config_units.keys(), separator=', ')}'"
+                )
+        return baseunit

@@ -12,12 +12,7 @@ from ..components.settings.line_edit import CoreLineEdit
 from ..components.settings.slider import CoreSlider
 from ..components.settings.spinbox import CoreSpinBox
 from ..components.settings.switch import CoreSwitch
-from .generator_tools import (
-    UIGrouping,
-    inferType,
-    parseUnit,
-    updateCardGrouping,
-)
+from .generator_tools import GeneratorUtils
 from ...module.config.internal.core_args import CoreArgs
 from ...module.config.templates.template_enums import UIFlags, UITypes
 from ...module.config.tools.template_options.groups import Group
@@ -196,7 +191,9 @@ class GeneratorBase:
                 options=options,
                 num_range=[options["min"], options["max"]],
                 is_tight=self._is_tight,
-                baseunit=parseUnit(setting_name, options, self._config_name),
+                baseunit=GeneratorUtils.parseUnit(
+                    setting_name, options, self._config_name
+                ),
                 parent_key=self._parent_key,
                 parent=parent,
             )
@@ -263,7 +260,9 @@ class GeneratorBase:
                 )
                 try:
                     card = self._createCard(
-                        card_type=inferType(setting, options, self._config_name),
+                        card_type=GeneratorUtils.inferType(
+                            setting, options, self._config_name
+                        ),
                         setting=setting,
                         options=options,
                         content=options["ui_desc"] if "ui_desc" in options else "",
@@ -285,7 +284,7 @@ class GeneratorBase:
                                 all_groups.append(group)
                     if not all_groups:
                         all_groups = None
-                    if updateCardGrouping(
+                    if GeneratorUtils.updateCardGrouping(
                         setting=setting,
                         card_group=card_group,
                         card=card,
@@ -315,7 +314,7 @@ class GeneratorBase:
 
         final_all_groups = Group.getAllGroups(self._template_name)
         if final_all_groups:
-            UIGrouping.connectUIGroups(final_all_groups)
+            GeneratorUtils.connectUIGroups(final_all_groups)
         self._addCardsBySortOrder()
 
         if failed_cards:
