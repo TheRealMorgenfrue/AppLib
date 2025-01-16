@@ -109,13 +109,14 @@ class BaseSetting(QWidget):
         self,
         config_name: str,
         config_key: str,
-        parent_key: tuple[str | None],
+        parent_key_tuple: tuple[str | None],
         value: tuple[Any,],
     ) -> None:
+        (parent_key,) = parent_key_tuple
         if (
             self.config_name == config_name
             and self.config_key == config_key
-            and self.parent_key == parent_key
+            and (self.parent_key == parent_key or parent_key is None)
         ):
             self.setWidgetValue(value[0])
 
@@ -123,13 +124,14 @@ class BaseSetting(QWidget):
         self,
         config_name: str,
         config_key: str,
-        parent_key: tuple[str | None],
+        parent_key_tuple: tuple[str | None],
         value: tuple[Any,],
     ) -> None:
+        (parent_key,) = parent_key_tuple
         if (
             self.config_name == config_name
             and self.config_key == config_key
-            and self.parent_key == parent_key
+            and (self.parent_key == parent_key or parent_key is None)
         ):
             self.setConfigValue(value[0])
 
