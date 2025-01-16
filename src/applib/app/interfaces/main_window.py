@@ -74,7 +74,7 @@ class CoreMainWindow(MSFluentWindow):
 
             self._connectSignalToSlot()
             self._initNavigation()
-            self._initBackground()
+            self._initBackgroundAndTheme()
             self._checkSoftErrors()
         except Exception:
             self._error_log.append(
@@ -85,7 +85,7 @@ class CoreMainWindow(MSFluentWindow):
         self.splashScreen.finish()
         self._displayErrors()
 
-    def _initBackground(self):
+    def _initBackgroundAndTheme(self):
         val = self.main_config.getValue("appBackground")
         self.background = QPixmap(val) if val else None  # type: QPixmap | None
         self.background_opacity = (
@@ -94,6 +94,7 @@ class CoreMainWindow(MSFluentWindow):
         self.background_blur_radius = float(
             self.main_config.getValue("backgroundBlur", 0.0)
         )
+        self._onThemeChanged(self.main_config.getValue("appTheme"))
 
     def _initNavigation(self):
         if self._subinterfaces:
