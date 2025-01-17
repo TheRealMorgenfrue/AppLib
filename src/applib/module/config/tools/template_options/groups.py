@@ -146,7 +146,7 @@ class Group:
     def getTemplateName(self) -> str:
         return self._template_name
 
-    def setParentCardGroup(self, card_group: AnyCardGroup) -> None:
+    def setParentCardGroup(self, card_group: AnyCardGroup | None) -> None:
         self._parent_card_group = card_group
 
     def getParentCardGroup(self) -> AnyCardGroup | None:

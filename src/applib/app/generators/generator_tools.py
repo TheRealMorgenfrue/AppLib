@@ -179,8 +179,8 @@ class GeneratorUtils:
     def updateCardGrouping(
         cls,
         setting: str,
-        card_group: AnyCardGroup,
         card: AnyCard,
+        card_group: AnyCardGroup | None,
         groups: Iterable[Group] | None,
     ) -> bool:
         not_nested = True
