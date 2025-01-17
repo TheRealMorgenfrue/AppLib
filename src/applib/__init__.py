@@ -122,6 +122,8 @@ from .module.config.validators import validatePath, validateLoglevel, validateTh
 
 # Datastructures
 from .module.datastructures.yfasttrie import YFastTrie
+from .module.datastructures.binarysearchtree import BinarySearchTree
+from .module.datastructures.redblacktree import RedBlackTree
 
 # Exceptions
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
@@ -172,6 +174,7 @@ __all__ = [
     "AppLibLogger",
     "AutoTextWrap",
     "BaseTemplate",
+    "BinarySearchTree",
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
@@ -230,6 +233,7 @@ __all__ = [
     "ProgressBarCard",
     "ProgressCard",
     "ProgressRingCard",
+    "RedBlackTree",
     "SampleCard",
     "SampleCardView",
     "SegmentedPivotCardStack",
