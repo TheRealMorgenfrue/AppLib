@@ -20,6 +20,9 @@ class TemplateParser:
     # These groups have no parent assigned to them (which is an error)
     _orphan_groups: dict[str, list[str]] = {}
 
+    # Hold a reference to Group
+    group = None  # type: Group
+
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -73,25 +76,25 @@ class TemplateParser:
                     continue
 
                 # Create a strong reference to the Group class (prevent accidental garbage collection)
-                group = Group(template_name, group_name)
+                self.group = Group(template_name, group_name)
                 if parent_groups:
-                    group.setParentGroupNames(parent_groups)
+                    self.group.setParentGroupNames(parent_groups)
 
                 # Check if this setting is a ui_group_parent.
                 # Note: If multiple ui_groups are given to a parent setting, the setting is only a parent for the first group and
                 #       a child in any remaining groups
                 if i == 0 and "ui_group_parent" in options:
                     # Check if a parent is defined for this group
-                    if group.getParentName():
+                    if self.group.getParentName():
                         self._logger.warning(
                             f"Template '{template_name}': Unable to assign setting '{setting}' as group parent "
-                            + f"for group '{group.getGroupName()}'. Setting '{group.getParentName()}' is already designated as parent. "
+                            + f"for group '{self.group.getGroupName()}'. Setting '{self.group.getParentName()}' is already designated as parent. "
                             + f"Adding as child to existing group"
                         )
                         self._addChild(
                             setting=setting,
                             options=options,
-                            group=group,
+                            group=self.group,
                             group_name=group_name,
                             template_name=template_name,
                         )
@@ -99,7 +102,7 @@ class TemplateParser:
                         self._addParent(
                             setting=setting,
                             options=options,
-                            group=group,
+                            group=self.group,
                             group_name=group_name,
                             template_name=template_name,
                         )
@@ -108,7 +111,7 @@ class TemplateParser:
                     self._addChild(
                         setting=setting,
                         options=options,
-                        group=group,
+                        group=self.group,
                         group_name=group_name,
                         template_name=template_name,
                     )
