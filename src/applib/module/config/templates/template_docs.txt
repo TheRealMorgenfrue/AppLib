@@ -263,7 +263,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
     - NESTED_CHILDREN   (Applies to: All)
         This setting's children will be nested under it.
-        However, the specifics of the nesting depend on the GUI config generator used.
+        However, the specifics of the nesting depends on the GUI config generator used.
         NESTED_CHILDREN and CLUSTERED are mutually exclusive!
 
     - DISABLE_CHILDREN  (Applies to: All)
@@ -303,7 +303,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 - ui_invalidmsg
     Message informing the user that they typed invalid data into this setting.
-    Only relevant on free-form input, e.g. a line edit.
+    Only relevant on free-form input, e.g., a line edit.
 
     *********************
     Syntax:
@@ -329,7 +329,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     *********************
     Possible values:
     - All values are specified here:
-      #LINK applib\module\config\templates\template_docs.txt
+      #LINK src\applib\module\config\templates\template_enums.py
 
 ───────────────────────────────────────────────────────────────────────────
 
@@ -373,7 +373,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
     Possible values:
     * All values are specified here:
-      #LINK applib\module\config\templates\template_docs.txt
+      #LINK src\applib\module\config\templates\template_enums.py
 
     - REQUIRES_RELOAD   (Applies to: All)
         This setting requires a full reload of the app to take effect.
