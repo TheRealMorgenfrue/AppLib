@@ -1,7 +1,9 @@
 """Some base classes inherited by others"""
 
+from typing import Iterable
 
-class BaseCollection(object):
+
+class BaseCollection:
     """Base class for everything"""
 
     def __init__(self):
@@ -44,7 +46,7 @@ class BaseSet(BaseCollection):
     def __ne__(self, a):
         return not self == a
 
-    def add_all(self, a):
+    def add_all(self, a: Iterable):
         for x in a:
             self.add(x)
 
@@ -53,7 +55,7 @@ class BaseList(BaseCollection):
     """Base class for List implementations"""
 
     def __init__(self):
-        super(BaseList, self).__init__()
+        super().__init__()
 
     def __iter__(self):
         """This implementation is good enough for array-based lists"""
@@ -85,8 +87,8 @@ class BaseList(BaseCollection):
     def append(self, x):
         self.add(self.size(), x)
 
-    def add_all(self, iterable):
-        for x in iterable:
+    def add_all(self, a: Iterable):
+        for x in a:
             self.append(x)
 
     def clear(self):
@@ -106,7 +108,7 @@ class BaseList(BaseCollection):
     def remove_last(self):
         return self.remove(self.size() - 1)
 
-    def insert(self, i, x):
+    def insert(self, i: int, x):
         self.add(i, x)
 
     def index(self, x):
