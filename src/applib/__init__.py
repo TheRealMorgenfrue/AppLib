@@ -89,6 +89,7 @@ from .app.components.sample_card import SampleCard, SampleCardView
 from .app.generators.card_generator import CardGenerator
 from .app.generators.cardwidget_generator import CardWidgetGenerator
 from .app.generators.generatorbase import GeneratorBase
+from .app.generators.generator_tools import GeneratorUtils
 
 # Interfaces
 from .app.core_app import CoreApp
@@ -209,6 +210,7 @@ __all__ = [
     "FluentSettingCard",
     "FormSettingCard",
     "GeneratorBase",
+    "GeneratorUtils",
     "GenericSettingCard",
     "Group",
     "IndeterminateProgressBarCard",
