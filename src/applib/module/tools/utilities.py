@@ -115,7 +115,7 @@ def decodeInput(input: str | bytes, encoding: str = "utf-8") -> str:
     return input.decode(encoding=encoding, errors="ignore")
 
 
-def getDictNestingLevel(input: dict, stop_at: int) -> int:
+def getDictNestingLevel(input: dict, stop_at: int) -> bool:
     stack = [iter(input.items())]
     nestingLevel = 0
     while stack:
@@ -130,6 +130,7 @@ def getDictNestingLevel(input: dict, stop_at: int) -> int:
                 return False
         else:
             stack.pop()
+    return False
 
 
 def formatListForDisplay(

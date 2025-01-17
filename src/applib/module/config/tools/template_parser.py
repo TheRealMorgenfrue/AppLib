@@ -280,7 +280,7 @@ class TemplateParser:
             validation_info = ValidationInfo()
 
             # Enable both section and sectionless parsing
-            if getDictNestingLevel(template, 2) == 2:
+            if getDictNestingLevel(template, 2):
                 for section_name, section in template.items():
                     self._parseContent(
                         section_name=section_name,
