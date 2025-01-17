@@ -4,48 +4,51 @@ This structure is able to store elements, x, where int(x) is an unsigned
 w bit integer.
 """
 
+from typing import Self
+from numpy import _ConvertibleToInt
+
 from .utils import new_array, w
 from .base import BaseSet
 
 
 class BinaryTrie(BaseSet):
-    class Node(object):
+    class Node:
         def __init__(self):
             self.child = new_array(2)
-            self.jump = None
-            self.parent = None
+            self.jump = None  # type: Self
+            self.parent = None  # type: Self
             self.x = None
 
         @property
-        def left(self):
+        def left(self) -> Self:
             return self.child[0]
 
         @left.setter
-        def left(self, u):
+        def left(self, u: Self) -> Self:
             self.child[0] = u
 
         @property
-        def right(self):
+        def right(self) -> Self:
             return self.child[1]
 
         @right.setter
-        def right(self, u):
+        def right(self, u: Self) -> Self:
             self.child[1] = u
 
         @property
-        def prev(self):
+        def prev(self) -> Self:
             return self.child[0]
 
         @prev.setter
-        def prev(self, u):
+        def prev(self, u: Self) -> Self:
             self.child[0] = u
 
         @property
-        def next(self):
+        def next(self) -> Self:
             return self.child[1]
 
         @next.setter
-        def next(self, u):
+        def next(self, u: Self) -> Self:
             self.child[1] = u
 
         def __str__(self):
@@ -109,7 +112,7 @@ class BinaryTrie(BaseSet):
     def clear(self):
         self._initialize()
 
-    def add(self, x):
+    def add(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
         u = self.r
         # 1 - search for ix until falling out of the tree
@@ -151,7 +154,7 @@ class BinaryTrie(BaseSet):
         self.n += 1
         return True
 
-    def find(self, x):
+    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
         ix = int(x)
         u = self.r
         i = 0
@@ -168,7 +171,7 @@ class BinaryTrie(BaseSet):
             return None
         return u.x
 
-    def remove(self, x):
+    def remove(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
         u = self.r
         # 1 - find leaf, u, that contains x

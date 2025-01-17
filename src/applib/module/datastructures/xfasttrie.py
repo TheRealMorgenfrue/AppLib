@@ -7,6 +7,9 @@ D. E. Willard. Log-logarithmic worst-case range queries are possible in
   space Theta(n). Information Processing Letters, 17, 81-84. 1984.
 """
 
+from typing import Self, Union
+from numpy import _ConvertibleToInt
+
 from .binarytrie import BinaryTrie
 from .linearhashtable import LinearHashTable
 from .utils import new_array, w
@@ -18,7 +21,7 @@ class XFastTrie(BinaryTrie):
             super().__init__()
             self.prefix = 0
 
-        def __eq__(self, other):
+        def __eq__(self, other: Self):
             return self.prefix == other.prefix
 
         def __hash__(self):
@@ -32,46 +35,11 @@ class XFastTrie(BinaryTrie):
             self.t[i] = LinearHashTable()
         self.t[0].add(self.r)
 
-    def _new_node(self):
+    def _new_node(self) -> Node:
         return XFastTrie.Node()
 
-    def add(self, x):
-        if super().add(x):
-            ix = int(x)
-            u = self.r.child[(ix >> w - 1) & 1]
-            for i in range(1, w + 1):
-                u.prefix = ix >> w - i
-                self.t[i].add(u)
-                if i < w:
-                    c = (ix >> w - i - 1) & 1
-                u = u.child[c]
-            return True
-        return False
-
-    def find(self, x):
-        ix = int(x)
-        l, h = 0, w + 1
-        u = self.r
-        q = self._new_node()
-        while h - l > 1:
-            i = (l + h) / 2
-            q.prefix = ix >> w - i
-            v = self.t[i].find(q)
-            if v is None:
-                h = i
-            else:
-                u = v
-                l = i
-        if l == w:
-            return u.x
-        c = ix >> (w - l - 1) & 1
-        pred = [u.jump.prev, u.jump][c]
-        if pred.next is None:
-            return None
-        return pred.next.x
-
     # TODO: Too much duplication with find(x)
-    def find_node(self, x):
+    def _find_node(self, x: Union[int, str, bytes, bytearray]) -> Node:
         ix = int(x)
         l, h = 0, w + 1
         u = self.r
@@ -93,7 +61,42 @@ class XFastTrie(BinaryTrie):
             return None
         return pred.next
 
-    def remove(self, x):
+    def add(self, x: _ConvertibleToInt) -> bool:
+        if super().add(x):
+            ix = int(x)
+            u = self.r.child[(ix >> w - 1) & 1]
+            for i in range(1, w + 1):
+                u.prefix = ix >> w - i
+                self.t[i].add(u)
+                if i < w:
+                    c = (ix >> w - i - 1) & 1
+                u = u.child[c]
+            return True
+        return False
+
+    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
+        ix = int(x)
+        l, h = 0, w + 1
+        u = self.r
+        q = self._new_node()
+        while h - l > 1:
+            i = (l + h) / 2
+            q.prefix = ix >> w - i
+            v = self.t[i].find(q)
+            if v is None:
+                h = i
+            else:
+                u = v
+                l = i
+        if l == w:
+            return u.x
+        c = ix >> (w - l - 1) & 1
+        pred = [u.jump.prev, u.jump][c]
+        if pred.next is None:
+            return None
+        return pred.next.x
+
+    def remove(self, x: _ConvertibleToInt) -> bool:
         # 1 - fine leaf, u, containing x
         ix = int(x)
         i = 0

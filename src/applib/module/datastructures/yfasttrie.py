@@ -8,7 +8,8 @@ D. E. Willard. Log-logarithmic worst-case range queries are possible in
 """
 
 import random
-from typing import Union
+from typing import Self
+from numpy import _ConvertibleToInt
 
 from .base import BaseSet
 from .treap import Treap
@@ -32,7 +33,7 @@ class STreap(Treap):
             u.left = s
         s.parent = u
         s.p = -1
-        self.bubble_up(s)
+        self._bubble_up(s)
         self.r = s.right
         if self.r is not self.nil:
             self.r.parent = self.nil
@@ -42,7 +43,7 @@ class STreap(Treap):
             ret.r.parent = ret.nil
         return ret
 
-    def absorb(self, t):
+    def absorb(self, t: Self):
         """Absorb the treap t (which must only contain smaller values)"""
         s = self._new_node(None)
         s.right = self.r
@@ -53,8 +54,8 @@ class STreap(Treap):
             t.r.parent = s
         self.r = s
         t.r = t.nil
-        self.trickle_down(s)
-        self.splice(s)
+        self._trickle_down(s)
+        self._splice(s)
 
     def size(self):
         """Raise an error because our implementation is only half-assed"""
@@ -107,7 +108,7 @@ class YFastTrie(BaseSet):
         self.xft.add(Pair((1 << w) - 1, STreap()))
         self.n = 0
 
-    def add(self, x: Union[int, str, bytes, bytearray]):
+    def add(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
         t = self.xft.find(Pair(ix))[1]
         if t.add(x):
@@ -118,12 +119,12 @@ class YFastTrie(BaseSet):
             return True
         return False
 
-    def find(self, x: Union[int, str, bytes, bytearray]):
+    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
         return self.xft.find(Pair(int(x)))[1].find(x)
 
-    def remove(self, x: Union[int, str, bytes, bytearray]):
+    def remove(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
-        u = self.xft.find_node(ix)
+        u = self.xft._find_node(ix)
         ret = u.x[1].remove(x)
         if ret:
             self.n -= 1

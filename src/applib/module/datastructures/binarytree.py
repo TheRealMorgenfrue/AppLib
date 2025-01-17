@@ -1,12 +1,16 @@
 """A basic binary tree implementation"""
 
+from typing import Self
+
 from .arrayqueue import ArrayQueue
 
 
-class BinaryTree(object):
-    class Node(object):
+class BinaryTree:
+    class Node:
         def __init__(self):
-            self.left = self.right = self.parent = None
+            self.left = None  # type: Self
+            self.right = None  # type: Self
+            self.parent = None  # type: Self
 
     def __init__(self):
         super().__init__()
@@ -14,30 +18,30 @@ class BinaryTree(object):
         self.r = None
         self.initialize()
 
-    def _size(self, u):
+    def _size(self, u: Node) -> int:
         if u == self.nil:
             return 0
         return 1 + self._size(u.left) + self._size(u.right)
 
-    def _height(self, u):
+    def _height(self, u: Node) -> int:
         if u == self.nil:
             return 0
         return 1 + max(self._height(u.left), self._height(u.right))
 
     def initialize(self):
-        self.r = None
+        self.r = None  # type: BinaryTree.Node
 
-    def depth(self, u):
+    def depth(self, u: Node) -> int:
         d = 0
         while u != self.r:
             u = u.parent
             d += 1
         return d
 
-    def size(self):
+    def size(self) -> int:
         return self._size(self.r)
 
-    def size2(self):
+    def size2(self) -> int:
         u = self.r
         prv = self.nil
         n = 0
@@ -64,7 +68,7 @@ class BinaryTree(object):
     def height(self):
         return self.height_r(self.r)
 
-    def traverse(self, u):
+    def traverse(self, u: Node):
         if u == self.nil:
             return
         self.traverse(u.left)
@@ -96,13 +100,13 @@ class BinaryTree(object):
         if self.r != self.nil:
             q.add(self.r)
         while q.size() > 0:
-            u = q.remove()
+            u = q.remove()  # type: BinaryTree.Node
             if u.left != self.nil:
                 q.add(u.left)
             if u.right != self.nil:
                 q.add(u.right)
 
-    def first_node(self):
+    def first_node(self) -> Node:
         """Find the first node in an in-order traversal"""
         w = self.r
         if w == self.nil:
@@ -111,7 +115,7 @@ class BinaryTree(object):
             w = w.left
         return w
 
-    def next_node(self, w):
+    def next_node(self, w: Node) -> Node:
         """Find the node that follows w in an in-order traversal"""
         if w.right != self.nil:
             w = w.right

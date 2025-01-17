@@ -1,5 +1,7 @@
 """A Set implementation that uses hashing with linaer probing"""
 
+from typing import Any, Iterable
+
 from .utils import new_array
 from .base import BaseSet
 
@@ -8,7 +10,7 @@ w = 32
 
 class LinearHashTable(BaseSet):
 
-    def __init__(self, iterable=[]):
+    def __init__(self, iterable: Iterable = []):
         self._initialize()
         self.initialize()
         self.add_all(iterable)
@@ -53,7 +55,7 @@ class LinearHashTable(BaseSet):
     def hash_code(self, x):
         return hash(x)
 
-    def add(self, x):
+    def add(self, x) -> bool:
         if self.find(x) is not None:
             return False
         if 2 * (self.q + 1) > len(self.t):
@@ -67,7 +69,7 @@ class LinearHashTable(BaseSet):
         self.t[i] = x
         return True
 
-    def find(self, x):
+    def find(self, x) -> Any | None:
         i = self._hash(x)
         while self.t[i] is not None:
             if self.t[i] != self.dl and x == self.t[i]:

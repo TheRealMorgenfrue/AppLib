@@ -1,18 +1,20 @@
 """An implementation of a binary search tree"""
 
+from typing import Any, Iterable, Union
+
 from .binarytree import BinaryTree
 from .base import BaseSet
 
 
 class BinarySearchTree(BinaryTree, BaseSet):
-    """Base classs for all our binary search trees"""
+    """Base class for all our binary search trees"""
 
     class Node(BinaryTree.Node):
         def __init__(self, x):
             super().__init__()
             self.x = x
 
-    def __init__(self, iterable=[], nil=None):
+    def __init__(self, iterable: Iterable = [], nil=None):
         super().__init__()
         self._initialize()
         self.nil = nil
@@ -24,7 +26,7 @@ class BinarySearchTree(BinaryTree, BaseSet):
             yield u.x
             u = self.next_node(u)
 
-    def _new_node(self, x):
+    def _new_node(self, x: Node) -> Node:
         u = BinarySearchTree.Node(x)
         u.left = u.right = u.parent = self.nil
         return u
@@ -32,7 +34,7 @@ class BinarySearchTree(BinaryTree, BaseSet):
     def _initialize(self):
         self.n = 0
 
-    def _find_last(self, x):
+    def _find_last(self, x) -> Union[Node, Any, None]:
         w = self.r
         prev = self.nil
         while w is not self.nil:
@@ -45,7 +47,7 @@ class BinarySearchTree(BinaryTree, BaseSet):
                 return w
         return prev
 
-    def _add_child(self, p, u):
+    def _add_child(self, p: Node, u: Node) -> bool:
         if p == self.nil:
             self.r = u  # inserting into empty tree
         else:
@@ -59,21 +61,51 @@ class BinarySearchTree(BinaryTree, BaseSet):
         self.n += 1
         return True
 
-    def _remove_node(self, u):
+    def _remove_node(self, u: Node):
         if u.left == self.nil or u.right == self.nil:
-            self.splice(u)
+            self._splice(u)
         else:
             w = u.right
             while w.left != self.nil:
                 w = w.left
             u.x = w.x
-            self.splice(w)
+            self._splice(w)
 
-    def clear(self):
-        self.r = self.nil
-        self.n = 0
+    def _rotate_left(self, u: Node):
+        w = u.right
+        w.parent = u.parent
+        if w.parent != self.nil:
+            if w.parent.left == u:
+                w.parent.left = w
+            else:
+                w.parent.right = w
+        u.right = w.left
+        if u.right != self.nil:
+            u.right.parent = u
+        u.parent = w
+        w.left = u
+        if u == self.r:
+            self.r = w
+            self.r.parent = self.nil
 
-    def find_eq(self, x):
+    def _rotate_right(self, u: Node):
+        w = u.left
+        w.parent = u.parent
+        if w.parent != self.nil:
+            if w.parent.left == u:
+                w.parent.left = w
+            else:
+                w.parent.right = w
+        u.left = w.right
+        if u.left != self.nil:
+            u.left.parent = u
+        u.parent = w
+        w.right = u
+        if u == self.r:
+            self.r = w
+            self.r.parent = self.nil
+
+    def _find_eq(self, x) -> Any | None:
         w = self.r
         while w != self.nil:
             if x < w.x:
@@ -84,30 +116,11 @@ class BinarySearchTree(BinaryTree, BaseSet):
                 return w.x
         return None
 
-    def find(self, x):
-        w = self.r
-        z = self.nil
-        while w != self.nil:
-            if x < w.x:
-                z = w
-                w = w.left
-            elif x > w.x:
-                w = w.right
-            else:
-                return w.x
-        if z == self.nil:
-            return None
-        return z.x
-
-    def add(self, x):
-        p = self._find_last(x)
-        return self._add_child(p, self._new_node(x))
-
-    def add_node(self, u):
+    def _add_node(self, u: Node) -> bool:
         p = self._find_last(u.x)
         return self._add_child(p, u)
 
-    def splice(self, u):
+    def _splice(self, u: Node):
         if u.left != self.nil:
             s = u.left
         else:
@@ -125,43 +138,32 @@ class BinarySearchTree(BinaryTree, BaseSet):
             s.parent = p
         self.n -= 1
 
-    def remove(self, x):
+    def clear(self):
+        self.r = self.nil
+        self.n = 0
+
+    def find(self, x) -> Any | None:
+        w = self.r
+        z = self.nil
+        while w != self.nil:
+            if x < w.x:
+                z = w
+                w = w.left
+            elif x > w.x:
+                w = w.right
+            else:
+                return w.x
+        if z == self.nil:
+            return None
+        return z.x
+
+    def add(self, x) -> bool:
+        p = self._find_last(x)
+        return self._add_child(p, self._new_node(x))
+
+    def remove(self, x) -> bool:
         u = self._find_last(x)
         if u != self.nil and x == u.x:
             self._remove_node(u)
             return True
         return False
-
-    def rotate_left(self, u):
-        w = u.right
-        w.parent = u.parent
-        if w.parent != self.nil:
-            if w.parent.left == u:
-                w.parent.left = w
-            else:
-                w.parent.right = w
-        u.right = w.left
-        if u.right != self.nil:
-            u.right.parent = u
-        u.parent = w
-        w.left = u
-        if u == self.r:
-            self.r = w
-            self.r.parent = self.nil
-
-    def rotate_right(self, u):
-        w = u.left
-        w.parent = u.parent
-        if w.parent != self.nil:
-            if w.parent.left == u:
-                w.parent.left = w
-            else:
-                w.parent.right = w
-        u.left = w.right
-        if u.left != self.nil:
-            u.left.parent = u
-        u.parent = w
-        w.right = u
-        if u == self.r:
-            self.r = w
-            self.r.parent = self.nil
