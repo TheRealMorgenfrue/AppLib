@@ -40,7 +40,7 @@ from typing import Any, Optional, Union, override
 from ..card_base import (
     CardBase,
     DisableWrapper,
-    ParentCardBase,
+    ParentSettingCardBase,
 )
 from .settingcard import FluentSettingCard
 from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
@@ -101,8 +101,8 @@ class HeaderSettingCard(FluentSettingCard):
         # self.hBoxLayout.addSpacing(8)
 
         self.installEventFilter(self)
+        # contentLabel is implicitly captured by title, which is assumed to be present if content is
         self.titleLabel.installEventFilter(self)
-        self.contentLabel.installEventFilter(self)
 
     def eventFilter(self, obj: QObject, e: QEvent) -> None:
         if obj is self:
@@ -301,17 +301,6 @@ class ExpandSettingCard(CardBase, QScrollArea):
         """Toggle expand status"""
         self.setExpand(not self.is_expand)
 
-    def addWidget(self, widget: QWidget) -> None:
-        """Add widget to tail"""
-        self.card.addWidget(widget)
-
-
-class ExpandGroupSettingCard(ExpandSettingCard):
-    """Expand group setting card
-
-    Courtesy of qfluentwidgets (with modification)
-    """
-
     def addGroupWidget(self, widget: QWidget) -> None:
         # Add separator
         if self.viewLayout.count() >= 1:
@@ -321,8 +310,12 @@ class ExpandGroupSettingCard(ExpandSettingCard):
         self.viewLayout.addWidget(widget)
         self._adjustViewSize()
 
+    def addWidget(self, widget: QWidget) -> None:
+        """Add widget to tail"""
+        self.card.addWidget(widget)
 
-class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
+
+class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
     def __init__(
         self,
         card_name: str,
@@ -407,3 +400,9 @@ class ExpandingSettingCard(ParentCardBase, ExpandGroupSettingCard):
             self.card.hide_option = False
             option.setHidden(True)
         self.card.setOption(option, alignment)
+
+    @override
+    def enableTightMode(self, is_tight: bool) -> tuple[int, int]:
+        mw, mh = super().enableTightMode(is_tight)
+        self.viewLayout.setContentsMargins(mw, mh, mw, mh)
+        return mw, mh

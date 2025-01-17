@@ -7,7 +7,7 @@ from qfluentwidgets import (
     FlowLayout,
 )
 from qfluentwidgets.components.settings.setting_card import SettingIconWidget
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QObject, QEvent
 from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
 from PyQt6.QtWidgets import (
     QFrame,
@@ -45,17 +45,15 @@ class SettingCardBase(CardBase, QFrame):
         self.has_disable_button = has_disable_button
         self.hide_option = True
         self.is_disabled = False
+        self.is_tight = False
+        self._hide_content_once = False  # Workaround for labels in floating windows when app window is not initialized/shown
 
         self.__initLayout()
         self._setQss()
 
     def __initLayout(self) -> None:
-        if not self.contentLabel.text():
-            self.contentLabel.setHidden(True)
-
+        self.enableTightMode(self.is_tight)  # Call to ensure a mode is set
         self.iconLabel.setFixedSize(16, 16)
-
-        self.enableTightMode(False)
         self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.hBoxLayout.addWidget(self.iconLabel, 0, Qt.AlignmentFlag.AlignLeft)
@@ -78,12 +76,43 @@ class SettingCardBase(CardBase, QFrame):
     def _setMargins(self, mw: int, mh: int) -> None:
         self.hBoxLayout.setContentsMargins(mw, mh, mw, mh)
 
-    def enableTightMode(self, is_tight: bool) -> None:
+    def eventFilter(self, obj: QObject, e: QEvent) -> None:
+        if obj is self.contentLabel and self._hide_content_once:
+            if e.type() == QEvent.Type.Show:
+                self._hide_content_once = False
+                self.contentLabel.setHidden(True)
+                self.adjustSize()
+        return super().eventFilter(obj, e)
+
+    def createContentToolTip(self) -> None:
+        self._createToolTip(
+            self.titleLabel,
+            self.contentLabel.text(),
+        )
+
+    def removeContentToolTip(self) -> None:
+        if self.contentLabel in self._tooltip_filters:
+            self.contentLabel.removeEventFilter(self)
+            self._deleteToolTip(
+                self.contentLabel, self._tooltip_filters[self.contentLabel]
+            )
+
+    def enableTightMode(self, is_tight: bool) -> tuple[int, int]:
+        self.is_tight = is_tight
+        has_content = bool(self.contentLabel.text())
         if is_tight:
             mw, mh = 12, 8
+            self._hide_content_once = True
+            if has_content:
+                self.createContentToolTip()
+                self.contentLabel.installEventFilter(self)
         else:
             mw, mh = 16, 12
+            if not has_content:
+                self.contentLabel.setHidden(True)
+            self.removeContentToolTip()
         self._setMargins(mw, mh)
+        return mw, mh
 
 
 class SettingCardMixin:
@@ -124,7 +153,14 @@ class SettingCardMixin:
             self.disableCard.emit(DisableWrapper(value[0], others_only=True))
         elif type == "content":
             self.contentLabel.setText(value)
-            self.contentLabel.setHidden(not bool(value))
+            has_content = bool(value)
+            if has_content and self.is_tight:
+                self.createContentToolTip()
+                self.contentLabel.setHidden(True)
+            else:
+                if not has_content:
+                    self.removeContentToolTip()
+                self.contentLabel.setHidden(not has_content)
         elif type == "updateState":
             self.disableChildren.emit(DisableWrapper(self.is_disabled))
 

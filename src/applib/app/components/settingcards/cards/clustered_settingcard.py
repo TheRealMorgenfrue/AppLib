@@ -12,7 +12,7 @@ from ....common.core_stylesheet import CoreStyleSheet
 from ..card_base import (
     CardBase,
     DisableWrapper,
-    ParentCardBase,
+    ParentSettingCardBase,
 )
 from .expanding_settingcard import GroupSeparator
 from .settingcard import FluentSettingCard
@@ -47,7 +47,7 @@ class ClusterHeaderSettingCard(FluentSettingCard):
         return super().eventFilter(obj, e)
 
 
-class ClusteredSettingCard(CardBase, ParentCardBase, QFrame):
+class ClusteredSettingCard(CardBase, ParentSettingCardBase, QFrame):
     def __init__(
         self,
         card_name: str,

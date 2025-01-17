@@ -1,4 +1,4 @@
-from qfluentwidgets import CheckBox, ToolTipFilter, ToolTipPosition, TextWrap
+from qfluentwidgets import CheckBox
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
 from PyQt6.QtGui import QResizeEvent
 from PyQt6.QtCore import Qt
@@ -26,21 +26,6 @@ class SettingWidgetBase(CardBase, QWidget):
         self.has_disable_button = has_disable_button
         self.is_disabled = False
         CoreStyleSheet.SETTING_WIDGET.apply(self)
-
-    def _createToolTip(
-        self,
-        widget: QWidget | None,
-        content: str | None,
-        duration: int = 10000,
-        show_delay: int = 300,
-        position: ToolTipPosition = ToolTipPosition.TOP,
-    ) -> None:
-        if content and widget:
-            widget.setToolTip(TextWrap.wrap(content, 70, False)[0])
-            widget.setToolTipDuration(duration)
-            widget.installEventFilter(
-                ToolTipFilter(parent=widget, showDelay=show_delay, position=position)
-            )
 
 
 class SettingWidget(SettingWidgetBase):
