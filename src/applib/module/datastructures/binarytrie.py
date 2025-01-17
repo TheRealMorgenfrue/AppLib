@@ -1,7 +1,10 @@
-"""An implementation of a binary trie for storing w bit integers
+"""
+An implementation of a binary trie for storing w bit integers
 
 This structure is able to store elements, x, where int(x) is an unsigned
 w bit integer.
+
+Courtesy of https://opendatastructures.org/
 """
 
 from typing import Self

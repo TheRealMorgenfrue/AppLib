@@ -1,4 +1,5 @@
-"""An implementation of Guibas and Sedgewick's red-black trees
+"""
+An implementation of Guibas and Sedgewick's red-black trees
 
 This is an implementation of left-leaning red-black trees.  The best
 documentation for this implementation is available in Chapter 9 of
@@ -6,6 +7,8 @@ Open Data Structures.
 
 Leonidas J. Guibas, Robert Sedgewick: A Dichromatic Framework for Balanced
    Trees. FOCS 1978: 8-21
+
+Courtesy of https://opendatastructures.org/
 """
 
 from typing import Iterable

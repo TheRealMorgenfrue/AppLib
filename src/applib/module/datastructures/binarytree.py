@@ -1,4 +1,8 @@
-"""A basic binary tree implementation"""
+"""
+A basic binary tree implementation
+
+Courtesy of https://opendatastructures.org/
+"""
 
 from typing import Self
 

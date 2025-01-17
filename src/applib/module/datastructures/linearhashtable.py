@@ -1,4 +1,8 @@
-"""A Set implementation that uses hashing with linaer probing"""
+"""
+A Set implementation that uses hashing with linaer probing
+
+Courtesy of https://opendatastructures.org/
+"""
 
 from typing import Any, Iterable
 

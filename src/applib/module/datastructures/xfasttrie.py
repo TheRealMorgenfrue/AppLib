@@ -1,10 +1,13 @@
-"""An implementation of Willard's X-Fast tries
+"""
+An implementation of Willard's X-Fast tries
 
 This structure is able to store w-bit integers with O(log w) time searches
 and O(w) time addition/removal
 
 D. E. Willard. Log-logarithmic worst-case range queries are possible in
   space Theta(n). Information Processing Letters, 17, 81-84. 1984.
+
+Courtesy of https://opendatastructures.org/
 """
 
 from typing import Self, Union

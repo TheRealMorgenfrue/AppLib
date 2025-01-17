@@ -120,14 +120,14 @@ def getDictNestingLevel(input: dict, stop_at: int) -> int:
     nestingLevel = 0
     while stack:
         if nestingLevel == stop_at:
-            return nestingLevel
+            return True
         for k, v in stack[-1]:
             if isinstance(v, dict):
                 stack.append(iter(v.items()))
                 nestingLevel += 1
                 break
             else:
-                return nestingLevel
+                return False
         else:
             stack.pop()
 

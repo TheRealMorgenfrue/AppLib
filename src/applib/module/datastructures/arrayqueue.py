@@ -1,4 +1,8 @@
-"""An array-based implementation of a queue that uses modular arithmetic"""
+"""
+An array-based implementation of a queue that uses modular arithmetic
+
+Courtesy of https://opendatastructures.org/
+"""
 
 from .utils import new_array
 from .base import BaseSet

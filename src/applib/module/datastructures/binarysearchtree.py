@@ -1,4 +1,8 @@
-"""An implementation of a binary search tree"""
+"""
+An implementation of a binary search tree
+
+Courtesy of https://opendatastructures.org/
+"""
 
 from typing import Any, Iterable, Union
 

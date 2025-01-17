@@ -1,4 +1,5 @@
-"""An implementation of Treaps/Cartesian trees
+"""
+An implementation of Treaps/Cartesian trees
 
 This is an implementation of the data structure called a Treap by Aragon
 and Seidel:
@@ -10,6 +11,8 @@ Pretty-much the same structure was discovered earlier by Vuillemin:
 
 J. Vuillemin. A unifying look at data structures.
    Communications of the ACM, 23(4), 229-239, 1980.
+
+Courtesy of https://opendatastructures.org/
 """
 
 import random

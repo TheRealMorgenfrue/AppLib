@@ -1,3 +1,5 @@
+"""Courtesy of https://opendatastructures.org/"""
+
 import numpy
 
 w = 32

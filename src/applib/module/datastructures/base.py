@@ -1,4 +1,8 @@
-"""Some base classes inherited by others"""
+"""
+Some base classes inherited by others
+
+Courtesy of https://opendatastructures.org/
+"""
 
 from typing import Iterable
 
