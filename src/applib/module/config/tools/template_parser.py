@@ -6,7 +6,7 @@ from ..templates.template_enums import UIFlags, UIGroups
 from .template_options.groups import Group
 from .template_options.validation_info import ValidationInfo
 from ...logging import AppLibLogger
-from ...tools.utilities import getDictNestingLevel, iterToString
+from ...tools.utilities import checkDictNestingLevel, iterToString
 
 
 class TemplateParser:
@@ -280,7 +280,7 @@ class TemplateParser:
             validation_info = ValidationInfo()
 
             # Enable both section and sectionless parsing
-            if getDictNestingLevel(template, 2):
+            if checkDictNestingLevel(template, 2):
                 for section_name, section in template.items():
                     self._parseContent(
                         section_name=section_name,
