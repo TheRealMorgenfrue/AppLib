@@ -97,41 +97,41 @@ class YFastTrie(BaseSet):
         self._initialize()
 
     def __iter__(self):
-        # self.xft is a bunch of pairs
-        for p in self.xft:
+        # self._xft is a bunch of pairs
+        for p in self._xft:
             # the one'th element of each pair is an STreap
             for x in p[1]:
                 yield x
 
     def _initialize(self):
-        self.xft = XFastTrie()
-        self.xft.add(Pair((1 << w) - 1, STreap()))
-        self.n = 0
+        self._xft = XFastTrie()
+        self._xft.add(Pair((1 << w) - 1, STreap()))
+        self._n = 0
 
     def add(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
-        t = self.xft.find(Pair(ix))[1]
+        t = self._xft.find(Pair(ix))[1]
         if t.add(x):
-            self.n += 1
+            self._n += 1
             if random.randrange(w) == 0:
                 t1 = t.split(x)
-                self.xft.add(Pair(ix, t1))
+                self._xft.add(Pair(ix, t1))
             return True
         return False
 
     def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
-        return self.xft.find(Pair(int(x)))[1].find(x)
+        return self._xft.find(Pair(int(x)))[1].find(x)
 
     def remove(self, x: _ConvertibleToInt) -> bool:
         ix = int(x)
-        u = self.xft._find_node(ix)
+        u = self._xft._find_node(ix)
         ret = u.x[1].remove(x)
         if ret:
-            self.n -= 1
+            self._n -= 1
         if u.x[0] == ix and ix != (1 << w) - 1:
             t2 = u.next.x[1]
             t2.absorb(u.x[1])
-            self.xft.remove(u.x)
+            self._xft.remove(u.x)
         return ret
 
     def clear(self):
