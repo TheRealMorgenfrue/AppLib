@@ -10,27 +10,24 @@ from typing import Any, Callable, Literal, Mapping, Optional
 from time import time
 from pydantic import ValidationError
 
-from ...app.common.core_signalbus import core_signalbus
-from .tools.ini_file_parser import IniFileParser
-from ..exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
-from .internal.core_args import CoreArgs
-from .tools.config_tools import ConfigUtils
-from ..logging import AppLibLogger
-from ..tools.types.general import Model, StrPath
-from ..tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
+from ....app.common.core_signalbus import core_signalbus
+from ..tools.ini_file_parser import IniFileParser
+from ..internal.core_args import CoreArgs
+from ..mapping_base import MappingBase
+from ..tools.config_tools import ConfigUtils
+from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
+from ...tools.types.general import Model, StrPath
+from ...tools.types.templates import AnyTemplate
+from ...tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
 
 
-class ConfigBase:
-    """Base class for all configs"""
-
-    _logger = AppLibLogger().getLogger()
-
+class ConfigBase(MappingBase):
     def __init__(
         self,
-        template_model: dict,
+        name: str,
+        template: AnyTemplate,
         validation_model: Model,
-        config_name: str,
-        config_path: StrPath,
+        file_path: StrPath,
         save_interval: Number = 1,
     ) -> None:
         """
@@ -59,26 +56,29 @@ class ConfigBase:
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
         self._last_save_time = time()  # Prevent excessive disk writing
-        self._config_name = config_name
-        self._config_path = config_path
-        self._template_model = template_model
+        self._template = template
         self._validation_model = validation_model
-        self._connectSignalToSlot()
-        self.prefix_msg = f"Config {self._config_name}:"
-        # Initialize config after everything's set up
-        self._config = self._initConfig()
+        self.name = name
+        self.file_path = file_path
+        self.__connectSignalToSlot()
 
-    def _connectSignalToSlot(self) -> None:
+        # Initialize config after everything is set up
+        super().__init__(self._initConfig(), name)
+
+    def __connectSignalToSlot(self) -> None:
         core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
         core_signalbus.doSaveConfig.connect(self._onSaveConfig)
 
     def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
-        if old_name == self._config_name:
-            self._config_name = new_name
+        if old_name == self.name:
+            self.name = new_name
 
-    def _onSaveConfig(self, config_name: str) -> None:
-        if self._config_name == config_name:
+    def _onSaveConfig(self, name: str) -> None:
+        if self.name == name:
             self.saveConfig()
+
+    def _prefixMsg(self) -> str:
+        return f"Config {self.name}:"
 
     def _checkMissingFields(
         self, config: dict, template_model: dict, error_prefix: str = ""
@@ -176,16 +176,16 @@ class ConfigBase:
         Loads the config from a file.
 
         This is the default implementation.
-        To change its behavior, simply @override this method in a subclass.
+        To change its behavior, simply override this method in a subclass.
 
         Returns
         -------
-        dict[str, Any]
-            The loaded config.
+        dict
+            The config.
         """
         config, self._load_failure = self._loadConfig(
             validator=self._validateLoad,
-            template_model=self._template_model,
+            template_model=self._template,
         )
         return config
 
@@ -194,7 +194,7 @@ class ConfigBase:
         Validates the config when loaded from a file.
 
         This is the default implementation.
-        To change its behavior, simply @override this method in a subclass.
+        To change its behavior, simply override this method in a subclass.
 
         Parameters
         ----------
@@ -203,7 +203,7 @@ class ConfigBase:
 
         Returns
         -------
-        dict[str, Any]
+        dict
             The validated config.
         """
         validated_config = self._validation_model.model_validate(raw_config)
@@ -290,7 +290,7 @@ class ConfigBase:
                 )
             else:
                 core_signalbus.configUpdated.emit(
-                    self._config_name, key, (parent_key,), (value,)
+                    self.name, key, (parent_key,), (value,)
                 )
                 self._is_modified = True
 
@@ -346,10 +346,10 @@ class ConfigBase:
         is_error, failure, reload_failure = False, False, False
         can_reload = do_write_config or not use_validator_on_error
         config = None
-        filename = os.path.split(self._config_path)[1]
+        filename = os.path.split(self.file_path)[1]
         extension = os.path.splitext(filename)[1].strip(".")
         try:
-            with open(self._config_path, "rb") as file:
+            with open(self.file_path, "rb") as file:
                 if extension.lower() == "toml":
                     raw_config = tomlkit.load(file)
                 elif extension.lower() == "ini":
@@ -357,7 +357,7 @@ class ConfigBase:
                 elif extension.lower() == "json":
                     raw_config = json.load(file)
                 else:
-                    err_msg = f"{self.prefix_msg} Cannot load unsupported file '{self._config_path}'"
+                    err_msg = f"{self.prefix_msg} Cannot load unsupported file '{self.file_path}'"
                     raise NotImplementedError(err_msg)
 
             if validator:
@@ -370,7 +370,7 @@ class ConfigBase:
             self._logger.debug(formatValidationError(err))
             if do_write_config:
                 self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self.file_path)
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
             err_msg = f"{self.prefix_msg} Detected incorrect fields in '{filename}':\n"
@@ -381,13 +381,13 @@ class ConfigBase:
                 self._logger.info(f"{self.prefix_msg} Repairing config")
                 repaired_config = self._repairConfig(raw_config, template_model)
                 self.backupConfig()
-                ConfigUtils.writeConfig(repaired_config, self._config_path)
+                ConfigUtils.writeConfig(repaired_config, self.file_path)
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(f"{self.prefix_msg} {err.args[0]}")
             if do_write_config:
                 self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self.file_path)
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
@@ -396,12 +396,12 @@ class ConfigBase:
             )
             if do_write_config:
                 self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self.file_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
             self._logger.info(f"{self.prefix_msg} Creating '{filename}'")
             if do_write_config:
-                ConfigUtils.writeConfig(template_model, self._config_path)
+                ConfigUtils.writeConfig(template_model, self.file_path)
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
@@ -480,7 +480,7 @@ class ConfigBase:
             A dict created from a `Model`, resembling a template,
             from which the config will be created.
         """
-        self._template_model = template_model
+        self._template = template_model
 
     def setValidationModel(self, validation_model: Model) -> None:
         """
@@ -505,7 +505,7 @@ class ConfigBase:
         return self._config
 
     def getConfigName(self) -> str:
-        return self._config_name
+        return self.name
 
     def getFailureStatus(self) -> bool:
         """
@@ -560,7 +560,7 @@ class ConfigBase:
         Any
             The value of `key`, if found, else `default`.
         """
-        config = self._template_model if use_template_model else self._config
+        config = self._template if use_template_model else self._config
         value = retrieveDictValue(
             d=config, key=key, parent_key=parent_key, default=default
         )
@@ -606,7 +606,7 @@ class ConfigBase:
                 and (self._last_save_time + self._save_interval) < time()
             ):
                 self._last_save_time = time()
-                ConfigUtils.writeConfig(self._config, self._config_path)
+                ConfigUtils.writeConfig(self._config, self.file_path)
                 self._is_modified = False
         except Exception:
             msg = "Failed to save the config"
@@ -619,12 +619,12 @@ class ConfigBase:
     def backupConfig(self) -> None:
         """Creates a backup of the config file on disk, overwriting any existing backup."""
         try:
-            file = os.path.split(self._config_path)[1]
-            backup_file = Path(f"{self._config_path}.bak")
+            file = os.path.split(self.file_path)[1]
+            backup_file = Path(f"{self.file_path}.bak")
             self._logger.debug(f"Creating backup of '{file}' to '{backup_file}'")
-            shutil.copyfile(self._config_path, backup_file)
+            shutil.copyfile(self.file_path, backup_file)
         except Exception:
             self._logger.error(
-                f"Failed to create backup of '{self._config_path}'\n"
+                f"Failed to create backup of '{self.file_path}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )

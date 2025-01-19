@@ -13,10 +13,10 @@ from ..components.settings.slider import CoreSlider
 from ..components.settings.spinbox import CoreSpinBox
 from ..components.settings.switch import CoreSwitch
 from .generator_tools import GeneratorUtils
-from ...module.config.internal.core_args import CoreArgs
-from ...module.config.templates.template_enums import UIFlags, UITypes
-from ...module.config.tools.template_options.groups import Group
-from ...module.config.tools.template_parser import TemplateParser
+from ...module.configuration.internal.core_args import CoreArgs
+from ...module.configuration.templates.template_enums import UIFlags, UITypes
+from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import AppLibLogger
 from ...module.tools.types.config import AnyConfig
@@ -24,7 +24,7 @@ from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
-from ...module.tools.utilities import iterToString
+from ...module.tools.utilities import checkDictNestingLevel, iterToString
 
 
 class GeneratorBase:
@@ -222,19 +222,45 @@ class GeneratorBase:
             raise TypeError(err_msg)
         return widget
 
-    def _generateCards(self, CardGroup: AnyCardGroup) -> list[AnyCardGroup]:
+    def _excludeSetting(self, setting: str, options: dict) -> bool:
+        exclude = "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]
+        if exclude:
+            self._logger.debug(
+                f"{self._prefix_msg} Excluding setting '{setting}' from GUI"
+            )
+        return exclude
+
+    def _generateCards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
         template = self._template.getTemplate()
         template_parser = TemplateParser()
         template_parser.parse(self._template_name, template)
         failed_cards = 0
 
+
+        stack = [template.items()]
+        while stack:
+            for k, v in stack[-1]:
+                if isinstance(v, dict) and checkDictNestingLevel(v, 2):
+                    stack.append(v.items())
+                else:
+
+
+
+
+
+
+
+
+
+
         for section_name, section in template.items():
-            card_group = CardGroup(section_name, self._parent)  # type: AnyCardGroup
+            card_group = (
+                CardGroup(section_name, self._parent) if CardGroup else None
+            )  # type: AnyCardGroup
+
+
             for setting, options in section.items():
-                if "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]:
-                    self._logger.debug(
-                        f"{self._prefix_msg} Excluding setting '{setting}' from GUI"
-                    )
+                if self._excludeSetting(setting, options):
                     continue
 
                 # Get the raw ui_group
@@ -303,7 +329,7 @@ class GeneratorBase:
                             )
                     failed_cards += 1
 
-            if self._hide_group_label:
+            if card_group and self._hide_group_label:
                 card_group.getTitleLabel().setHidden(True)
             if self._default_group:
                 if self._default_group == card_group.getTitleLabel().text():
