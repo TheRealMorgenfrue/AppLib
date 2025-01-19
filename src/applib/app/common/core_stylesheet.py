@@ -1,7 +1,7 @@
 from qfluentwidgets import StyleSheetBase, Theme, qconfig
 from enum import Enum
 
-from ...module.config.internal.core_args import CoreArgs
+from ...module.configuration.internal.core_args import CoreArgs
 
 
 class CoreStyleSheet(StyleSheetBase, Enum):

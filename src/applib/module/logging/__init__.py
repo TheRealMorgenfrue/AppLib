@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Self, Union
 
 from .create_logger import createLogger
-from ..config.internal.core_args import CoreArgs
+from ..configuration.internal.core_args import CoreArgs
 
 
 class AppLibLogger:

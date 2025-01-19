@@ -1,14 +1,18 @@
 from typing import Self, override
 
 from applib.app.common.auto_wrap import AutoTextWrap
-from applib.module.config.internal.core_args import CoreArgs
-from applib.module.config.templates.base_template import BaseTemplate
-from applib.module.config.templates.template_enums import UIFlags, UIGroups, UITypes
-from applib.module.config.validators.app_validator import (
+from applib.module.configuration.internal.core_args import CoreArgs
+from applib.module.configuration.templates.base_template import BaseTemplate
+from applib.module.configuration.templates.template_enums import (
+    UIFlags,
+    UIGroups,
+    UITypes,
+)
+from applib.module.configuration.validators.app_validator import (
     validateLoglevel,
     validateTheme,
 )
-from applib.module.config.validators.generic_validator import validatePath
+from applib.module.configuration.validators.generic_validator import validatePath
 from test.modules.config.test_args import TestArgs
 
 
@@ -24,7 +28,7 @@ class TestTemplate(BaseTemplate):
     def __init__(self) -> None:
         if not self._created:
             super().__init__(
-                template_name=TestArgs.main_template_name,
+                name=TestArgs.main_template_name,
                 template=self._createTemplate(),
                 icons=None,
             )

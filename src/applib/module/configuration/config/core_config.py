@@ -1,10 +1,10 @@
 from typing import Self
 
-from applib.module.config.templates.core_template import CoreTemplate
+from applib.module.configuration.templates.core_template import CoreTemplate
 
-from .internal.core_args import CoreArgs
+from ..internal.core_args import CoreArgs
 from .config_base import ConfigBase
-from .tools.validation_model_gen import CoreValidationModelGenerator
+from ..tools.validation_model_gen import CoreValidationModelGenerator
 
 
 class CoreConfig(ConfigBase):
@@ -32,9 +32,9 @@ class CoreConfig(ConfigBase):
                 template=template.getTemplate(),
             )
             super().__init__(
-                template_model=validation_model.model_construct().model_dump(),
+                template=validation_model.model_construct().model_dump(),
                 validation_model=validation_model,
-                config_name=CoreArgs._core_main_config_name,
-                config_path=CoreArgs._core_main_config_path,
+                name=CoreArgs._core_main_config_name,
+                file_path=CoreArgs._core_main_config_path,
             )
             self._created = True

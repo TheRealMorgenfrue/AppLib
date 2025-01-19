@@ -5,7 +5,7 @@ import traceback
 
 from PyQt6.QtCore import pyqtSignal, QObject
 
-from ...config.internal.core_args import CoreArgs
+from ...configuration.internal.core_args import CoreArgs
 from ...logging import AppLibLogger
 
 

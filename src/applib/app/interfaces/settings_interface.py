@@ -10,7 +10,7 @@ from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
 
-from ...module.config.internal.core_args import CoreArgs
+from ...module.configuration.internal.core_args import CoreArgs
 from ...module.logging import AppLibLogger
 
 

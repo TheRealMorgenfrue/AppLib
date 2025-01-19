@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import QWidget
 
 from applib.app.components.cardstack import PivotCardStack
 from applib.app.generators.card_generator import CardGenerator
-from applib.module.config.internal.core_args import CoreArgs
+from applib.module.configuration.internal.core_args import CoreArgs
 from applib.app.interfaces.settings_interface import CoreSettingsInterface
 from applib.app.interfaces.settings_subinterface import CoreSettingsSubInterface
 from test.modules.config.templates.test_template import TestTemplate

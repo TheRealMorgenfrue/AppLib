@@ -9,7 +9,7 @@ from ...common.core_signalbus import core_signalbus
 
 from ..infobar_test import InfoBar, InfoBarPosition
 
-from ....module.config.templates.template_enums import UIFlags
+from ....module.configuration.templates.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 
 

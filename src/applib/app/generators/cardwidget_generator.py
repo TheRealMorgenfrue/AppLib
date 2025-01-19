@@ -10,8 +10,8 @@ from ..components.settingcards.widgets.parent_settingwidgets import (
 )
 from .generatorbase import GeneratorBase
 
-from ...module.config.templates.template_enums import UIGroups, UITypes
-from ...module.config.tools.template_options.groups import Group
+from ...module.configuration.templates.template_enums import UIGroups, UITypes
+from ...module.configuration.tools.template_options.groups import Group
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cards import AnySettingWidget
 from ...module.tools.types.templates import AnyTemplate

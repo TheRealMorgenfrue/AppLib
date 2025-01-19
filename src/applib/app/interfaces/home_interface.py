@@ -16,7 +16,7 @@ from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.link_card import LinkCardView
 
-from ...module.config.internal.core_args import CoreArgs
+from ...module.configuration.internal.core_args import CoreArgs
 from ...module.tools.types.general import StrPath
 from ...module.tools.types.config import AnyConfig
 

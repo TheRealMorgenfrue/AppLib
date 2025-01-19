@@ -7,7 +7,7 @@ from typing import Optional, override
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
 
-from ....module.config.internal.core_args import CoreArgs
+from ....module.configuration.internal.core_args import CoreArgs
 from ....module.tools.utilities import dictLookup
 from ....module.tools.types.config import AnyConfig
 

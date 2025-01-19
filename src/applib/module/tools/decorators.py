@@ -1,6 +1,6 @@
 def makeSetupArgs(cls):
     """Class decorator for declaring a class as the main setup arguments for the application."""
-    from ..config.internal.core_args import CoreArgs
+    from ..configuration.internal.core_args import CoreArgs
 
     for k, v in cls.__dict__.items():
         # Ensure in-built attributes are not copied (i.e. prefix or postfix is not "__")

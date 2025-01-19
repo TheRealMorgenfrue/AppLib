@@ -107,24 +107,30 @@ from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 
 # Config
-from .module.config.config_base import ConfigBase
-from .module.config.core_config import CoreConfig
-from .module.config.internal.core_args import CoreArgs
-from .module.config.templates.base_template import BaseTemplate
-from .module.config.templates.core_template import CoreTemplate
-from .module.config.templates.template_enums import UIGroups, UITypes, UIFlags
-from .module.config.tools.template_options.groups import Group
-from .module.config.tools.template_options.validation_info import ValidationInfo
-from .module.config.tools.config_tools import ConfigUtils
-from .module.config.tools.ini_file_parser import IniFileParser
-from .module.config.tools.template_parser import TemplateParser
-from .module.config.tools.validation_model_gen import CoreValidationModelGenerator
-from .module.config.validators import validatePath, validateLoglevel, validateTheme
+from .module.configuration.config.config_base import ConfigBase
+from .module.configuration.config.core_config import CoreConfig
+from .module.configuration.internal.core_args import CoreArgs
+from .module.configuration.templates.base_template import BaseTemplate
+from .module.configuration.templates.core_template import CoreTemplate
+from .module.configuration.templates.template_enums import UIGroups, UITypes, UIFlags
+from .module.configuration.tools.template_options.groups import Group
+from .module.configuration.tools.template_options.validation_info import ValidationInfo
+from .module.configuration.tools.config_tools import ConfigUtils
+from .module.configuration.tools.ini_file_parser import IniFileParser
+from .module.configuration.tools.template_parser import TemplateParser
+from .module.configuration.tools.validation_model_gen import (
+    CoreValidationModelGenerator,
+)
+from .module.configuration.validators import (
+    validatePath,
+    validateLoglevel,
+    validateTheme,
+)
 
 # Datastructures
-from .module.datastructures.yfasttrie import YFastTrie
-from .module.datastructures.binarysearchtree import BinarySearchTree
-from .module.datastructures.redblacktree import RedBlackTree
+from .module.datastructures.pure.yfasttrie import YFastTrie
+from .module.datastructures.pure.redblacktree import RedBlackTree
+from .module.datastructures.pure.meldableheap import MeldableHeap
 
 # Exceptions
 from .module.exceptions import IniParseError, MissingFieldError, InvalidMasterKeyError
@@ -175,7 +181,6 @@ __all__ = [
     "AppLibLogger",
     "AutoTextWrap",
     "BaseTemplate",
-    "BinarySearchTree",
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
@@ -224,6 +229,7 @@ __all__ = [
     "LinkCard",
     "LinkCardView",
     "MenuListView",
+    "MeldableHeap",
     "MessageBoxBase",
     "MissingFieldError",
     "Model",

@@ -18,7 +18,7 @@ from .process_subinterface import ProcessSubinterface
 
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
-from ....module.config.internal.core_args import CoreArgs
+from ....module.configuration.internal.core_args import CoreArgs
 from ....module.logging import AppLibLogger
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.templates import AnyTemplate

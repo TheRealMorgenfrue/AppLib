@@ -30,8 +30,8 @@ from PyQt6.QtCore import QSize, Qt
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar_test import InfoBar, InfoBarPosition
-from ...module.config.internal.core_args import CoreArgs
-from ...module.config.core_config import CoreConfig
+from ...module.configuration.internal.core_args import CoreArgs
+from ...module.configuration.core_config import CoreConfig
 from ...module.logging import AppLibLogger
 from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig

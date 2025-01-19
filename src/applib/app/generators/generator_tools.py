@@ -2,9 +2,9 @@ import traceback
 from typing import Iterable
 
 from ..components.settingcards.card_base import DisableWrapper
-from ...module.config.internal.core_args import CoreArgs
-from ...module.config.templates.template_enums import UIGroups, UITypes
-from ...module.config.tools.template_options.groups import Group
+from ...module.configuration.internal.core_args import CoreArgs
+from ...module.configuration.templates.template_enums import UIGroups, UITypes
+from ...module.configuration.tools.template_options.groups import Group
 from ...module.logging import AppLibLogger
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard

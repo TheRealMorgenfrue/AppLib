@@ -5,7 +5,7 @@ import traceback
 
 from ..process.process_base import ProcessBase
 from ..process.process_generator import ProcessGenerator
-from ...config.internal.core_args import CoreArgs
+from ...configuration.internal.core_args import CoreArgs
 from ...logging import AppLibLogger
 from ...tools.utilities import iterToString
 

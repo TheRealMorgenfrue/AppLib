@@ -15,7 +15,7 @@ class ProcessTemplate(BaseTemplate):
     def __init__(self) -> None:
         if not self._created:
             super().__init__(
-                template_name=TestArgs.process_template_name,
+                name=TestArgs.process_template_name,
                 template=self._createTemplate(),
                 icons=None,
             )
