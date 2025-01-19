@@ -27,14 +27,35 @@ class RedBlackTree(BinarySearchTree):
 
     def _new_node(self, x) -> Node:
         u = RedBlackTree.Node(x)
-        u.left = u.right = u.parent = self.nil
+        u.left = u.right = u.parent = self._nil
         return u
 
     def __init__(self, iterable: Iterable = []):
-        self.nil = RedBlackTree.Node(None)
-        self.nil.right = self.nil.left = self.nil.parent = self.nil
-        super().__init__([], self.nil)
-        self.r = self.nil
+        """
+        A red-black tree is a self-balancing binary search tree
+        noted for fast storage and retrieval of ordered information.
+        Each node, u, has a colour which is either red or black.
+        Red is represented by the value 0 and black by the value 1.
+
+        This is an implementation of left-leaning red-black trees.
+        This structure is able to store arbitrary objects with O(log n) worst-case time searches,
+        additions, and removals. It has a space complexity of O(n).
+
+        NOTE: Duplicate values are not supported (but workarounds are possible).
+
+        Leonidas J. Guibas, Robert Sedgewick: A Dichromatic Framework for Balanced
+        Trees. FOCS 1978: 8-21
+
+        Parameters
+        ----------
+        iterable : Iterable, optional
+            Add objects in `iterable` to the tree.
+            By default `[]`.
+        """
+        self._nil = RedBlackTree.Node(None)
+        self._nil.right = self._nil.left = self._nil.parent = self._nil
+        super().__init__([], self._nil)
+        self._r = self._nil
         self.add_all(iterable)
 
     def _push_black(self, u: Node):
@@ -60,7 +81,7 @@ class RedBlackTree(BinarySearchTree):
 
     def _add_fixup(self, u: Node):
         while u.colour == red:
-            if u == self.r:
+            if u == self._r:
                 u.colour = black
             w = u.parent
             if w.left.colour == black:
@@ -78,7 +99,7 @@ class RedBlackTree(BinarySearchTree):
 
     def _remove_fixup(self, u: Node):
         while u.colour > black:
-            if u == self.r:
+            if u == self._r:
                 u.colour = black
             elif u.parent.left.colour == red:
                 u = self._remove_fixup_case1(u)
@@ -86,7 +107,7 @@ class RedBlackTree(BinarySearchTree):
                 u = self._remove_fixup_case2(u)
             else:
                 u = self._remove_fixup_case3(u)
-        if u != self.r:  # restore left-leaning property, if needed
+        if u != self._r:  # restore left-leaning property, if needed
             w = u.parent
             if w.right.colour == red and w.left.colour == black:
                 self._flip_left(w)
@@ -131,15 +152,24 @@ class RedBlackTree(BinarySearchTree):
                 return w
 
     def remove(self, x) -> bool:
+        """
+        Remove object from the tree.
+
+        Returns
+        -------
+        bool
+            If True, the object was removed.
+            If False, the object was not found.
+        """
         u = self._find_last(x)
-        if u == self.nil or u.x != x:
+        if u == self._nil or u.x != x:
             return False
         w = u.right
-        if w == self.nil:
+        if w == self._nil:
             w = u
             u = w.left
         else:
-            while w.left != self.nil:
+            while w.left != self._nil:
                 w = w.left
             u.x = w.x
             u = w.right
@@ -150,6 +180,17 @@ class RedBlackTree(BinarySearchTree):
         return True
 
     def add(self, x) -> bool:
+        """
+        Add object to the tree.
+
+        NOTE: Object must support comparison operators `<`, `>`, e.g., by implementing `__lt__`, `__gt__`.
+
+        Returns
+        -------
+        bool
+            If True, the object is added.
+            If False, the object is already there.
+        """
         u = self._new_node(x)
         u.colour = red
         if self._add_node(u):
