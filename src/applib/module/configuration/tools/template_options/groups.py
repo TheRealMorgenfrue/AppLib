@@ -152,7 +152,9 @@ class Group:
     def getParentCardGroup(self) -> AnyCardGroup | None:
         return self._parent_card_group
 
-    def addChildCardGroup(self, child_name: str, card_group: AnyCardGroup) -> None:
+    def addChildCardGroup(
+        self, child_name: str, card_group: AnyCardGroup | None
+    ) -> None:
         self._child_card_groups |= {child_name: card_group}
 
     def getChildCardGroup(self, child_name: str) -> AnyCardGroup | None:
