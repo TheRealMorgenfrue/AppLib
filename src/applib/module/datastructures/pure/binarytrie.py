@@ -57,6 +57,9 @@ class BinaryTrie(BaseSet):
         def __str__(self):
             return "{" + str(self.x) + "}"
 
+    def _new_node(self):
+        return BinaryTrie.Node()
+
     def __init__(self):
         super().__init__()
         self._initialize()
@@ -67,15 +70,12 @@ class BinaryTrie(BaseSet):
             yield u.x
             u = u.next
 
-    def _new_node(self):
-        return BinaryTrie.Node()
-
     def _initialize(self):
         self.dummy = self._new_node()
         self.dummy.prev = self.dummy.next = self.dummy
         self.r = self._new_node()
         self.r.jump = self.dummy
-        self.n = 0
+        self._n = 0
 
     def _check(self):
         u = self.dummy.next
@@ -84,7 +84,7 @@ class BinaryTrie(BaseSet):
             assert u.next.prev is u
             u = u.next
             i += 1
-        assert i == self.n
+        assert i == self._n
         self._check_it()
 
     def _check_it(self, u=None, d=0, prefix=0):
@@ -154,7 +154,7 @@ class BinaryTrie(BaseSet):
             ):
                 v.jump = u
             v = v.parent
-        self.n += 1
+        self._n += 1
         return True
 
     def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
@@ -209,5 +209,5 @@ class BinaryTrie(BaseSet):
                 v.jump = [pred, succ][v.left is None]
             v = v.parent
 
-        self.n -= 1
+        self._n -= 1
         return True

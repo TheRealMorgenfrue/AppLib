@@ -16,28 +16,28 @@ class ArrayQueue(BaseSet):
     def _initialize(self):
         self.a = new_array(1)
         self.j = 0
-        self.n = 0
+        self._n = 0
 
     def _resize(self):
-        b = new_array(max(1, 2 * self.n))
-        for k in range(self.n):
+        b = new_array(max(1, 2 * self._n))
+        for k in range(self._n):
             b[k] = self.a[(self.j + k) % len(self.a)]
         self.a = b
         self.j = 0
 
     def add(self, x):
-        if self.n + 1 > len(self.a):
+        if self._n + 1 > len(self.a):
             self._resize()
-        self.a[(self.j + self.n) % len(self.a)] = x
-        self.n += 1
+        self.a[(self.j + self._n) % len(self.a)] = x
+        self._n += 1
         return True
 
     def remove(self):
-        if self.n == 0:
+        if self._n == 0:
             raise IndexError()
         x = self.a[self.j]
         self.j = (self.j + 1) % len(self.a)
-        self.n -= 1
-        if len(self.a) >= 3 * self.n:
+        self._n -= 1
+        if len(self.a) >= 3 * self._n:
             self._resize()
         return x

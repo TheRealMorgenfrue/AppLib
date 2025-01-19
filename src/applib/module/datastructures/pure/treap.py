@@ -37,14 +37,14 @@ class Treap(BinarySearchTree):
         return Treap.Node(x)
 
     def _bubble_up(self, u: Node):
-        while u != self.r and u.parent.p > u.p:
+        while u != self._r and u.parent.p > u.p:
             if u.parent.right == u:
                 self._rotate_left(u.parent)
             else:
                 self._rotate_right(u.parent)
 
-        if u.parent == self.nil:
-            self.r = u
+        if u.parent == self._nil:
+            self._r = u
 
     def _trickle_down(self, u: Node):
         while u.left is not None or u.right is not None:
@@ -56,8 +56,8 @@ class Treap(BinarySearchTree):
                 self._rotate_right(u)
             else:
                 self._rotate_left(u)
-            if self.r == u:
-                self.r = u.parent
+            if self._r == u:
+                self._r = u.parent
 
     def add(self, x) -> bool:
         u = self._new_node(x)

@@ -38,11 +38,11 @@ class LinearHashTable(BaseSet):
 
     def _resize(self):
         self.d = 1
-        while (1 << self.d) < 3 * self.n:
+        while (1 << self.d) < 3 * self._n:
             self.d += 1
         told = self.t
         self.t = new_array((1 << self.d))
-        self.q = self.n
+        self.q = self._n
         for x in told:
             if x is not None and x != self.dl:
                 i = self._hash(x)
@@ -54,7 +54,7 @@ class LinearHashTable(BaseSet):
         self.d = 1
         self.t = new_array((1 << self.d))
         self.q = 0
-        self.n = 0
+        self._n = 0
 
     def hash_code(self, x):
         return hash(x)
@@ -69,7 +69,7 @@ class LinearHashTable(BaseSet):
             i = (i + 1) % len(self.t)
         if self.t[i] is None:
             self.q += 1
-        self.n += 1
+        self._n += 1
         self.t[i] = x
         return True
 
@@ -86,8 +86,8 @@ class LinearHashTable(BaseSet):
             y = self.t[i]
             if y != self.dl and x == y:
                 self.t[i] = self.dl
-                self.n -= 1
-                if 8 * self.n < len(self.t):
+                self._n -= 1
+                if 8 * self._n < len(self.t):
                     self._resize()
                 return y
             i = (i + 1) % len(self.t)
@@ -105,7 +105,7 @@ class LinearHashTable(BaseSet):
             if self.t[1] != self.dl and x == self.t[i]: return False
             i = (i + 1) % len(self.t[i])
         t[i] = x
-        self.n += 1
+        self._n += 1
         self.q += 1
         return True
 

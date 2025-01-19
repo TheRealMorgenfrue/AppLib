@@ -10,7 +10,7 @@ D. E. Willard. Log-logarithmic worst-case range queries are possible in
 Courtesy of https://opendatastructures.org/
 """
 
-from typing import Self, Union
+from typing import Self
 from numpy import _ConvertibleToInt
 
 from .binarytrie import BinaryTrie
@@ -32,7 +32,7 @@ class XFastTrie(BinaryTrie):
 
     def __init__(self):
         super().__init__()
-        self.nil = self._new_node()
+        self._nil = self._new_node()
         self.t = new_array(w + 1)
         for i in range(w + 1):
             self.t[i] = LinearHashTable()
@@ -41,8 +41,7 @@ class XFastTrie(BinaryTrie):
     def _new_node(self) -> Node:
         return XFastTrie.Node()
 
-    # TODO: Too much duplication with find(x)
-    def _find_node(self, x: Union[int, str, bytes, bytearray]) -> Node:
+    def _find_node(self, x: _ConvertibleToInt) -> Node:
         ix = int(x)
         l, h = 0, w + 1
         u = self.r
@@ -78,26 +77,8 @@ class XFastTrie(BinaryTrie):
         return False
 
     def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
-        ix = int(x)
-        l, h = 0, w + 1
-        u = self.r
-        q = self._new_node()
-        while h - l > 1:
-            i = (l + h) / 2
-            q.prefix = ix >> w - i
-            v = self.t[i].find(q)
-            if v is None:
-                h = i
-            else:
-                u = v
-                l = i
-        if l == w:
-            return u.x
-        c = ix >> (w - l - 1) & 1
-        pred = [u.jump.prev, u.jump][c]
-        if pred.next is None:
-            return None
-        return pred.next.x
+        u = self._find_node(x)
+        return u.x if u else None
 
     def remove(self, x: _ConvertibleToInt) -> bool:
         # 1 - fine leaf, u, containing x
@@ -136,5 +117,5 @@ class XFastTrie(BinaryTrie):
             if v.jump is u:
                 v.jump = [pred, succ][v.left is None]
             v = v.parent
-        self.n -= 1
+        self._n -= 1
         return True
