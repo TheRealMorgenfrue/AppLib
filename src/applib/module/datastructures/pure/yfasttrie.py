@@ -12,12 +12,12 @@ Courtesy of https://opendatastructures.org/
 
 import random
 from typing import Self
-from numpy import _ConvertibleToInt
 
 from .base import BaseSet
 from .treap import Treap
 from .xfasttrie import XFastTrie
 from .utils import w
+from ...tools.types.general import ConvertibleToInt
 
 
 class STreap(Treap):
@@ -111,7 +111,7 @@ class YFastTrie(BaseSet):
         self._xft.add(Pair((1 << w) - 1, STreap()))
         self._n = 0
 
-    def add(self, x: _ConvertibleToInt) -> bool:
+    def add(self, x: ConvertibleToInt) -> bool:
         ix = int(x)
         t = self._xft.find(Pair(ix))[1]
         if t.add(x):
@@ -122,10 +122,10 @@ class YFastTrie(BaseSet):
             return True
         return False
 
-    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
+    def find(self, x: ConvertibleToInt) -> ConvertibleToInt | None:
         return self._xft.find(Pair(int(x)))[1].find(x)
 
-    def remove(self, x: _ConvertibleToInt) -> bool:
+    def remove(self, x: ConvertibleToInt) -> bool:
         ix = int(x)
         u = self._xft._find_node(ix)
         ret = u.x[1].remove(x)

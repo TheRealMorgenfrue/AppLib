@@ -8,10 +8,10 @@ Courtesy of https://opendatastructures.org/
 """
 
 from typing import Self
-from numpy import _ConvertibleToInt
 
 from .utils import new_array, w
 from .base import BaseSet
+from ...tools.types.general import ConvertibleToInt
 
 
 class BinaryTrie(BaseSet):
@@ -115,7 +115,7 @@ class BinaryTrie(BaseSet):
     def clear(self):
         self._initialize()
 
-    def add(self, x: _ConvertibleToInt) -> bool:
+    def add(self, x: ConvertibleToInt) -> bool:
         ix = int(x)
         u = self.r
         # 1 - search for ix until falling out of the tree
@@ -157,7 +157,7 @@ class BinaryTrie(BaseSet):
         self._n += 1
         return True
 
-    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
+    def find(self, x: ConvertibleToInt) -> ConvertibleToInt | None:
         ix = int(x)
         u = self.r
         i = 0
@@ -174,7 +174,7 @@ class BinaryTrie(BaseSet):
             return None
         return u.x
 
-    def remove(self, x: _ConvertibleToInt) -> bool:
+    def remove(self, x: ConvertibleToInt) -> bool:
         ix = int(x)
         u = self.r
         # 1 - find leaf, u, that contains x

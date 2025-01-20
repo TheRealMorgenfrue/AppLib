@@ -11,11 +11,11 @@ Courtesy of https://opendatastructures.org/
 """
 
 from typing import Self
-from numpy import _ConvertibleToInt
 
 from .binarytrie import BinaryTrie
 from .linearhashtable import LinearHashTable
 from .utils import new_array, w
+from ...tools.types.general import ConvertibleToInt
 
 
 class XFastTrie(BinaryTrie):
@@ -41,7 +41,7 @@ class XFastTrie(BinaryTrie):
     def _new_node(self) -> Node:
         return XFastTrie.Node()
 
-    def _find_node(self, x: _ConvertibleToInt) -> Node:
+    def _find_node(self, x: ConvertibleToInt) -> Node:
         ix = int(x)
         l, h = 0, w + 1
         u = self.r
@@ -63,7 +63,7 @@ class XFastTrie(BinaryTrie):
             return None
         return pred.next
 
-    def add(self, x: _ConvertibleToInt) -> bool:
+    def add(self, x: ConvertibleToInt) -> bool:
         if super().add(x):
             ix = int(x)
             u = self.r.child[(ix >> w - 1) & 1]
@@ -76,11 +76,11 @@ class XFastTrie(BinaryTrie):
             return True
         return False
 
-    def find(self, x: _ConvertibleToInt) -> _ConvertibleToInt | None:
+    def find(self, x: ConvertibleToInt) -> ConvertibleToInt | None:
         u = self._find_node(x)
         return u.x if u else None
 
-    def remove(self, x: _ConvertibleToInt) -> bool:
+    def remove(self, x: ConvertibleToInt) -> bool:
         # 1 - fine leaf, u, containing x
         ix = int(x)
         i = 0
