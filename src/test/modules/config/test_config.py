@@ -3,7 +3,7 @@ from typing import Self
 from applib.module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
-from applib.module.configuration.config_base import ConfigBase
+from applib.module.configuration.config.config_base import ConfigBase
 from test.modules.config.templates.process_template import ProcessTemplate
 from test.modules.config.test_args import TestArgs
 from test.modules.config.templates.test_template import TestTemplate
@@ -33,4 +33,4 @@ class TestConfig(ConfigBase):
             self._created = True
 
     def makeTemplate(self) -> dict:
-        return TestTemplate().getTemplate() | ProcessTemplate().getTemplate()
+        return (TestTemplate() | ProcessTemplate()).tree_dump()

@@ -236,28 +236,18 @@ class GeneratorBase:
         template_parser.parse(self._template_name, template)
         failed_cards = 0
 
-
         stack = [template.items()]
         while stack:
             for k, v in stack[-1]:
                 if isinstance(v, dict) and checkDictNestingLevel(v, 2):
                     stack.append(v.items())
                 else:
-
-
-
-
-
-
-
-
-
+                    pass
 
         for section_name, section in template.items():
             card_group = (
                 CardGroup(section_name, self._parent) if CardGroup else None
             )  # type: AnyCardGroup
-
 
             for setting, options in section.items():
                 if self._excludeSetting(setting, options):
