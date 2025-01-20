@@ -89,7 +89,9 @@ class BaseList(BaseCollection):
         elif isinstance(key, int):
             return self._get(key)  # IndexError
         else:
-            emsg = f"Invalid type '{type(key)}'. Expected '{type(int)}'"
+            emsg = (
+                f"invalid index '{type(key).__name__}'. Expected an integer or a slice"
+            )
             raise TypeError(emsg)
 
     def __setitem__(self, key, value):
