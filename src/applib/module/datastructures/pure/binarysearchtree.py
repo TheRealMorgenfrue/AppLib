@@ -153,9 +153,7 @@ class BinarySearchTree(BinaryTree, BaseSet):
                 w = w.right
             else:
                 return w.x
-        if z == self._nil:
-            return None
-        return z
+        return None
 
     def find(self, x) -> Any | None:
         """

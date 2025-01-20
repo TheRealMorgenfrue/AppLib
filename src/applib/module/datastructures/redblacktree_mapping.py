@@ -1,4 +1,4 @@
-from queue import Queue
+from collections import deque
 from typing import (
     Any,
     Generator,
@@ -10,8 +10,6 @@ from typing import (
     TypeAlias,
     Union,
 )
-
-from numpy import average
 
 from .pure.meldableheap import MeldableHeap
 from .pure.redblacktree import RedBlackTree
@@ -33,6 +31,7 @@ class RedBlackTreeMapping(RedBlackTree):
             pos: int,
             ps: Union[Hashable, Iterable[Hashable], None],
         ):
+            self._idx = f"{k}".encode(errors="replace")
             self.keys = Skiplist([k])  # Keys are identical for each node
             self.values = Skiplist([v])
             self.position = Skiplist([pos])  # Restores order of keys when dumping data
@@ -44,32 +43,59 @@ class RedBlackTreeMapping(RedBlackTree):
 
         def __lt__(self, other):
             if isinstance(other, RedBlackTreeMapping.TreeNode):
-                if self.keys[0] == other.keys[0]:  # The nodes are identical
-                    return False
-                return average([len(ps) for ps in self.parents]) < average(
-                    [len(ps) for ps in other.parents]
-                )
+                return self._idx < other._idx
             return NotImplemented
 
         def __gt__(self, other):
             if isinstance(other, RedBlackTreeMapping.TreeNode):
-                if self.keys[0] == other.keys[0]:  # The nodes are identical
-                    return False
-                return average([len(ps) for ps in self.parents]) > average(
-                    [len(ps) for ps in other.parents]
-                )
+                self._idx > other._idx
             return NotImplemented
 
         def __str__(self) -> str:
             return f"keys: {self.keys}\n  values: {self.values}\n  parents: {self.parents}\n  position: {self.position}"
 
-        def get_index(self, p: Union[Hashable, Iterable[Hashable]], im: bool) -> int:
+        def get_multi_index(
+            self, p: Union[Hashable, Iterable[Hashable]], im: bool = False
+        ) -> list[int]:
+            """
+            Return all possible indices given `p` + `im`
+
+            If `p` is iterable, `im` is ignored.
+            """
+            if isinstance(p, Iterable):
+                # TODO: Implement fuzzy matching of array values
+                # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
+                #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
+                i = [self.parents.index(p)]  # Raises ValueError if not present
+            else:
+                if im:
+                    i = [i for i, ps in enumerate(self.parents) if p == ps[-1]]
+                else:
+                    i = [i for i, ps in enumerate(self.parents) if p in ps]
+            return i
+
+        def get_index(
+            self, p: Union[Hashable, Iterable[Hashable]], im: bool = False
+        ) -> int:
             """
             Get index of `p`.
 
-            NOTE: `p` == `ps` is needed in order to uniquely identify all keys in ALL cases.
-            That is, `p` must be an Iterable.
-            However, for the average use-case, `p` + `im` is sufficient.
+            NOTE
+            ----
+            If `p` is not an Iterable, it is in some cases not possible to uniquely identify a key based on `p` + `im`.
+            In such cases `p` must be an Iterable of all parents of the key. However, for the average use-case, `p` + `im` is sufficient.
+
+            Parameters
+            ----------
+            p : Hashable | Iterable[Hashable] | None, optional
+                The parent of the key.
+                By default None.
+
+            im : bool, optional
+                If True, `p` must be the direct predecessor of the key.
+                If False, `p` must be an ancestor of the key.
+                Is ignored if `p` is an Iterable.
+                By default True.
 
             Raises
             ------
@@ -78,35 +104,25 @@ class RedBlackTreeMapping(RedBlackTree):
 
             LookupError
                 If `p` cannot be uniquely identified.
-                Can happen if `p` is not an Iterable, i.e., `ps`.
+                Can happen if `p` is not an Iterable of all parents of the key.
             """
-            if isinstance(p, Iterable):
-                # TODO: Implement fuzzy matching of array values
-                # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
-                #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
-                i = self.parents.index(p)  # Raises ValueError if not present
-            else:
-                if im:
-                    c = [i for i, ps in enumerate(self.parents) if p == ps[-1]]
-                else:
-                    c = [i for i, ps in enumerate(self.parents) if p in ps]
-                if len(c) > 1:
-                    raise LookupError("multiple possibilities for key")
-                i = c[0]
-            return i
+            i = self.get_multi_index(p, im)
+            if len(i) > 1:
+                raise LookupError("multiple possibilities for key")
+            return i[0]
 
         def is_immediate_parent_of(
-            self, p: Union[Hashable, Iterable[Hashable]], im: bool
+            self, p: Union[Hashable, Iterable[Hashable]]
         ) -> tuple[bool, int]:
             """`p` is a direct predecessor of `k`."""
-            i = self.get_index(p, im)
+            i = self.get_index(p, True)
             return (self.parents[i][-1] == p, i)
 
         def is_parent_of(
-            self, p: Union[Hashable, Iterable[Hashable]], im: bool
+            self, p: Union[Hashable, Iterable[Hashable]]
         ) -> tuple[bool, int]:
             """`p` is an ancestor of `k`."""
-            i = self.get_index(p, im)
+            i = self.get_index(p, False)
             return (p in self.parents[i], i)
 
         def add(
@@ -150,7 +166,12 @@ class RedBlackTreeMapping(RedBlackTree):
 
         def __lt__(self, other):
             if isinstance(other, RedBlackTreeMapping.HeapNode):
-                return len(self.ps) < len(other.ps) and self.pos < other.pos
+                lps, los = len(self.ps), len(other.ps)
+                if lps < los:
+                    return True
+                elif lps == los:
+                    return self.pos < other.pos
+                return False
             return NotImplemented
 
         def get(self) -> _rbtm_item:
@@ -201,6 +222,7 @@ class RedBlackTreeMapping(RedBlackTree):
         super().__init__()
         self.name = name
         self._prefix_msg = f"{self.__class__.__name__} {self.name}:"
+        self._top_nodes = 0
         self.add_all(iterable)
 
     def __iter__(
@@ -213,14 +235,14 @@ class RedBlackTreeMapping(RedBlackTree):
     def __or__(self, other):
         if not isinstance(other, (Mapping, RedBlackTreeMapping)):
             return NotImplemented
-        new = RedBlackTreeMapping(self)
+        new = RedBlackTreeMapping([self])
         new.add_all([other])
         return new
 
     def __ror__(self, other):
         if not isinstance(other, (Mapping, RedBlackTreeMapping)):
             return NotImplemented
-        new = RedBlackTreeMapping(other)
+        new = RedBlackTreeMapping([other])
         new.add_all([self])
         return new
 
@@ -318,36 +340,6 @@ class RedBlackTreeMapping(RedBlackTree):
             and isinstance(v[0][0], RedBlackTreeMapping.TreeNode)
         )
 
-    def _dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
-        dump = {}
-        heap = MeldableHeap([RedBlackTreeMapping.HeapNode(*args) for args in items])
-        while heap:
-            node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
-            k, v, i, ps = node.get()
-            if self._check_value(v):
-                v = {}
-            if ps:
-                stack = []
-                for p in ps:
-                    stack.append(dump[p])
-                stack[-1] |= {k: v}
-            else:
-                dump |= {k: v}
-        return dump
-
-    def _add(
-        self, key: Hashable, value: Any, position: int, parents: Iterable[Hashable] = []
-    ) -> "RedBlackTreeMapping.TreeNode":
-        tn = RedBlackTreeMapping.TreeNode(key, value, parents, position)
-        u = self._find_node(tn)  # Check for duplicate keys
-        if u is None:  # Object is new
-            super().add(tn)
-        else:  # Append to existing node
-            tn = u.x  # type: RedBlackTreeMapping.TreeNode
-            tn.add(key, value, parents, position)
-            self._n += 1  # Update size
-        return tn
-
     def _find_index(
         self,
         key: Hashable,
@@ -399,9 +391,9 @@ class RedBlackTreeMapping(RedBlackTree):
         else:
             try:
                 if immediate:
-                    yes, i = tn.is_immediate_parent_of(key, parent)
+                    yes, i = tn.is_immediate_parent_of(parent)
                 else:
-                    yes, i = tn.is_parent_of(key, parent)
+                    yes, i = tn.is_parent_of(parent)
                 if not yes:
                     self._raise_key_error(key, parent)
             except LookupError:
@@ -480,6 +472,24 @@ class RedBlackTreeMapping(RedBlackTree):
                 for args in x:
                     self.add(*args)
 
+    def _add(
+        self, key: Hashable, value: Any, position: int, parents: Iterable[Hashable] = []
+    ) -> "RedBlackTreeMapping.TreeNode":
+        if len(parents) == 0:
+            # Ensure position of top-level keys remain predictable during unions
+            position += self._top_nodes
+            self._top_nodes += 1
+
+        tn = RedBlackTreeMapping.TreeNode(key, value, position, parents)
+        u = self._find_node(tn)  # type: RedBlackTreeMapping.TreeNode
+        if u is None:  # Object is new
+            super().add(tn)
+            return tn
+        else:  # Append to existing node
+            u.add(key, value, position, parents)
+            self._n += 1  # Update size
+            return u
+
     def add(
         self, key: Hashable, value: Any, position: int, parents: Iterable[Hashable] = []
     ):
@@ -513,18 +523,18 @@ class RedBlackTreeMapping(RedBlackTree):
         if not m:
             return
         q = (
-            Queue()
-        )  # type: Queue[tuple[Mapping, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
-        q.put((m, []))
+            deque()
+        )  # type: deque[tuple[Mapping, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
+        q.append((m, [], None))
         while q:
-            e, ps, tnp_tuple = q.get()
+            e, ps, tnp_tuple = q.popleft()
             for i, item in enumerate(e.items()):
                 k, v = item
 
                 # Add current key in mapping
                 if isinstance(v, Mapping):
                     tn = self._add(k, [], i, ps)
-                    q.put((v, list(*ps, k), (tn, ps) if ps else None))
+                    q.append((v, [*ps, k], (tn, ps)))
                 else:
                     tn = self._add(k, v, i, ps)
 
@@ -633,6 +643,23 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         tn, i = self._find_index(key, parent, immediate)
         tn.values[i] = value
+
+    def _dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
+        dump = {}
+        heap = MeldableHeap([RedBlackTreeMapping.HeapNode(*args) for args in items])
+        while heap:
+            node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
+            k, v, i, ps = node.get()
+            if self._check_value(v):
+                v = {}
+            if ps:
+                stack = [dump]
+                for p in ps:
+                    stack.append(stack[-1][p])
+                stack[-1] |= {k: v}
+            else:
+                dump |= {k: v}
+        return dump
 
     def tree_dump(self) -> dict[Hashable, Any]:
         """
