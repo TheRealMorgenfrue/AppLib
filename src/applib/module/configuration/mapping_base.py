@@ -1,5 +1,7 @@
 from abc import abstractmethod
-from typing import Any, Hashable
+from typing import Any, Hashable, Iterable, override
+
+from ..datastructures.pure.meldableheap import MeldableHeap
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping
 from ..logging import AppLibLogger
 
@@ -9,13 +11,77 @@ class MappingBase(RedBlackTreeMapping):
 
     def __init__(self, iterable=..., name=""):
         super().__init__(iterable, name)
+        self._modified = False
+        self._heap = None
+        self._settings = None
 
     @abstractmethod
-    def _prefixMsg(self) -> str:
+    def _prefix_msg(self) -> str:
         """Prefix log messages with this string. Should include self.name."""
         ...
 
-    def getValue(
+    @override
+    def _add(self, key, value, position, parents=...):
+        self._modified = True
+        return super()._add(key, value, position, parents)
+
+    @override
+    def remove(self, key, parent=None, immediate=True):
+        self._modified = True
+        return super().remove(key, parent, immediate)
+
+    @override
+    def update(self, key, value, parent=None, immediate=True):
+        self._modified = True
+        return super().update(key, value, parent, immediate)
+
+    def get_settings(self) -> list[tuple[Hashable, Any, Iterable[Hashable]]]:
+        """
+        Get settings with corresponding options as specified in the template documentation.
+
+        Example
+        -------
+        >>> {
+        >>>  "appTheme": {
+        >>>    "ui_type": UITypes.COMBOBOX,
+        >>>    "ui_title": "Set application theme",
+        >>>    "default": "System",
+        >>>    "values": AppArgs.template_themes,
+        >>>    "validators": [
+        >>>       validateTheme
+        >>>    ]
+        >>>  }
+        >>> }
+
+        Returns
+        -------
+        list[tuple[Hashable, Any, Iterable[Hashable]]]
+            A position-prioritised list of settings.
+            [0] : key
+            [1] :
+        """
+        if self._modified or not self._settings:
+            self._heap = MeldableHeap(
+                [
+                    RedBlackTreeMapping.HeapNode(k, v, pos, ps)
+                    for k, v, pos, ps in self
+                    if not self._check_value(v)
+                ]
+            )
+            self._settings = []
+            current_ps = None
+            option = []
+            for node in self._heap:
+                k, v, pos, ps = node.get()
+                str_ps = f"{ps}"
+                if current_ps[0] != str_ps:
+                    self._settings.append((k, dict(option), current_ps[1]))
+                    current_ps = (str_ps, ps)
+                    option.clear()
+                option.append((k, v))
+        return self._settings
+
+    def get_value(
         self, key: Hashable, parent: Hashable, immediate: bool = False, default=None
     ) -> Any:
         """
@@ -50,7 +116,7 @@ class MappingBase(RedBlackTreeMapping):
             self._logger.debug("\n  ".join(e.__notes__))
             return default
 
-    def setValue(
+    def set_value(
         self, key: Hashable, value: Any, parent: Hashable, immediate: bool = False
     ):
         """
