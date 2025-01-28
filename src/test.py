@@ -17,16 +17,13 @@
 # Plugin: Enable anti-bloat to remove dependency-heavy imports
 # nuitka-project: --enable-plugin=anti-bloat
 
-##########################
-### Initial Path Setup ###
-##########################
-# Set initial CWD
 import os
 
 os.chdir(os.path.split(os.path.abspath(__file__))[0])
 
 
-from applib.app.core_app import CoreApp
 from test.interfaces.mainwindow import TestMainWindow
+
+from applib.app.core_app import CoreApp
 
 CoreApp(TestMainWindow)
