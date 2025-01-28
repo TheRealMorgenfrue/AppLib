@@ -3,8 +3,8 @@ from typing import Self
 from applib.module.configuration.templates.core_template import CoreTemplate
 
 from ..internal.core_args import CoreArgs
-from .config_base import ConfigBase
 from ..tools.validation_model_gen import CoreValidationModelGenerator
+from .config_base import ConfigBase
 
 
 class CoreConfig(ConfigBase):
@@ -28,8 +28,8 @@ class CoreConfig(ConfigBase):
         template = CoreTemplate()
         if not self._created:
             validation_model = CoreValidationModelGenerator().getGenericModel(
-                model_name=template.getName(),
-                template=template.getTemplate(),
+                model_name=template.name,
+                template=template,
             )
             super().__init__(
                 template=validation_model.model_construct().model_dump(),
