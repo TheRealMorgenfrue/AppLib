@@ -1,12 +1,13 @@
-from pydantic import Field
 from typing import Any, Self, Union
 
+from pydantic import Field
+
 from ...exceptions import OrphanGroupWarning
+from ...logging import AppLibLogger
+from ...tools.utilities import checkDictNestingLevel, iterToString
 from ..templates.template_enums import UIFlags, UIGroups
 from .template_options.groups import Group
 from .template_options.validation_info import ValidationInfo
-from ...logging import AppLibLogger
-from ...tools.utilities import checkDictNestingLevel, iterToString
 
 
 class TemplateParser:
@@ -14,13 +15,12 @@ class TemplateParser:
     _logger = AppLibLogger().getLogger()
 
     # Remember templates already parsed
-    _parsed_templates: list[str] = []
+    _parsed_templates = []  # type: list[str]
     # Store information used to generate validation models
-    _validation_infos: dict[str, ValidationInfo] = {}
+    _validation_infos = {}  # type: dict[str, ValidationInfo]
     # These groups have no parent assigned to them (which is an error)
-    _orphan_groups: dict[str, list[str]] = {}
-
-    # Hold a reference to Group
+    _orphan_groups = {}  # type: dict[str, list[str]]
+    # Keep a reference to Group
     group = None  # type: Group
 
     def __new__(cls) -> Self:
