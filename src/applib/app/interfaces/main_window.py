@@ -1,21 +1,8 @@
 import traceback
 from typing import Any, Optional, Union
 
-from qfluentwidgets import (
-    NavigationItemPosition,
-    MSFluentWindow,
-    SplashScreen,
-    NavigationBarPushButton,
-    toggleTheme,
-    setTheme,
-    theme,
-    setThemeColor,
-    Theme,
-    FluentIconBase,
-)
-from qfluentwidgets import FluentIcon as FIF
-
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPaintEvent
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QIcon, QPainter, QPaintEvent, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QGraphicsBlurEffect,
@@ -25,16 +12,28 @@ from PyQt6.QtWidgets import (
     QGraphicsView,
     QWidget,
 )
-from PyQt6.QtCore import QSize, Qt
+from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (
+    FluentIconBase,
+    MSFluentWindow,
+    NavigationBarPushButton,
+    NavigationItemPosition,
+    SplashScreen,
+    Theme,
+    setTheme,
+    setThemeColor,
+    theme,
+    toggleTheme,
+)
 
-from ..common.core_signalbus import core_signalbus
-from ..common.core_stylesheet import CoreStyleSheet
-from ..components.infobar_test import InfoBar, InfoBarPosition
-from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.config.core_config import CoreConfig
+from ...module.configuration.internal.core_args import CoreArgs
 from ...module.logging import AppLibLogger
 from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig
+from ..common.core_signalbus import core_signalbus
+from ..common.core_stylesheet import CoreStyleSheet
+from ..components.infobar_test import InfoBar, InfoBarPosition
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -89,15 +88,15 @@ class CoreMainWindow(MSFluentWindow):
         self._displayErrors()
 
     def _initBackgroundAndTheme(self):
-        val = self.main_config.getValue("appBackground")
+        val = self.main_config.get_value("appBackground")
         self.background = QPixmap(val) if val else None  # type: QPixmap | None
         self.background_opacity = (
-            self.main_config.getValue("backgroundOpacity", 0.0) / 100
+            self.main_config.get_value("backgroundOpacity", 0.0) / 100
         )
         self.background_blur_radius = float(
-            self.main_config.getValue("backgroundBlur", 0.0)
+            self.main_config.get_value("backgroundBlur", 0.0)
         )
-        self._onThemeChanged(self.main_config.getValue("appTheme"))
+        self._onThemeChanged(self.main_config.get_value("appTheme"))
 
     def _initNavigation(self):
         if self._subinterfaces:

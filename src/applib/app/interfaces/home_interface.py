@@ -1,24 +1,23 @@
 import os
 from typing import Any, Optional
 
-from qfluentwidgets import ScrollArea, FluentIcon
-from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QPixmap, QPainter, QBrush, QPainterPath
+from PyQt6.QtCore import QRectF, Qt
+from PyQt6.QtGui import QBrush, QPainter, QPainterPath, QPixmap
 from PyQt6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
-    QLabel,
-    QHBoxLayout,
     QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
 )
+from qfluentwidgets import FluentIcon, ScrollArea
 
+from ...module.configuration.internal.core_args import CoreArgs
+from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.general import StrPath
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.link_card import LinkCardView
-
-from ...module.configuration.internal.core_args import CoreArgs
-from ...module.tools.types.general import StrPath
-from ...module.tools.types.config import AnyConfig
 
 
 class BannerWidget(QWidget):
@@ -30,10 +29,10 @@ class BannerWidget(QWidget):
     ):
         super().__init__(parent=parent)
         self.main_config = main_config
-        self.is_background_active = bool(self.main_config.getValue("appBackground"))
+        self.is_background_active = bool(self.main_config.get_value("appBackground"))
         self.show_banner = (
             not self.is_background_active
-            or int(self.main_config.getValue("backgroundOpacity")) == 0
+            or int(self.main_config.get_value("backgroundOpacity")) == 0
         )
 
         self.vBoxLayout = QVBoxLayout(self)

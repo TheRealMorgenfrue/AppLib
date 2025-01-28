@@ -1,15 +1,5 @@
 from collections import deque
-from typing import (
-    Any,
-    Generator,
-    Any,
-    Hashable,
-    Iterable,
-    Mapping,
-    Self,
-    TypeAlias,
-    Union,
-)
+from typing import Any, Generator, Hashable, Iterable, Mapping, Self, TypeAlias, Union
 
 from .pure.meldableheap import MeldableHeap
 from .pure.redblacktree import RedBlackTree
@@ -397,6 +387,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 if not yes:
                     self._raise_key_error(key, parent)
             except LookupError:
+                # Convert generic LookupError to informative version
                 self._raise_lookup_error(key, parent, tn)
             except ValueError:
                 self._raise_key_error(key, parent)
@@ -470,7 +461,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 self.add_tree(x)
             else:
                 for args in x:
-                    self.add(*args)
+                    self._add(*args)
 
     def _add(
         self, key: Hashable, value: Any, position: int, parents: Iterable[Hashable] = []
@@ -550,7 +541,7 @@ class RedBlackTreeMapping(RedBlackTree):
         Overwrites existing keys in this tree with keys from `t`.
         """
         for args in t:
-            self.add(*args)
+            self._add(*args)
 
     def remove(
         self,

@@ -1,15 +1,14 @@
-from qfluentwidgets import Slider
-from PyQt6.QtWidgets import QWidget, QLabel
-from PyQt6.QtCore import Qt
-
 from typing import Optional, override
 
-from .base_setting import BaseSetting
-from .range_setting import RangeSettingMixin
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QLabel, QWidget
+from qfluentwidgets import Slider
 
 from ....module.configuration.internal.core_args import CoreArgs
-from ....module.tools.utilities import dictLookup
 from ....module.tools.types.config import AnyConfig
+from ....module.tools.utilities import dictLookup
+from .base_setting import BaseSetting
+from .range_setting import RangeSettingMixin
 
 
 class CoreSlider(BaseSetting, RangeSettingMixin):
@@ -60,8 +59,8 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.getValue(key=config_key, parent_key=parent_key),
-            default_value=config.getValue(
+            current_value=config.get_value(key=config_key, parent_key=parent_key),
+            default_value=config.get_value(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
             parent_key=parent_key,

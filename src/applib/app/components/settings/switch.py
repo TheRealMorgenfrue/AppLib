@@ -1,12 +1,12 @@
-from qfluentwidgets import SwitchButton
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import pyqtBoundSignal
-
 from typing import Optional, override
 
+from PyQt6.QtCore import pyqtBoundSignal
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import SwitchButton
+
+from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .bool_setting import BoolSettingMixin
-from ....module.tools.types.config import AnyConfig
 
 
 class CoreSwitch(BaseSetting, BoolSettingMixin):
@@ -47,10 +47,10 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
             config_key=config_key,
             options=options,
             current_value=self._convertBool(
-                config.getValue(key=config_key, parent_key=parent_key)
+                config.get_value(key=config_key, parent_key=parent_key)
             ),
             default_value=self._convertBool(
-                config.getValue(
+                config.get_value(
                     key=config_key, parent_key=parent_key, use_template_model=True
                 )
             ),

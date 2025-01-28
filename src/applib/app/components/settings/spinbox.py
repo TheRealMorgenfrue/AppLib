@@ -1,12 +1,11 @@
-from qfluentwidgets import SpinBox, DoubleSpinBox
-from PyQt6.QtWidgets import QWidget
-
 from typing import Optional, override
 
-from .base_setting import BaseSetting
-from .range_setting import RangeSettingMixin
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import DoubleSpinBox, SpinBox
 
 from ....module.tools.types.config import AnyConfig
+from .base_setting import BaseSetting
+from .range_setting import RangeSettingMixin
 
 
 class CoreSpinBox(BaseSetting, RangeSettingMixin):
@@ -47,8 +46,8 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.getValue(key=config_key, parent_key=parent_key),
-            default_value=config.getValue(
+            current_value=config.get_value(key=config_key, parent_key=parent_key),
+            default_value=config.get_value(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
             parent_key=parent_key,

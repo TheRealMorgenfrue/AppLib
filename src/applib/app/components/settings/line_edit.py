@@ -1,12 +1,11 @@
-from qfluentwidgets import LineEdit
-from PyQt6.QtWidgets import QWidget
-
 from typing import Optional, override
 
-from ...common.core_signalbus import core_signalbus
-from .base_setting import BaseSetting
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import LineEdit
 
 from ....module.tools.types.config import AnyConfig
+from ...common.core_signalbus import core_signalbus
+from .base_setting import BaseSetting
 
 
 class CoreLineEdit(BaseSetting):
@@ -55,8 +54,8 @@ class CoreLineEdit(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.getValue(key=config_key, parent_key=parent_key),
-            default_value=config.getValue(
+            current_value=config.get_value(key=config_key, parent_key=parent_key),
+            default_value=config.get_value(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
             parent_key=parent_key,

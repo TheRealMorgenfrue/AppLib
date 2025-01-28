@@ -1,20 +1,9 @@
-from typing import Any, Optional
-from qfluentwidgets import (
-    ScrollArea,
-    PrimaryPushButton,
-    PushButton,
-)
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
-
 import traceback
+from typing import Any, Optional
 
-from ...common.core_stylesheet import CoreStyleSheet
-from ...common.core_signalbus import core_signalbus
-from ...components.console_view import ConsoleView
-from ...components.flow_area import FlowArea
-from ...components.infobar_test import InfoBar, InfoBarPosition
-from .process_subinterface import ProcessSubinterface
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import PrimaryPushButton, PushButton, ScrollArea
 
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
@@ -22,6 +11,12 @@ from ....module.configuration.internal.core_args import CoreArgs
 from ....module.logging import AppLibLogger
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.templates import AnyTemplate
+from ...common.core_signalbus import core_signalbus
+from ...common.core_stylesheet import CoreStyleSheet
+from ...components.console_view import ConsoleView
+from ...components.flow_area import FlowArea
+from ...components.infobar_test import InfoBar, InfoBarPosition
+from .process_subinterface import ProcessSubinterface
 
 
 class CoreProcessInterface(ScrollArea):
@@ -53,8 +48,8 @@ class CoreProcessInterface(ScrollArea):
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
-            self.max_threads = self.main_config.getValue("maxThreads")
-            self.terminal_size = self.main_config.getValue("terminalSize")
+            self.max_threads = self.main_config.get_value("maxThreads")
+            self.terminal_size = self.main_config.get_value("terminalSize")
             self.console_widgets = {}  # type: dict[int, ConsoleView | None]
 
             self.threadManager = ThreadManager(

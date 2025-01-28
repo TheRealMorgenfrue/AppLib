@@ -1,12 +1,12 @@
 from typing import Optional, override
-from qfluentwidgets import CheckBox
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import pyqtBoundSignal
 
-from .base_setting import BaseSetting
-from .bool_setting import BoolSettingMixin
+from PyQt6.QtCore import pyqtBoundSignal
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import CheckBox
 
 from ....module.tools.types.config import AnyConfig
+from .base_setting import BaseSetting
+from .bool_setting import BoolSettingMixin
 
 
 class CoreCheckBox(BaseSetting, BoolSettingMixin):
@@ -44,10 +44,10 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             config_key=config_key,
             options=options,
             current_value=self._convertBool(
-                config.getValue(key=config_key, parent_key=parent_key)
+                config.get_value(key=config_key, parent_key=parent_key)
             ),
             default_value=self._convertBool(
-                config.getValue(
+                config.get_value(
                     key=config_key, parent_key=parent_key, use_template_model=True
                 )
             ),

@@ -1,12 +1,11 @@
-from qfluentwidgets import ColorPickerButton
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QColor
-
 from typing import Optional, override
 
-from .base_setting import BaseSetting
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import ColorPickerButton
 
 from ....module.tools.types.config import AnyConfig
+from .base_setting import BaseSetting
 
 
 class CoreColorPicker(BaseSetting):
@@ -50,10 +49,10 @@ class CoreColorPicker(BaseSetting):
             config_key=config_key,
             options=options,
             current_value=QColor(
-                config.getValue(key=config_key, parent_key=parent_key)
+                config.get_value(key=config_key, parent_key=parent_key)
             ),
             default_value=QColor(
-                config.getValue(
+                config.get_value(
                     key=config_key, parent_key=parent_key, use_template_model=True
                 )
             ),

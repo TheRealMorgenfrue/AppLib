@@ -1,16 +1,14 @@
 from abc import abstractmethod
 from typing import Any, Optional
-from PyQt6.QtWidgets import QWidget, QHBoxLayout
-from PyQt6.QtGui import QHideEvent
+
 from PyQt6.QtCore import pyqtSignal
-
-
-from ...common.core_signalbus import core_signalbus
-
-from ..infobar_test import InfoBar, InfoBarPosition
+from PyQt6.QtGui import QHideEvent
+from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
 from ....module.configuration.templates.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
+from ...common.core_signalbus import core_signalbus
+from ..infobar_test import InfoBar, InfoBarPosition
 
 
 class BaseSetting(QWidget):
@@ -212,7 +210,7 @@ class BaseSetting(QWidget):
 
     def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
-            error = self.config.setValue(self.config_key, value, self.parent_key)
+            error = self.config.set_value(self.config_key, value, self.parent_key)
             success = not error
             if success:
                 self.current_value = value

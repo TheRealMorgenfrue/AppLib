@@ -1,24 +1,25 @@
-import os
 import json
+import os
 import shutil
+import traceback
+from numbers import Number
+from pathlib import Path
+from time import time
+from typing import Any, Callable, Literal, Mapping, Optional
+
 import tomlkit
 import tomlkit.exceptions
-import traceback
-from pathlib import Path
-from numbers import Number
-from typing import Any, Callable, Literal, Mapping, Optional
-from time import time
 from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
-from ..tools.ini_file_parser import IniFileParser
-from ..internal.core_args import CoreArgs
-from ..mapping_base import MappingBase
-from ..tools.config_tools import ConfigUtils
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
+from ..internal.core_args import CoreArgs
+from ..mapping_base import MappingBase
+from ..tools.config_tools import ConfigUtils
+from ..tools.ini_file_parser import IniFileParser
 
 
 class ConfigBase(MappingBase):
@@ -77,7 +78,7 @@ class ConfigBase(MappingBase):
         if self.name == name:
             self.saveConfig()
 
-    def _prefixMsg(self) -> str:
+    def _prefix_msg(self) -> str:
         return f"Config {self.name}:"
 
     def _checkMissingFields(
@@ -521,7 +522,7 @@ class ConfigBase(MappingBase):
     def setFailureStatus(self, status: bool) -> None:
         self._load_failure = status
 
-    def getValue(
+    def get_value(
         self,
         key: str,
         parent_key: Optional[str] = None,
@@ -570,7 +571,7 @@ class ConfigBase(MappingBase):
             )
         return value
 
-    def setValue(self, key: str, value: Any, parent_key: Optional[str] = None) -> bool:
+    def set_value(self, key: str, value: Any, parent_key: Optional[str] = None) -> bool:
         """
         Assign `value` to `key` in the config's underlying dict, overwriting any previous value.
 

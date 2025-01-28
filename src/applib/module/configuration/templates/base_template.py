@@ -1,12 +1,10 @@
 from abc import abstractmethod
-from copy import deepcopy
-from typing import Any, Mapping, Optional, Self, Union
+from typing import Mapping, Optional, Union
 
-from qfluentwidgets import FluentIconBase
 from PyQt6.QtGui import QIcon
+from qfluentwidgets import FluentIconBase
 
 from ..mapping_base import MappingBase
-from ...tools.utilities import retrieveDictValue, insertDictValue
 
 
 class BaseTemplate(MappingBase):
@@ -35,7 +33,7 @@ class BaseTemplate(MappingBase):
         super().__init__([template], name)
         self.icons = icons
 
-    def _prefixMsg(self) -> str:
+    def _prefix_msg(self) -> str:
         return f"Template {self.name}:"
 
     @abstractmethod

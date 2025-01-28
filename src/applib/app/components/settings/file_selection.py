@@ -1,13 +1,12 @@
 import os
-from qfluentwidgets import PushButton
-from PyQt6.QtWidgets import QWidget, QFileDialog
-
 from typing import Optional, override
 
-from .base_setting import BaseSetting
+from PyQt6.QtWidgets import QFileDialog, QWidget
+from qfluentwidgets import PushButton
 
-from ....module.tools.types.general import StrPath
 from ....module.tools.types.config import AnyConfig
+from ....module.tools.types.general import StrPath
+from .base_setting import BaseSetting
 
 
 class CoreFileSelect(BaseSetting):
@@ -65,8 +64,8 @@ class CoreFileSelect(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.getValue(key=config_key, parent_key=parent_key),
-            default_value=config.getValue(
+            current_value=config.get_value(key=config_key, parent_key=parent_key),
+            default_value=config.get_value(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
             parent_key=parent_key,

@@ -1,11 +1,10 @@
-from qfluentwidgets import ComboBox
-from PyQt6.QtWidgets import QWidget
-
 from typing import Optional, Union, override
 
-from .base_setting import BaseSetting
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import ComboBox
 
 from ....module.tools.types.config import AnyConfig
+from .base_setting import BaseSetting
 
 
 class CoreComboBox(BaseSetting):
@@ -46,8 +45,8 @@ class CoreComboBox(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.getValue(key=config_key, parent_key=parent_key),
-            default_value=config.getValue(
+            current_value=config.get_value(key=config_key, parent_key=parent_key),
+            default_value=config.get_value(
                 key=config_key, parent_key=parent_key, use_template_model=True
             ),
             parent_key=parent_key,
