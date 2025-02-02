@@ -5,7 +5,7 @@ import traceback
 from numbers import Number
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Literal, Mapping, Optional
+from typing import Any, Callable, Iterable, Literal, Mapping, Optional, Union, override
 
 import tomlkit
 import tomlkit.exceptions
@@ -15,7 +15,7 @@ from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
 from ...tools.types.templates import AnyTemplate
-from ...tools.utilities import formatValidationError, insertDictValue, retrieveDictValue
+from ...tools.utilities import formatValidationError
 from ..internal.core_args import CoreArgs
 from ..mapping_base import MappingBase
 from ..tools.config_tools import ConfigUtils
@@ -36,56 +36,51 @@ class ConfigBase(MappingBase):
 
         Parameters
         ----------
-        template_model : dict
-            A dict created from a `Model`, resembling a template,
-            from which the config will be created.
+        name : str
+            The name of the config to create.
+
+        template : AnyTemplate
+            The template used to create `validation_model`.
 
         validation_model : Model
             The Pydantic model used to validate the config.
 
-        config_name : str
-            The name of the config to create.
-
-        config_path : StrPath
+        file_path : StrPath
             The config's location on disk.
 
         save_interval : Number, optional
             Time between config saves in seconds.
             By default `1`.
         """
-        self._load_failure = False  # The config failed to load
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
         self._last_save_time = time()  # Prevent excessive disk writing
         self._template = template
-        self._validation_model = validation_model
+        self._validation_model = validation_model.model_construct()
         self.name = name
         self.file_path = file_path
+        self.failure = False  # The config failed to load
         self.__connectSignalToSlot()
 
         # Initialize config after everything is set up
-        super().__init__(self._initConfig(), name)
+        super().__init__([self._init_config()], name)
 
     def __connectSignalToSlot(self) -> None:
         core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
-        core_signalbus.doSaveConfig.connect(self._onSaveConfig)
 
     def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
         if old_name == self.name:
             self.name = new_name
 
-    def _onSaveConfig(self, name: str) -> None:
-        if self.name == name:
-            self.saveConfig()
-
+    @override
     def _prefix_msg(self) -> str:
-        return f"Config {self.name}:"
+        return f"Config '{self.name}':"
 
-    def _checkMissingFields(
-        self, config: dict, template_model: dict, error_prefix: str = ""
+    def _check_missing_fields(
+        self, config: dict, model_dict: dict, error_prefix: str = ""
     ) -> None:
         """
-        Compare the config against the template_model for missing
+        Compare the config against the model_dict for missing
         sections/settings and vice versa.
 
         Parameters
@@ -93,8 +88,8 @@ class ConfigBase(MappingBase):
         config : dict
             The config loaded from a file.
 
-        template_model : dict
-            The template_model associated with `config`.
+        model_dict : dict
+            The model_dict associated with `config`.
 
         error_prefix : str
             Prefix error messages with this string.
@@ -110,7 +105,7 @@ class ConfigBase(MappingBase):
 
         def searchFields(
             config: dict,
-            template_model: dict,
+            model_dict: dict,
             search_mode: Literal["missing", "unknown"],
         ) -> None:
             """
@@ -122,25 +117,25 @@ class ConfigBase(MappingBase):
             config : dict
                 The config loaded from a file.
 
-            template_model : dict
-                The template_model associated with `config`.
+            model_dict : dict
+                The model_dict associated with `config`.
 
             search_mode : Literal["missing", "unknown"]
                 Specify which type of field to search for.
             """
             # The dict to search depth-first in. Should be opposite of validation dict
-            search_dict = template_model if search_mode == "missing" else config
+            search_dict = model_dict if search_mode == "missing" else config
             # The dict to compare the search dict against. Should be opposite of search dict
-            validation_dict = config if search_mode == "missing" else template_model
+            validation_dict = config if search_mode == "missing" else model_dict
             for key, value in search_dict.items():
-                # The template_model is still nested (dict key/value pairs, i.e., sections)
+                # The model_dict is still nested (dict key/value pairs, i.e., sections)
                 if isinstance(value, dict):
                     if key in validation_dict:  # section exists
                         parents.append(key)
                         next_search = (
                             (config[key], value)
                             if search_mode == "missing"
-                            else (value, template_model[key])
+                            else (value, model_dict[key])
                         )
                         searchFields(*next_search, search_mode=search_mode)
                     else:
@@ -161,8 +156,8 @@ class ConfigBase(MappingBase):
                 if parents:
                     parents.pop()
 
-        searchFields(config, template_model, search_mode="missing")
-        searchFields(config, template_model, search_mode="unknown")
+        searchFields(config, model_dict, search_mode="missing")
+        searchFields(config, model_dict, search_mode="unknown")
 
         # Ensure all section errors are displayed first
         all_errors.extend(section_errors)
@@ -172,30 +167,17 @@ class ConfigBase(MappingBase):
                 all_errors = [f"{error_prefix}: {error}" for error in all_errors]
             raise MissingFieldError(all_errors)
 
-    def _initConfig(self) -> dict:
-        """
-        Loads the config from a file.
-
-        This is the default implementation.
-        To change its behavior, simply override this method in a subclass.
-
-        Returns
-        -------
-        dict
-            The config.
-        """
-        config, self._load_failure = self._loadConfig(
-            validator=self._validateLoad,
-            template_model=self._template,
+    def _init_config(self) -> dict:
+        """Loads the config from a file."""
+        config, self.failure = self._load_config(
+            validator=self._validate_load,
+            model_dict=self._validation_model.model_dump(),
         )
         return config
 
-    def _validateLoad(self, raw_config: Mapping) -> dict:
+    def _validate_load(self, raw_config: Mapping) -> dict:
         """
         Validates the config when loaded from a file.
-
-        This is the default implementation.
-        To change its behavior, simply override this method in a subclass.
 
         Parameters
         ----------
@@ -207,34 +189,30 @@ class ConfigBase(MappingBase):
         dict
             The validated config.
         """
-        validated_config = self._validation_model.model_validate(raw_config)
-        config = validated_config.model_dump()
-        self._checkMissingFields(raw_config, config)
+        config = self._validation_model.model_validate(raw_config).model_dump()
+        self._check_missing_fields(raw_config, config)
         return config
 
-    def _validate(self, config: dict, **kwargs) -> None:
+    def _validate(self, config: dict) -> None:
         """
         Validates the config when a value is changed,
         ensuring only valid values exists at any given time.
-
-        This is the default implementation.
-        To change its behavior, simply @override this method in a subclass.
 
         Parameters
         ----------
         config : dict
             The config to validate.
         """
-        self._config = self._validation_model.model_validate(config).model_dump()
+        self.add_mapping(self._validation_model.model_validate(config).model_dump())
 
-    def _validateValue(
+    def _validation_wrapper(
         self,
         key: str,
         value: Any,
-        validator: Callable[[dict], dict],
-        parent_key: Optional[str] = None,
-        **validator_kwargs,
-    ) -> tuple[bool, bool]:
+        validator: Callable[[dict], None],
+        parents: Union[str, list[str]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
+    ) -> bool:
         """
         Insert and validate a value in the config.
 
@@ -246,42 +224,43 @@ class ConfigBase(MappingBase):
         value : Any
             The value to insert. Maps to `key`.
 
-        validator : Callable[[dict], dict]
+        validator : Callable[[dict], None]
             The validator callable that validates the config.
 
-        parent_key : str | None, optional
-            Search for `key` within the scope of a parent key.
-
-        **validator_kwargs | dict
-            Extra keyword arguments for the validator.
+        parents : str | list[str], optional
+            The parents of `key`. Used for lookup in the config.
 
         Returns
         -------
         bool
             True if an error occured.
         """
-        is_error = False
+        is_error, is_missing_key = False, False
         try:
-            old_value = insertDictValue(self._config, key, value, parent_key=parent_key)
-            validator(self._config, **validator_kwargs)
-        except KeyError:
-            is_error = True
-            self._logger.error(
-                f"{self.prefix_msg} Could not validate value for missing key '{key}' {f"(within parent key '{parent_key}')" if parent_key else ""}"
+            try:
+                old_value = super().get_value(
+                    key=key, parents=parents, search_mode=search_mode, errors="raise"
+                )
+            except (KeyError, LookupError):
+                is_missing_key = True
+            super().set_value(
+                key=key, value=value, parents=parents, search_mode=search_mode
             )
+            validator(self.dump())
         except ValidationError as err:
             is_error = True
-            insertDictValue(
-                self._config, key, old_value, parent_key=parent_key
-            )  # Restore value
             self._logger.warning(
-                f"{self.prefix_msg} Unable to validate value '{value}' for setting '{key}': "
+                f"{self._prefix_msg()} Unable to validate value '{value}' for key '{key}': "
                 + formatValidationError(err)
             )
+            if not is_missing_key:
+                super().set_value(
+                    key=key, value=old_value, parents=parents, search_mode=search_mode
+                )
         except Exception:
             is_error = True
             self._logger.error(
-                f"{self.prefix_msg} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
+                f"{self._prefix_msg()} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
@@ -290,19 +269,15 @@ class ConfigBase(MappingBase):
                     False, "Failed to save setting", ""
                 )
             else:
-                core_signalbus.configUpdated.emit(
-                    self.name, key, (parent_key,), (value,)
-                )
+                core_signalbus.configUpdated.emit(self.name, key, (value,), parents)
                 self._is_modified = True
-
             return is_error
 
-    def _loadConfig(
+    def _load_config(
         self,
         validator: Optional[Callable[[Mapping], dict]] = None,
-        template_model: Optional[dict] = None,
+        model_dict: Optional[dict] = None,
         do_write_config: bool = True,
-        use_validator_on_error: bool = True,
         retries: int = 1,
     ) -> tuple[dict | None, bool]:
         """
@@ -314,7 +289,7 @@ class ConfigBase(MappingBase):
             A callable that validates the config.
             Must take the raw config as input and return a dict of the validated config.
 
-        template_model : dict | None, optional
+        model_dict : dict | None, optional
             A validated config created by the supplied validation model.
             NOTE: Must be supplied if `do_write_config` is `True`.
             By default `None`.
@@ -322,10 +297,6 @@ class ConfigBase(MappingBase):
         do_write_config : bool, optional
             Manipulate with files on the file system to recover from soft errors.
             By default `True`.
-
-        use_validator_on_error : bool, optional
-            Use the validator function for the next config reload,
-            if the current config failed to load due to a validation error.
 
         retries : int, optional
             Reload the config X times if soft errors occur.
@@ -344,8 +315,7 @@ class ConfigBase(MappingBase):
         NotImplementedError
             The file at the config path is not a supported format.
         """
-        is_error, failure, reload_failure = False, False, False
-        can_reload = do_write_config or not use_validator_on_error
+        is_error, failure = False, False
         config = None
         filename = os.path.split(self.file_path)[1]
         extension = os.path.splitext(filename)[1].strip(".")
@@ -358,96 +328,97 @@ class ConfigBase(MappingBase):
                 elif extension.lower() == "json":
                     raw_config = json.load(file)
                 else:
-                    err_msg = f"{self.prefix_msg} Cannot load unsupported file '{self.file_path}'"
+                    err_msg = f"{self._prefix_msg()} Cannot load unsupported file '{self.file_path}'"
                     raise NotImplementedError(err_msg)
 
-            if validator:
-                config = validator(raw_config)
-            else:
-                config = raw_config
+            config = validator(raw_config) if validator else raw_config
         except ValidationError as err:
             is_error, is_recoverable = True, True
-            self._logger.warning(f"{self.prefix_msg} Could not validate '{filename}'")
+            self._logger.warning(
+                f"{self._prefix_msg()} Could not validate '{filename}'"
+            )
             self._logger.debug(formatValidationError(err))
             if do_write_config:
-                self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self.file_path)
+                self.backup_config()
+                ConfigUtils.writeConfig(model_dict, self.file_path)
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
-            err_msg = f"{self.prefix_msg} Detected incorrect fields in '{filename}':\n"
+            err_msg = (
+                f"{self._prefix_msg()} Detected incorrect fields in '{filename}':\n"
+            )
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
             self._logger.warning(err_msg)
             if do_write_config:
-                self._logger.info(f"{self.prefix_msg} Repairing config")
-                repaired_config = self._repairConfig(raw_config, template_model)
-                self.backupConfig()
+                self._logger.info(f"{self._prefix_msg()} Repairing config")
+                repaired_config = self._repair_config(raw_config, model_dict)
+                self.backup_config()
                 ConfigUtils.writeConfig(repaired_config, self.file_path)
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
-            self._logger.warning(f"{self.prefix_msg} {err.args[0]}")
+            self._logger.warning(f"{self._prefix_msg()} {err.args[0]}")
             if do_write_config:
-                self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self.file_path)
+                self.backup_config()
+                ConfigUtils.writeConfig(model_dict, self.file_path)
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
-                f"{self.prefix_msg} Failed to parse '{filename}':\n  {err.args[0]}\n"
+                f"{self._prefix_msg()} Failed to parse '{filename}':\n  {err.args[0]}\n"
             )
             if do_write_config:
-                self.backupConfig()
-                ConfigUtils.writeConfig(template_model, self.file_path)
+                self.backup_config()
+                ConfigUtils.writeConfig(model_dict, self.file_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
-            self._logger.info(f"{self.prefix_msg} Creating '{filename}'")
+            self._logger.info(f"{self._prefix_msg()} Creating '{filename}'")
             if do_write_config:
-                ConfigUtils.writeConfig(template_model, self.file_path)
+                ConfigUtils.writeConfig(model_dict, self.file_path)
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
-                f"{self.prefix_msg} An unexpected error occurred while loading '{filename}'\n"
+                f"{self._prefix_msg()} An unexpected error occurred while loading '{filename}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
             if is_error:
-                if can_reload and retries > 0 and is_recoverable:
-                    reload_msg = f"{self.prefix_msg} Reloading '{filename}'"
-                    if not use_validator_on_error:
-                        reload_msg += " with compatibility mode"
+                if retries > 0 and is_recoverable:
+                    reload_msg = f"{self._prefix_msg()} Reloading '{filename}'"
                     self._logger.info(reload_msg)
-                    config, reload_failure = self._loadConfig(
-                        validator=validator if use_validator_on_error else None,
-                        template_model=template_model,
+                    config, failure = self._load_config(
+                        validator=validator,
+                        model_dict=model_dict,
                         do_write_config=do_write_config,
                         retries=retries - 1,
                     )
-                    if not use_validator_on_error:
-                        failure = True
                 else:
                     failure = True
-                    load_failure_msg = f"{self.prefix_msg} Failed to load '{filename}'"
-                    if template_model:
+                    load_failure_msg = (
+                        f"{self._prefix_msg()} Failed to load '{filename}'"
+                    )
+                    if model_dict:
                         load_failure_msg += ". Loading template as config"
-                        config = template_model  # Use the template_model as config if all else fails
+                        config = (
+                            model_dict  # Use the model_dict as config if all else fails
+                        )
                         self._logger.warning(load_failure_msg)
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.info(f"{self.prefix_msg} Config '{filename}' loaded!")
-            return config, failure or reload_failure
+                self._logger.info(f"{self._prefix_msg()} Config '{filename}' loaded!")
+            return config, failure
 
-    def _repairConfig(self, config: dict, template_model: dict) -> dict:
+    def _repair_config(self, config: dict, model_dict: dict) -> dict:
         """
         Preserve all valid values in `config` when some of its fields are determined invalid.
-        Fields are taken from the `config`'s associated template_model if they could not be preserved.
+        Fields are taken from the `config`'s associated model_dict if they could not be preserved.
 
         Parameters
         ----------
         config : dict
             The config loaded from a file.
 
-        template_model : dict
+        model_dict : dict
             A validated config created by the supplied validation model.
 
         Returns
@@ -457,33 +428,21 @@ class ConfigBase(MappingBase):
             preserved from `config`.
         """
         repaired_config = {}
-        for template_key, value in template_model.items():
+        for template_key, value in model_dict.items():
             if isinstance(value, dict) and template_key in config:
-                # Search config/template_model recursively, depth-first
+                # Search config/model_dict recursively, depth-first
                 repaired_config |= {
-                    template_key: self._repairConfig(config[template_key], value)
+                    template_key: self._repair_config(config[template_key], value)
                 }
             elif template_key in config:
                 # Preserve value from config
                 repaired_config |= {template_key: config[template_key]}
             else:
-                # Use value from template_model
+                # Use value from model_dict
                 repaired_config |= {template_key: value}
         return repaired_config
 
-    def setTemplateModel(self, template_model: dict) -> None:
-        """
-        Set a `template_model` for this config.
-
-        Parameters
-        ----------
-        template_model : dict
-            A dict created from a `Model`, resembling a template,
-            from which the config will be created.
-        """
-        self._template = template_model
-
-    def setValidationModel(self, validation_model: Model) -> None:
+    def set_validation_model(self, validation_model: Model):
         """
         Set a `validation_model` for this config.
 
@@ -494,86 +453,19 @@ class ConfigBase(MappingBase):
         """
         self._validation_model = validation_model
 
-    def getConfig(self) -> dict:
-        """
-        Get the config's underlying dict.
+    def set_template(self, template: AnyTemplate):
+        self._template = template
 
-        Returns
-        -------
-        dict[str, dict]
-            The config's underlying dict.
-        """
-        return self._config
-
-    def getConfigName(self) -> str:
-        return self.name
-
-    def getFailureStatus(self) -> bool:
-        """
-        Whether the config failed to load.
-
-        Returns
-        -------
-        bool
-            True == failed (i.e. the config is not usable).
-        """
-        return self._load_failure
-
-    def setFailureStatus(self, status: bool) -> None:
-        self._load_failure = status
-
-    def get_value(
+    @override
+    def set_value(
         self,
         key: str,
-        parent_key: Optional[str] = None,
-        default: Any = None,
-        use_template_model: bool = False,
-    ) -> Any:
+        value: Any,
+        parents: Union[str, Iterable[str]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
+    ) -> bool:
         """
-        Get a value from the config's underlying dict.
-        Return first value found. If there is no item with that key, return default.
-
-        This is the default implementation.
-        To change its behavior, simply @override this method in a subclass.
-
-        NOTE: the dictionary is usually nested. Thus, the "get" method of a Python dict
-        is insufficient to retrieve all values.
-
-        Parameters
-        ----------
-        key : str
-            The key to search for.
-
-        parent_key : str, optional
-            Search for `key` within the scope of a parent key.
-
-        default : Any, optional
-            Fallback value if `key` is not found.
-            By default `None`.
-
-        use_template_model : bool, optional
-            Search for `key` in the configs associated use_template_model.
-            This useful for getting e.g. default values of settings.
-            By default False.
-
-        Returns
-        -------
-        Any
-            The value of `key`, if found, else `default`.
-        """
-        config = self._template if use_template_model else self._config
-        value = retrieveDictValue(
-            d=config, key=key, parent_key=parent_key, default=default
-        )
-        if value is None:
-            self._logger.warning(
-                f"{self.prefix_msg} Could not find key '{key}'{f" within parent key '{parent_key}'" if parent_key else ""}. Returning default: '{default}'"
-            )
-        return value
-
-    def set_value(self, key: str, value: Any, parent_key: Optional[str] = None) -> bool:
-        """
-        Assign `value` to `key` in the config's underlying dict, overwriting any previous value.
+        Assign `value` to `key`.
 
         Parameters
         ----------
@@ -581,10 +473,27 @@ class ConfigBase(MappingBase):
             The key to search for.
 
         value : Any
-            The value to insert. Maps to `key`.
+            The value to insert.
 
-        parent_key : str, optional
-            Search for `key` within the scope of a parent key.
+        parents : str | Iterable[str], optional
+            The parents of `key`. Used to uniquely identify `key`
+
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+                "strict"
+                    Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                "smart"
+                    Tries to find `key` using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                "immediate"
+                    Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                "any"
+                    Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
+
+            By default "smart".
 
         Returns
         -------
@@ -592,14 +501,25 @@ class ConfigBase(MappingBase):
             Whether the config was validated successfully after `value` was inserted.
             True == invalid (i.e. the value was NOT saved).
         """
-        return self._validateValue(
+        return self._validation_wrapper(
             key=key,
             value=value,
             validator=self._validate,
-            parent_key=parent_key,
+            parents=parents,
+            search_mode=search_mode,
         )
 
-    def saveConfig(self) -> None:
+    def get_template_value(
+        self, key: str, parents: Union[str, Iterable[str]] = []
+    ) -> Any:
+        return self._template.get_value(key=key, parents=parents)
+
+    def set_template_value(
+        self, key: str, value, parent: Union[str, Iterable[str]] = []
+    ) -> None:
+        self._template.set_value(key=key, value=value, parents=parent)
+
+    def save_config(self) -> None:
         """Write config to disk"""
         try:
             if (
@@ -607,17 +527,17 @@ class ConfigBase(MappingBase):
                 and (self._last_save_time + self._save_interval) < time()
             ):
                 self._last_save_time = time()
-                ConfigUtils.writeConfig(self._config, self.file_path)
+                ConfigUtils.writeConfig(self.dump(), self.file_path)
                 self._is_modified = False
         except Exception:
             msg = "Failed to save the config"
             self._logger.error(
-                f"{self.prefix_msg} {msg}\n"
+                f"{self._prefix_msg()} {msg}\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
             core_signalbus.configStateChange.emit(False, msg, "")
 
-    def backupConfig(self) -> None:
+    def backup_config(self) -> None:
         """Creates a backup of the config file on disk, overwriting any existing backup."""
         try:
             file = os.path.split(self.file_path)[1]

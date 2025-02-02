@@ -5,7 +5,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QHideEvent
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
-from ....module.configuration.templates.template_enums import UIFlags
+from ....module.configuration.tools.template_options.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from ..infobar_test import InfoBar, InfoBarPosition
@@ -23,7 +23,7 @@ class BaseSetting(QWidget):
         current_value: Any,
         default_value: Any,
         notify_disabled: bool = True,
-        parent_key: Optional[str] = None,
+        parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -57,8 +57,8 @@ class BaseSetting(QWidget):
             Notify the associated Setting Card if this setting is disabled.
             By default `True`.
 
-        parent_key : str | None, optional
-            Search for `config_key` within the scope of a parent key.
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class.
@@ -67,13 +67,12 @@ class BaseSetting(QWidget):
         super().__init__(parent=parent)
         self.config = config
         self.config_key = config_key
-        self.config_name = config.getConfigName()
         self.current_value = current_value
         self.default_value = default_value
         self.backup_value = None
         self.is_disabled = False
         self.notify_disabled = notify_disabled
-        self.parent_key = parent_key
+        self.parent_keys = parent_keys
 
         # The value which disables this setting.
         self.disable_self_value = (
@@ -95,47 +94,43 @@ class BaseSetting(QWidget):
 
     def hideEvent(self, e: QHideEvent | None) -> None:
         super().hideEvent(e)
-        self.config.saveConfig()
+        self.config.save_config()
 
     def __connectSignalToSlot(self) -> None:
         self.notify.connect(self._onParentNotification)
         core_signalbus.updateConfigSettings.connect(self._onUpdateConfigSettings)
-        core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
+
+    def _validate_key(self, name: str, key: str, parent_keys: list[str]) -> bool:
+        if self.config.name == name and self.config_key == key:
+            if self.parent_keys == parent_keys:
+                return True
+            else:
+                try:
+                    self.config.get_value(self.config_key, parent_keys, errors="raise")
+                    return True
+                except Exception:
+                    return False
 
     def _onConfigUpdated(
         self,
-        config_name: str,
-        config_key: str,
-        parent_key_tuple: tuple[str | None],
-        value: tuple[Any,],
+        name: str,
+        key: str,
+        value_tuple: tuple[Any,],
+        parent_keys: list[str],
     ) -> None:
-        (parent_key,) = parent_key_tuple
-        if (
-            self.config_name == config_name
-            and self.config_key == config_key
-            and (self.parent_key == parent_key or parent_key is None)
-        ):
-            self.setWidgetValue(value[0])
+        if self._validate_key(name, key, parent_keys):
+            self.setWidgetValue(value_tuple[0])
 
     def _onUpdateConfigSettings(
         self,
-        config_name: str,
-        config_key: str,
-        parent_key_tuple: tuple[str | None],
-        value: tuple[Any,],
+        name: str,
+        key: str,
+        value_tuple: tuple[Any,],
+        parent_keys: list[str],
     ) -> None:
-        (parent_key,) = parent_key_tuple
-        if (
-            self.config_name == config_name
-            and self.config_key == config_key
-            and (self.parent_key == parent_key or parent_key is None)
-        ):
-            self.setConfigValue(value[0])
-
-    def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
-        if old_name == self.config_name:
-            self.config_name = new_name
+        if self._validate_key(name, key, parent_keys):
+            self.setConfigValue(value_tuple[0])
 
     def _onParentNotification(self, values: tuple) -> None:
         type, value = values
@@ -210,7 +205,7 @@ class BaseSetting(QWidget):
 
     def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
-            error = self.config.set_value(self.config_key, value, self.parent_key)
+            error = self.config.set_value(self.config_key, value, self.parent_keys)
             success = not error
             if success:
                 self.current_value = value

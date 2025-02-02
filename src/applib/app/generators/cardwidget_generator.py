@@ -1,20 +1,22 @@
-from PyQt6.QtWidgets import QWidget
 from typing import Any, Optional, override
 
+from PyQt6.QtWidgets import QWidget
 
+from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.template_enums import (
+    UIGroups,
+    UITypes,
+)
+from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.gui_cards import AnySettingWidget
+from ...module.tools.types.templates import AnyTemplate
 from ..components.settingcards.widgets.cardwidgetgroup import CardWidgetGroup
-from ..components.settingcards.widgets.settingwidget import SettingWidget
 from ..components.settingcards.widgets.parent_settingwidgets import (
     ClusteredSettingWidget,
     NestedSettingWidget,
 )
+from ..components.settingcards.widgets.settingwidget import SettingWidget
 from .generatorbase import GeneratorBase
-
-from ...module.configuration.templates.template_enums import UIGroups, UITypes
-from ...module.configuration.tools.template_options.groups import Group
-from ...module.tools.types.config import AnyConfig
-from ...module.tools.types.gui_cards import AnySettingWidget
-from ...module.tools.types.templates import AnyTemplate
 
 """
 Explanation of terms:
@@ -36,7 +38,6 @@ class CardWidgetGenerator(GeneratorBase):
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -55,7 +56,7 @@ class CardWidgetGenerator(GeneratorBase):
             The config should originate from the same template.
 
         default_group : str, optional
-            The card group which is displayed on application start.
+            The name of the section card group which is displayed on application start.
             By default `None`.
 
         hide_group_label : bool, optional
@@ -65,10 +66,6 @@ class CardWidgetGenerator(GeneratorBase):
 
         is_tight : bool, optional
             Use a smaller version of the setting widgets, if available.
-
-        parent_key : str | None, optional,
-            Search the template/config using this key as the root.
-            Also overrides the default config name with this string.
 
         parent : QWidget, optional
             The parent of all card groups generated.
@@ -80,7 +77,6 @@ class CardWidgetGenerator(GeneratorBase):
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
-            parent_key=parent_key,
             parent=parent,
         )
         self._cards = self._generateCards(CardWidgetGroup)
@@ -91,6 +87,7 @@ class CardWidgetGenerator(GeneratorBase):
         card_type: UITypes,
         setting: str,
         options: dict[str, Any],
+        parent_keys: list[str],
         content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
@@ -118,8 +115,9 @@ class CardWidgetGenerator(GeneratorBase):
             # Create Setting
             widget = self._createSetting(
                 card_type=card_type,
-                setting_name=setting,
+                key=setting,
                 options=options,
+                parent_keys=parent_keys,
                 parent=parent,
             )
             # Create Setting Card Widget

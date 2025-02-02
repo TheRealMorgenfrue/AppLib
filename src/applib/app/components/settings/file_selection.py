@@ -19,7 +19,7 @@ class CoreFileSelect(BaseSetting):
         directory: StrPath,
         filter: str,
         initial_filter: str,
-        parent_key: Optional[str] = None,
+        parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -53,8 +53,8 @@ class CoreFileSelect(BaseSetting):
             Initial file extension filter.
             E.g. `Images (*.jpg *.jpeg *.png *.bmp)`.
 
-        parent_key : str, optional
-            Search for `config_key` within the scope of a parent key.
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
@@ -64,11 +64,11 @@ class CoreFileSelect(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.get_value(key=config_key, parent_key=parent_key),
-            default_value=config.get_value(
-                key=config_key, parent_key=parent_key, use_template_model=True
+            current_value=config.get_value(key=config_key, parents=parent_keys),
+            default_value=config.get_template_value(
+                key="default", parents=[*parent_keys, config_key]
             ),
-            parent_key=parent_key,
+            parent_keys=parent_keys,
             parent=parent,
         )
         try:
@@ -94,8 +94,7 @@ class CoreFileSelect(BaseSetting):
         self.notify.connect(self._onParentNotification)
 
     def _onParentNotification(self, values: tuple) -> None:
-        type = values[0]
-        value = values[1]
+        type, value = values
         if type == "content":
             self.notifyParent.emit(("content", self.current_value))
 

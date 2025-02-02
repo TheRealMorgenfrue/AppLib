@@ -91,10 +91,10 @@ class CoreMainWindow(MSFluentWindow):
         val = self.main_config.get_value("appBackground")
         self.background = QPixmap(val) if val else None  # type: QPixmap | None
         self.background_opacity = (
-            self.main_config.get_value("backgroundOpacity", 0.0) / 100
+            self.main_config.get_value("backgroundOpacity", default=0.0) / 100
         )
         self.background_blur_radius = float(
-            self.main_config.get_value("backgroundBlur", 0.0)
+            self.main_config.get_value("backgroundBlur", default=0.0)
         )
         self._onThemeChanged(self.main_config.get_value("appTheme"))
 
@@ -171,10 +171,10 @@ class CoreMainWindow(MSFluentWindow):
         self,
         config_name: str,
         config_key: str,
-        parent_key: tuple[str | None],
         value_tuple: tuple[Any,],
+        parent_keys: list[str],
     ) -> None:
-        if config_name == self.main_config.getConfigName():
+        if config_name == self.main_config.name:
             (value,) = value_tuple
             if config_key == "appBackground":
                 self.background = QPixmap(value) if value else None
@@ -253,7 +253,7 @@ class CoreMainWindow(MSFluentWindow):
             )
 
     def _checkSoftErrors(self) -> None:
-        if self.main_config.getFailureStatus():
+        if self.main_config.failure:
             InfoBar.warning(
                 title=self.tr("Using internal config"),
                 content=self.tr("Setting changes may not persist"),
@@ -281,12 +281,9 @@ class CoreMainWindow(MSFluentWindow):
     def toggleTheme(self) -> None:
         toggleTheme(lazy=True)
         core_signalbus.updateConfigSettings.emit(
-            self.main_config.getConfigName(),
-            "appTheme",
-            (None,),
-            (theme().value,),
+            self.main_config.name, "appTheme", (theme().value,), []
         )
-        core_signalbus.doSaveConfig.emit(self.main_config.getConfigName())
+        self.main_config.save_config()
 
     def paintEvent(self, e: QPaintEvent) -> None:
         super().paintEvent(e)

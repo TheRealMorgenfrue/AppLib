@@ -3,6 +3,7 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
 
+from ....module.configuration.tools.template_options.template_utils import UIMsg
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
@@ -15,9 +16,9 @@ class CoreLineEdit(BaseSetting):
         config_key: str,
         options: dict,
         is_tight: bool,
-        invalidmsg: Optional[dict[str, str]] = None,
+        invalidmsg: Optional[UIMsg] = None,
         tooltip: Optional[str] = None,
-        parent_key: Optional[str] = None,
+        parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -37,14 +38,14 @@ class CoreLineEdit(BaseSetting):
         is_tight : bool, optional
             Use a smaller version of the line edit.
 
-        invalidmsg : str
-            If validation error message shown to the user.
+        invalidmsg : UIMsg
+            If a validation error occurs, this message is shown in the GUI.
 
         tooltip : str, optional
             Tooltip for this setting, by default None.
 
-        parent_key : str, optional
-            Search for `config_key` within the scope of a parent key.
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
@@ -54,19 +55,17 @@ class CoreLineEdit(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.get_value(key=config_key, parent_key=parent_key),
-            default_value=config.get_value(
-                key=config_key, parent_key=parent_key, use_template_model=True
+            current_value=config.get_value(key=config_key, parents=parent_keys),
+            default_value=config.get_template_value(
+                key="default", parents=[*parent_keys, config_key]
             ),
-            parent_key=parent_key,
+            parent_keys=parent_keys,
             parent=parent,
         )
+        self.minWidth = 100
+        self.maxWidth = 200 if is_tight else 400
+        self.invalid_msg = invalidmsg
         try:
-            self.minWidth = 100
-            self.maxWidth = 200 if is_tight else 400
-            self.invalidmsg = (
-                [val for val in invalidmsg.values()] if invalidmsg else ["", ""]
-            )
             self.setting = LineEdit(self)
 
             # Configure LineEdit
@@ -113,7 +112,7 @@ class CoreLineEdit(BaseSetting):
             core_signalbus.genericError.emit("Failed to save setting", "")
         else:
             core_signalbus.configValidationError.emit(
-                self.config_name, self.invalidmsg[0], self.invalidmsg[1]
+                self.config.name, self.invalid_msg.title, self.invalid_msg.content
             )
             self.setWidgetValue(value)
 

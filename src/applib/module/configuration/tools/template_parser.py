@@ -1,12 +1,13 @@
-from typing import Any, Self, Union
+from typing import Any, Hashable, Iterable, Self, Union
 
 from pydantic import Field
 
 from ...exceptions import OrphanGroupWarning
 from ...logging import AppLibLogger
-from ...tools.utilities import checkDictNestingLevel, iterToString
-from ..templates.template_enums import UIFlags, UIGroups
+from ...tools.types.templates import AnyTemplate
+from ...tools.utilities import iterToString
 from .template_options.groups import Group
+from .template_options.template_enums import UIFlags, UIGroups
 from .template_options.validation_info import ValidationInfo
 
 
@@ -30,41 +31,40 @@ class TemplateParser:
 
     def _parseContent(
         self,
-        section_name: str,
-        section: dict,
+        setting: str,
+        options: dict,
+        position: Iterable[int],
+        parents: Iterable[str],
         template_name: str,
         validation_info: ValidationInfo,
     ):
-        for setting, options in section.items():
-            # Gather UI flags
-            self._parseFlags(
+        # Gather UI flags
+        self._parse_flags(setting=setting, options=options, template_name=template_name)
+        # Gather UI groups
+        if self._group_is_included(options):
+            self._parse_group(
                 setting=setting, options=options, template_name=template_name
             )
-            # Gather UI groups
-            if self._groupIsIncluded(options):
-                self._parseGroup(
-                    setting=setting, options=options, template_name=template_name
-                )
-            # Gather validation info for the validation model
-            self._parseValidationInfo(
-                section_name=section_name,
-                setting=setting,
-                options=options,
-                validation_info=validation_info,
-            )
+        self._parse_validation_info(
+            setting=setting,
+            options=options,
+            position=position,
+            parents=parents,
+            validation_info=validation_info,
+        )
 
-    def _groupIsIncluded(self, options: dict[str, Any]) -> bool:
+    def _group_is_included(self, options: dict[str, Any]) -> bool:
         # options["ui_flags"] is a list after parsing flags
         return not ("ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"])
 
-    def _parseGroup(
+    def _parse_group(
         self, setting: str, options: dict[str, Any], template_name: str
     ) -> None:
         """Parse *ui_group* and *ui_group_parent* information from supplied template"""
         # Check if this setting belongs to a ui_group
         if "ui_group" in options:
             # Make ui_group option a formatted list of strings
-            groups = self.formatRawGroup(template_name, options["ui_group"])
+            groups = self.format_raw_group(template_name, options["ui_group"])
             # This group is a child of these groups
             parent_groups = groups[1 : len(groups)] if len(groups) > 1 else None
 
@@ -91,7 +91,7 @@ class TemplateParser:
                             + f"for group '{self.group.getGroupName()}'. Setting '{self.group.getParentName()}' is already designated as parent. "
                             + f"Adding as child to existing group"
                         )
-                        self._addChild(
+                        self._add_child(
                             setting=setting,
                             options=options,
                             group=self.group,
@@ -99,7 +99,7 @@ class TemplateParser:
                             template_name=template_name,
                         )
                     else:
-                        self._addParent(
+                        self._add_parent(
                             setting=setting,
                             options=options,
                             group=self.group,
@@ -108,7 +108,7 @@ class TemplateParser:
                         )
                 # This setting is a child of this group
                 else:
-                    self._addChild(
+                    self._add_child(
                         setting=setting,
                         options=options,
                         group=self.group,
@@ -121,7 +121,7 @@ class TemplateParser:
                 f"Template '{template_name}': Group parent '{setting}' is not in a group. Skipping group assignment"
             )
 
-    def _addParent(
+    def _add_parent(
         self,
         setting: str,
         options: dict,
@@ -151,7 +151,7 @@ class TemplateParser:
         if group_name in self._orphan_groups[template_name]:
             self._orphan_groups[template_name].remove(group_name)
 
-    def _addChild(
+    def _add_child(
         self,
         setting: str,
         options: dict,
@@ -167,7 +167,7 @@ class TemplateParser:
         ):
             self._orphan_groups[template_name].append(group_name)
 
-    def _parseFlags(
+    def _parse_flags(
         self, setting: str, options: dict[str, Any], template_name: str
     ) -> None:
         if "ui_flags" in options:
@@ -184,10 +184,10 @@ class TemplateParser:
                     options["ui_flags"].pop(i)
 
     def _checkGroups(self, template_name: str) -> None:
-        self._checkOrphanGroups(template_name)
-        self._checkChildlessParentGroups(template_name)
+        self._check_orphan_groups(template_name)
+        self._check_childless_parent_groups(template_name)
 
-    def _checkOrphanGroups(self, template_name: str) -> None:
+    def _check_orphan_groups(self, template_name: str) -> None:
         if self._orphan_groups[template_name]:
             for orphan_group in self._orphan_groups[template_name]:
                 self._logger.warning(
@@ -195,7 +195,7 @@ class TemplateParser:
                 )
                 Group.removeGroup(template_name, orphan_group)
 
-    def _checkChildlessParentGroups(self, template_name: str) -> None:
+    def _check_childless_parent_groups(self, template_name: str) -> None:
         groups = Group.getAllGroups(template_name)
         if groups:
             for group in groups:
@@ -204,7 +204,7 @@ class TemplateParser:
                         f"Template '{template_name}': Group '{group.getGroupName()}' is nesting children, but has no children assigned to it"
                     )
 
-    def _getFieldType(self, setting: str, options: dict) -> Any:
+    def _get_field_type(self, setting: str, options: dict) -> Any:
         field_type = None
         default_in = "default" in options
         type_in = "type" in options
@@ -221,17 +221,20 @@ class TemplateParser:
             )
         return field_type
 
-    def _parseValidationInfo(
+    def _parse_validation_info(
         self,
-        section_name: str,
         setting: str,
         options: dict,
+        position: Iterable[int],
+        parents: Iterable[Hashable],
         validation_info: ValidationInfo,
     ):
         if "validators" in options:
-            for validator in options["validators"]:
-                validation_info.addSettingValidation(section_name, setting, validator)
-        field_type = self._getFieldType(setting, options)
+            validation_info.add_setting_validation(
+                setting, position, parents, options["validators"]
+            )
+
+        field_type = self._get_field_type(setting, options)
         field_default = (
             options["default"]
             if "default" in options
@@ -258,40 +261,31 @@ class TemplateParser:
                 Field(default=field_default, ge=field_min, le=field_max, required=True),
             )
         }
-        validation_info.addField(section_name, field)
+        validation_info.add_field(setting, field, position, parents)
 
-    def parse(self, template_name: str, template: dict, force: bool = False):
+    def parse(self, template: AnyTemplate, force: bool = False):
         """Parse the supplied template.
 
         Parameters
         ----------
-        template_name : str
-            The name of the template.
-
-        template : dict
+        template : AnyTemplate
             The template to parse.
 
         force : bool, optional
             Force parsing of the template instead of using the cached version.
             Defaults to False.
         """
+        template_name = template.name
         if not template_name in self._parsed_templates or force:
             self._orphan_groups |= {template_name: []}
             validation_info = ValidationInfo()
-
-            # Enable both section and sectionless parsing
-            if checkDictNestingLevel(template, 2):
-                for section_name, section in template.items():
-                    self._parseContent(
-                        section_name=section_name,
-                        section=section,
-                        template_name=template_name,
-                        validation_info=validation_info,
-                    )
-            else:
+            for k, v, i, ps in template.get_settings():
+                setting, options = next(iter(v.items()))
                 self._parseContent(
-                    section_name="nosection",  # TODO: Remove hardcoded need for sections in validation
-                    section=template,
+                    setting=setting,
+                    options=options,
+                    position=i,
+                    parents=ps,
                     template_name=template_name,
                     validation_info=validation_info,
                 )
@@ -299,7 +293,7 @@ class TemplateParser:
             self._validation_infos |= {template_name: validation_info}
             self._parsed_templates.append(template_name)
 
-    def formatRawGroup(self, template_name, raw_ui_group: str) -> list[str]:
+    def format_raw_group(self, template_name, raw_ui_group: str) -> list[str]:
         """
         Format a raw template Group string.
 
@@ -330,5 +324,5 @@ class TemplateParser:
                     )
         return group_list
 
-    def getValidationInfo(self, template_name: str) -> ValidationInfo | None:
+    def get_validation_info(self, template_name: str) -> ValidationInfo | None:
         return self._validation_infos.get(template_name)

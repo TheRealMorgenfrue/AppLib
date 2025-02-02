@@ -15,7 +15,7 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
         config: AnyConfig,
         config_key: str,
         options: dict,
-        parent_key: Optional[str] = None,
+        parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -35,8 +35,8 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
         options : dict
             The options associated with `config_key`.
 
-        parent_key : str, optional
-            Search for `config_key` within the scope of a parent key.
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
@@ -47,25 +47,22 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
             config_key=config_key,
             options=options,
             current_value=self._convertBool(
-                config.get_value(key=config_key, parent_key=parent_key)
+                config.get_value(key=config_key, parents=parent_keys)
             ),
             default_value=self._convertBool(
-                config.get_value(
-                    key=config_key, parent_key=parent_key, use_template_model=True
+                config.get_template_value(
+                    key="default", parents=[*parent_keys, config_key]
                 )
             ),
-            parent_key=parent_key,
+            parent_keys=parent_keys,
             parent=parent,
         )
         try:
             self.setting = SwitchButton(self)
-
             # Set value of switch
             self.setWidgetValue(self.current_value)
-
             # Add Switch to layout
             self.buttonlayout.addWidget(self.setting)
-
             self._connectSignalToSlot()
         except Exception:
             self.deleteLater()

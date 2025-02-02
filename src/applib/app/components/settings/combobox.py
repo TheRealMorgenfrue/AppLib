@@ -14,7 +14,7 @@ class CoreComboBox(BaseSetting):
         config_key: str,
         options: dict,
         texts: Union[list[str], dict[str, str]],
-        parent_key: Optional[str] = None,
+        parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
         """
@@ -34,8 +34,8 @@ class CoreComboBox(BaseSetting):
         texts : list | dict
             All possible values this option can have.
 
-        parent_key : str, optional
-            Search for `config_key` within the scope of a parent key.
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
@@ -45,16 +45,15 @@ class CoreComboBox(BaseSetting):
             config=config,
             config_key=config_key,
             options=options,
-            current_value=config.get_value(key=config_key, parent_key=parent_key),
-            default_value=config.get_value(
-                key=config_key, parent_key=parent_key, use_template_model=True
+            current_value=config.get_value(key=config_key, parents=parent_keys),
+            default_value=config.get_template_value(
+                key="default", parents=[*parent_keys, config_key]
             ),
-            parent_key=parent_key,
+            parent_keys=parent_keys,
             parent=parent,
         )
         try:
             self.setting = ComboBox(self)
-
             # Populate combobox with values
             if isinstance(texts, dict):
                 for k, v in texts.items():
@@ -62,7 +61,6 @@ class CoreComboBox(BaseSetting):
             else:
                 for text, option in zip(texts, texts):
                     self.setting.addItem(text, userData=option)
-
             self.setting.setCurrentText(self.current_value)
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()

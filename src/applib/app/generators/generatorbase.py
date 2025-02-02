@@ -1,21 +1,15 @@
-from abc import abstractmethod
 import traceback
-from PyQt6.QtWidgets import QWidget
+from abc import abstractmethod
 from typing import Any, Optional
 
-from ..common.core_signalbus import core_signalbus
-from ..components.settings.file_selection import CoreFileSelect
-from ..components.settings.checkbox import CoreCheckBox
-from ..components.settings.color_picker import CoreColorPicker
-from ..components.settings.combobox import CoreComboBox
-from ..components.settings.line_edit import CoreLineEdit
-from ..components.settings.slider import CoreSlider
-from ..components.settings.spinbox import CoreSpinBox
-from ..components.settings.switch import CoreSwitch
-from .generator_tools import GeneratorUtils
+from PyQt6.QtWidgets import QWidget
+
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.templates.template_enums import UIFlags, UITypes
 from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.template_enums import (
+    UIFlags,
+    UITypes,
+)
 from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import AppLibLogger
@@ -24,7 +18,17 @@ from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
-from ...module.tools.utilities import checkDictNestingLevel, iterToString
+from ...module.tools.utilities import iterToString
+from ..common.core_signalbus import core_signalbus
+from ..components.settings.checkbox import CoreCheckBox
+from ..components.settings.color_picker import CoreColorPicker
+from ..components.settings.combobox import CoreComboBox
+from ..components.settings.file_selection import CoreFileSelect
+from ..components.settings.line_edit import CoreLineEdit
+from ..components.settings.slider import CoreSlider
+from ..components.settings.spinbox import CoreSpinBox
+from ..components.settings.switch import CoreSwitch
+from .generator_tools import GeneratorUtils
 
 
 class GeneratorBase:
@@ -37,22 +41,18 @@ class GeneratorBase:
         default_group: Optional[str] = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        parent_key: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
-        if config.getFailureStatus():
-            err_msg = f"Config '{config.getConfigName()}' is invalid"
+        if config.failure:
+            err_msg = f"Config '{config.name}' is invalid"
             raise RuntimeError(err_msg)
         self._config = config
         self._template = template
-        self._template_name = self._template.getName()
-        self._config_name = parent_key if parent_key else config.getConfigName()
+        self._config_name = config.name
         self._default_group = default_group
         self._hide_group_label = hide_group_label
         self._is_tight = is_tight
-        self._parent_key = parent_key
         self._parent = parent
-        self._prefix_msg = f"Config '{self._config_name}':"
 
         # type: dict[str, list] # Mapping of the correct card sort order.
         self._card_sort_order = {}
@@ -61,12 +61,16 @@ class GeneratorBase:
         # type: list[AnyCardGroup] # The cards sorted correctly.
         self._cards = []
 
+    def _prefix_msg(self) -> str:
+        return f"Config '{self._config_name}':"
+
     @abstractmethod
     def _createCard(
         self,
         card_type: UITypes,
         setting: str,
         options: dict[str, Any],
+        parent_keys: list[str],
         content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
@@ -86,6 +90,9 @@ class GeneratorBase:
         options : dict[str, Any]
             Options detailing how the card should look and behave.
             That is, the value of `setting` in the template.
+
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
 
         content : str
             The description of the card.
@@ -108,26 +115,31 @@ class GeneratorBase:
     def _createSetting(
         self,
         card_type: UITypes,
-        setting_name: str,
+        key: str,
         options: dict,
+        parent_keys: list[str],
         parent: Optional[QWidget] = None,
     ) -> AnySetting | None:
         """
-        Create setting widget for use on a setting card.
+        Create a setting widget for use on a setting card.
 
         Parameters
         ----------
         card_type : UITypes
             The type of the setting, e.g., Switch.
 
-        setting_name : str
-            The name of the setting, i.e., its ID/key in the config.
+        key : str
+            The setting's key in the config.
 
         options : dict
             The options available for this setting, e.g., its default value.
 
+        parent_keys : list[str]
+            The parents of `key`. Used for lookup in the config.
+
         parent : QWidget, optional
-            The parent of this setting, by default `None`.
+            The parent widget of this setting.
+            By default `None`.
 
         Returns
         -------
@@ -137,86 +149,84 @@ class GeneratorBase:
         if card_type == UITypes.CHECKBOX:
             widget = CoreCheckBox(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.COLOR_PICKER:
             widget = CoreColorPicker(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.COMBOBOX:
             widget = CoreComboBox(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
                 texts=options["values"],
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.FILE_SELECTION:
             widget = CoreFileSelect(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
                 caption=options["ui_title"],
                 directory=f"{CoreArgs._core_app_dir}",  # Starting directory
                 filter=options["ui_file_filter"],
                 initial_filter=options["ui_file_filter"],
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.LINE_EDIT:
             widget = CoreLineEdit(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
                 is_tight=self._is_tight,
                 invalidmsg=(
                     options["ui_invalidmsg"] if "ui_invalidmsg" in options else ""
                 ),
                 tooltip=None,
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.SLIDER:
             widget = CoreSlider(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
                 num_range=[options["min"], options["max"]],
                 is_tight=self._is_tight,
-                baseunit=GeneratorUtils.parseUnit(
-                    setting_name, options, self._config_name
-                ),
-                parent_key=self._parent_key,
+                baseunit=GeneratorUtils.parseUnit(key, options, self._config_name),
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.SPINBOX:
             widget = CoreSpinBox(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
                 min_value=options["min"],
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         elif card_type == UITypes.SWITCH:
             widget = CoreSwitch(
                 config=self._config,
-                config_key=setting_name,
+                config_key=key,
                 options=options,
-                parent_key=self._parent_key,
+                parent_keys=parent_keys,
                 parent=parent,
             )
         else:
             err_msg = (
-                f"{self._prefix_msg} Invalid ui_type '{card_type}' for setting '{setting_name}'. "
+                f"{self._prefix_msg()} Invalid ui_type '{card_type}' for setting '{key}'. "
                 + f"Expected one of '{iterToString(UITypes._member_names_, separator=', ')}'"
             )
             raise TypeError(err_msg)
@@ -226,109 +236,110 @@ class GeneratorBase:
         exclude = "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]
         if exclude:
             self._logger.debug(
-                f"{self._prefix_msg} Excluding setting '{setting}' from GUI"
+                f"{self._prefix_msg()} Excluding setting '{setting}' from GUI"
             )
         return exclude
 
     def _generateCards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
-        template = self._template.getTemplate()
         template_parser = TemplateParser()
-        template_parser.parse(self._template_name, template)
+        template_parser.parse(self._template)
         failed_cards = 0
 
-        stack = [template.items()]
-        while stack:
-            for k, v in stack[-1]:
-                if isinstance(v, dict) and checkDictNestingLevel(v, 2):
-                    stack.append(v.items())
-                else:
-                    pass
+        card_groups = {}  # type: dict[str, AnyCardGroup]
+        for k, v, pos, ps in self._template.get_settings():
+            setting, options = next(iter(v.items()))
 
-        for section_name, section in template.items():
-            card_group = (
-                CardGroup(section_name, self._parent) if CardGroup else None
-            )  # type: AnyCardGroup
+            if self._excludeSetting(setting, options):
+                continue
 
-            for setting, options in section.items():
-                if self._excludeSetting(setting, options):
-                    continue
+            section_name = ps[-1]
+            try:
+                card_group = card_groups[section_name]
+            except KeyError:
+                card_group = (
+                    CardGroup(section_name, self._parent) if CardGroup else None
+                )
+                card_groups[section_name] = card_group
 
-                # Get the raw ui_group
-                raw_group = f"{options["ui_group"]}" if "ui_group" in options else None
-                try:
-                    # Split the ui_groups associated with this setting
-                    formatted_groups = (
-                        template_parser.formatRawGroup(self._template_name, raw_group)
-                        if raw_group
-                        else None
-                    )
-                except OrphanGroupWarning:
-                    self._logger.warning(
-                        f"{self._prefix_msg} Cannot create card for orphan setting '{setting}'"
-                    )
-                    continue
-
-                # If multiple groups are defined for a setting, the first is considered the main group
-                main_group = (
-                    Group.getGroup(self._template_name, formatted_groups[0])
-                    if formatted_groups
+            # Get the raw ui_group
+            raw_group = f"{options["ui_group"]}" if "ui_group" in options else None
+            try:
+                # Split the ui_groups associated with this setting
+                formatted_groups = (
+                    template_parser.format_raw_group(self._template.name, raw_group)
+                    if raw_group
                     else None
                 )
-                try:
-                    card = self._createCard(
-                        card_type=GeneratorUtils.inferType(
-                            setting, options, self._config_name
-                        ),
-                        setting=setting,
-                        options=options,
-                        content=options["ui_desc"] if "ui_desc" in options else "",
-                        group=main_group,
-                        parent=card_group,
-                    )
-                except Exception:
-                    self._logger.error(
-                        f"{self._prefix_msg} Error creating setting card for setting '{setting}'\n"
-                        + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
-                    )
-                    card = None
-                if card:
-                    all_groups = []
-                    if formatted_groups:
-                        for format_group in formatted_groups:
-                            group = Group.getGroup(self._template_name, format_group)
-                            if group:
-                                all_groups.append(group)
-                    if not all_groups:
-                        all_groups = None
-                    if GeneratorUtils.updateCardGrouping(
-                        setting=setting,
-                        card_group=card_group,
-                        card=card,
-                        groups=all_groups,
-                    ):
-                        self._updateCardSortOrder(card, card_group)
-                else:
-                    if main_group:
-                        try:
-                            # Remove the failed card from its group
-                            main_group.removeChild(setting)
-                        except KeyError:
-                            # This card is a parent card
-                            main_group.removeGroup(
-                                self._template_name, main_group.getGroupName()
-                            )
-                    failed_cards += 1
+            except OrphanGroupWarning:
+                self._logger.warning(
+                    f"{self._prefix_msg()} Cannot create card for orphan setting '{setting}'"
+                )
+                continue
+            # If multiple groups are defined for a setting, the first is considered the main group
+            main_group = (
+                Group.getGroup(self._template.name, formatted_groups[0])
+                if formatted_groups
+                else None
+            )
 
-            if card_group and self._hide_group_label:
-                card_group.getTitleLabel().setHidden(True)
-            if self._default_group:
-                if self._default_group == card_group.getTitleLabel().text():
-                    self._default_group = card_group
+            try:
+                card = self._createCard(
+                    card_type=GeneratorUtils.inferType(
+                        setting, options, self._config_name
+                    ),
+                    setting=setting,
+                    options=options,
+                    parent_keys=ps,
+                    content=options["ui_desc"] if "ui_desc" in options else "",
+                    group=main_group,
+                    parent=card_group,
+                )
+            except Exception:
+                self._logger.error(
+                    f"{self._prefix_msg()} Error creating setting card for setting '{setting}'\n"
+                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                )
+                card = None
+
+            if card:
+                all_groups = []
+                if formatted_groups:
+                    for format_group in formatted_groups:
+                        group = Group.getGroup(self._template.name, format_group)
+                        if group:
+                            all_groups.append(group)
+                if not all_groups:
+                    all_groups = None
+                if GeneratorUtils.updateCardGrouping(
+                    setting=setting,
+                    card_group=card_group,
+                    card=card,
+                    groups=all_groups,
+                ):
+                    self._updateCardSortOrder(card, card_group)
             else:
-                self._default_group = card_group
+                if main_group:
+                    try:
+                        # Remove the failed card from its group
+                        main_group.removeChild(setting)
+                    except KeyError:
+                        # This card is a parent card
+                        main_group.removeGroup(
+                            self._template.name, main_group.getGroupName()
+                        )
+                failed_cards += 1
+
+            if card_group:
+                if self._hide_group_label:
+                    card_group.getTitleLabel().setHidden(True)
+                if isinstance(self._default_group, str):
+                    if self._default_group == card_group.getTitleLabel().text():
+                        self._default_group = card_group
+                elif self._default_group is None:
+                    self._default_group = card_group
             self._card_list.append(card_group)
 
-        final_all_groups = Group.getAllGroups(self._template_name)
+        final_all_groups = Group.getAllGroups(self._template.name)
         if final_all_groups:
             GeneratorUtils.connectUIGroups(final_all_groups)
         self._addCardsBySortOrder()
@@ -357,7 +368,7 @@ class GeneratorBase:
                     card_group.addSettingCard(card)
             else:
                 self._logger.warning(
-                    f"{self._prefix_msg} Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
+                    f"{self._prefix_msg()} Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
                 )
                 card_group.deleteLater()
                 self._getCardList().remove(card_group)

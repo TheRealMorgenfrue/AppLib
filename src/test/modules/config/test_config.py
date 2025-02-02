@@ -1,12 +1,12 @@
+from test.modules.config.templates.process_template import ProcessTemplate
+from test.modules.config.templates.test_template import TestTemplate
+from test.modules.config.test_args import TestArgs
 from typing import Self
 
+from applib.module.configuration.config.config_base import ConfigBase
 from applib.module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
-from applib.module.configuration.config.config_base import ConfigBase
-from test.modules.config.templates.process_template import ProcessTemplate
-from test.modules.config.test_args import TestArgs
-from test.modules.config.templates.test_template import TestTemplate
 
 
 class TestConfig(ConfigBase):
@@ -20,17 +20,16 @@ class TestConfig(ConfigBase):
 
     def __init__(self) -> None:
         if not self._created:
-            validation_model = CoreValidationModelGenerator().getGenericModel(
-                model_name=f"{TestArgs.main_config_name}_val",
-                template=self.makeTemplate(),
+            template = TestTemplate() | ProcessTemplate()
+            template.name = TestArgs.main_config_name
+            validation_model = CoreValidationModelGenerator().get_generic_model(
+                model_name=TestArgs.main_config_name,
+                template=template,
             )
             super().__init__(
-                template_model=validation_model.model_construct().model_dump(),
+                name=TestArgs.main_config_name,
+                template=template,
                 validation_model=validation_model,
-                config_name=TestArgs.main_config_name,
-                config_path=TestArgs.main_config_path,
+                file_path=TestArgs.main_config_path,
             )
             self._created = True
-
-    def makeTemplate(self) -> dict:
-        return (TestTemplate() | ProcessTemplate()).tree_dump()
