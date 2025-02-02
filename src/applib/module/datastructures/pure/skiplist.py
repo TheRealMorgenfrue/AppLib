@@ -13,10 +13,11 @@ Courtesy of https://opendatastructures.org/
 
 import random
 from typing import Any, Iterable, override
+
 import numpy
 
-from .utils import new_array
 from .base import BaseList
+from .utils import new_array
 
 
 class Skiplist(BaseList):
@@ -42,7 +43,6 @@ class Skiplist(BaseList):
 
         This implementation follows most of Python's list interface (incl. slicing and negative indexing).
         It allows O(log n) average time searches, additions, and removals.
-        NOTE: This time complexity is only maintained when working with indices.
 
         W. Pugh. Skip Lists: A probabilistic alternative to balanced trees.
         In Communications of the ACM, 33(6), pp. 668-676, June 1990.
