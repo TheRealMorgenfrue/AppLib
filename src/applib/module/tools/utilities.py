@@ -1,6 +1,6 @@
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
+
 from pydantic import ValidationError
-from typing import Iterable
 
 
 def iterToString(arg: Iterable, separator: str = "") -> str:
@@ -119,16 +119,16 @@ def checkDictNestingLevel(input: dict, stop_at: int) -> bool:
     stack = [iter(input.items())]
     nestingLevel = 0
     while stack:
-        if nestingLevel == stop_at:
-            return True
         for k, v in stack[-1]:
             if isinstance(v, dict):
                 stack.append(iter(v.items()))
                 nestingLevel += 1
                 break
-            else:
-                return False
         else:
+            if nestingLevel == stop_at:
+                return True
+            elif nestingLevel > stop_at:
+                return False
             stack.pop()
     return False
 
