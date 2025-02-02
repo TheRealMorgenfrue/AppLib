@@ -73,10 +73,10 @@ class RedBlackTreeMapping(RedBlackTree):
             )
             return f"{self.__class__.__name__} -> ({values})"
 
-        def _strict_index(self, parents) -> list[int]:
+        def _strict_index(self, parents: Iterable[Hashable]) -> list[int]:
             return [self.parents.index(parents)]  # ValueError
 
-        def _smart_index(self, parents) -> list[int]:
+        def _smart_index(self, parents: Iterable[Hashable]) -> list[int]:
             if len(self.keys) == 1:
                 return [0]
 
@@ -97,15 +97,20 @@ class RedBlackTreeMapping(RedBlackTree):
             #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
             raise LookupError()
 
-        def _immediate_index(self, parents) -> list[int]:
-            return [i for i, ps in enumerate(self.parents) if parents == ps[-1]]
+        def _immediate_index(self, parents: Iterable[Hashable]) -> list[int]:
+            return [i for i, ps in enumerate(self.parents) if parents[-1] == ps[-1]]
 
-        def _any_index(self, parents) -> list[int]:
-            return [i for i, ps in enumerate(self.parents) if parents in ps]
+        def _any_index(self, parents: Iterable[Hashable]) -> list[int]:
+            idxs = []
+            for i, ps in enumerate(self.parents):
+                for p in parents:
+                    if p in ps:
+                        idxs.append(i)
+            return idxs
 
         def index(
             self,
-            parents: Union[Hashable, Iterable[Hashable]],
+            parents: Iterable[Hashable],
             search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         ) -> int:
             """
@@ -156,7 +161,7 @@ class RedBlackTreeMapping(RedBlackTree):
                     i = self._immediate_index(parents)
                 case "any":
                     i = self._any_index(parents)
-            if len(i) > 1:
+            if len(i) != 1:
                 raise LookupError()
             return i[0]
 
