@@ -1,19 +1,20 @@
+from test.modules.config.test_args import TestArgs
 from typing import Self, override
 
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
 from applib.module.configuration.templates.base_template import BaseTemplate
-from applib.module.configuration.templates.template_enums import (
+from applib.module.configuration.tools.template_options.template_enums import (
     UIFlags,
     UIGroups,
     UITypes,
 )
+from applib.module.configuration.tools.template_options.template_utils import UIMsg
 from applib.module.configuration.validators.app_validator import (
     validateLoglevel,
     validateTheme,
 )
 from applib.module.configuration.validators.generic_validator import validatePath
-from test.modules.config.test_args import TestArgs
 
 
 class TestTemplate(BaseTemplate):
@@ -39,7 +40,7 @@ class TestTemplate(BaseTemplate):
         return {
             "General": {
                 "loglevel": {
-                    "ui_type": UITypes.COMBOBOX,
+                    "ui_type": UITypes.LINE_EDIT,
                     "ui_title": f"Set log level for {CoreArgs._core_app_name}",
                     "default": "INFO" if CoreArgs._core_is_release else "DEBUG",
                     "values": TestArgs.main_loglevels,
@@ -106,6 +107,7 @@ class TestTemplate(BaseTemplate):
                         """
                     ),
                     "default": False,
+                    "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
                     "ui_group": "pu_fullCompat, pu_partialCompat",
                     "ui_flags": UIFlags.REQUIRES_RELOAD,
                 },
@@ -141,38 +143,10 @@ class TestTemplate(BaseTemplate):
                 "downloadListDirectory": {
                     "ui_title": "Folder for download lists",
                     "ui_desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt",
-                    "ui_invalidmsg": {"title": "", "desc": ""},
+                    "ui_invalidmsg": UIMsg("WIP", "This is a test"),
                     "default": "",
                     "validators": [validatePath],
                     "ui_group": "downloadListFolder",
-                },
-            },
-            "Processor": {
-                "maxThreads": {
-                    "ui_title": f"Maxmimum number of NAME processes to run concurrently",
-                    "ui_desc": "Going beyond 4 is not recommended as it substantially increases the chance of NAME blocking your IP address",
-                    "default": 3,
-                    "min": 1,
-                    "max": 12,
-                    "ui_group_parent": UIGroups.CLUSTERED,
-                    "ui_group": "pu_threads",
-                },
-                "idsPerProcess": {
-                    "ui_title": "Number of NAME IDs to download per process",
-                    "ui_desc": "Going beyond 10 is not recommended",
-                    "default": 5,
-                    "min": 1,
-                    "max": 20,
-                    "ui_group": "pu_threads",
-                },
-                "terminalSize": {
-                    "ui_title": "Terminal size",
-                    "ui_desc": "Set the size of the terminal in pixels",
-                    "default": 400,
-                    "min": 400,
-                    "max": 4000,
-                    "ui_type": UITypes.SPINBOX,
-                    "ui_group": "pu_threads",
                 },
             },
         }
