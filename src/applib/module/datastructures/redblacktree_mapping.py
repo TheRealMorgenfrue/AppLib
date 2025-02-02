@@ -160,20 +160,6 @@ class RedBlackTreeMapping(RedBlackTree):
                 raise LookupError()
             return i[0]
 
-        def is_immediate_parent_of(
-            self, p: Union[Hashable, Iterable[Hashable]]
-        ) -> tuple[bool, int]:
-            """`p` is a direct predecessor of `k`."""
-            i = self.index(p, True)
-            return (self.parents[i][-1] == p, i)
-
-        def is_parent_of(
-            self, p: Union[Hashable, Iterable[Hashable]]
-        ) -> tuple[bool, int]:
-            """`p` is an ancestor of `k`."""
-            i = self.index(p, False)
-            return (p in self.parents[i] or p == self.parents[i], i)
-
         def add(
             self,
             k: Hashable,
@@ -220,7 +206,6 @@ class RedBlackTreeMapping(RedBlackTree):
             v: Any,
             pos: Iterable[int],
             ps: Iterable[Hashable],
-            _reversed_=False,
         ):
             self.k = k
             self.v = v
@@ -229,7 +214,6 @@ class RedBlackTreeMapping(RedBlackTree):
             self._ppos = dict(
                 zip([*ps, k], pos, strict=True)
             )  # Restores order of keys when sorting data
-            self._reversed_ = _reversed_
 
         def __lt__(self, other):
             if not isinstance(other, RedBlackTreeMapping.HeapNode):
@@ -237,32 +221,32 @@ class RedBlackTreeMapping(RedBlackTree):
 
             lps, lops = len(self.ps), len(other.ps)
             if lps < lops:
-                # Node's parent path is shorter
-                return self._is_reverse(True)
+                return True  # Node's parent path is shorter
             elif lps == lops:
                 # Check positions of nodes' parents, starting from the root
                 for spos, opos in zip(self._ppos.items(), other._ppos.items()):
                     sp, si = spos  # self
                     op, oi = opos  # other
                     if sp != op:  # Nodes' common ancestor is diverging
-                        # Check which of the nodes' ancestors are closest to the root
-                        return self._is_reverse(si < oi)
-            # Node's parent path is longer
-            return self._is_reverse(False)
-
-        def __gt__(self, other):
-            if not isinstance(other, RedBlackTreeMapping.HeapNode):
-                return NotImplemented
-            return not self < other
-
-        def _is_reverse(self, val: bool) -> bool:
-            """Reverse value. For use with a reverse iterator."""
-            if self._reversed_:
-                return not val
-            return val
+                        # The nodes' ancestors that are closest to the root
+                        return si < oi
+            return False  # Node's parent path is longer
 
         def get(self) -> _rbtm_item:
             return (self.k, self.v, self.pos, self.ps)
+
+    class ReversedHeapNode(HeapNode):
+        def __init__(
+            self,
+            k: Hashable,
+            v: Any,
+            pos: Iterable[int],
+            ps: Iterable[Hashable],
+        ):
+            super().__init__(k, v, pos, ps)
+
+        def __lt__(self, other):
+            return not super().__lt__(other)
 
     def __init__(
         self,
@@ -325,7 +309,7 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def __reversed__(self) -> Generator[_rbtm_item, Any, None]:
         heap = MeldableHeap(
-            [RedBlackTreeMapping.HeapNode(*item, _reversed_=True) for item in self]
+            [RedBlackTreeMapping.ReversedHeapNode(*item) for item in self]
         )
         while heap:
             yield heap.remove().get()

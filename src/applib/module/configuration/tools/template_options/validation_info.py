@@ -74,18 +74,14 @@ class FieldTree(RedBlackTreeMapping):
     ) -> Generator[tuple[str, dict, Iterable[Hashable]], Any, None]:
         heap = MeldableHeap(
             [
-                RedBlackTreeMapping.HeapNode(
-                    k=node.keys[0],
-                    v=node,
-                    pos=node.positions[0],
-                    ps=node.parents[0],
-                    _reversed_=True,
+                RedBlackTreeMapping.ReversedHeapNode(
+                    k=node.keys[0], v=node, pos=node.positions[0], ps=node.parents[0]
                 )
                 for node in self
             ]
         )
         while heap:
-            h_node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
+            h_node = heap.remove()  # type: RedBlackTreeMapping.ReversedHeapNode
             k, v, pos, ps = h_node.get()
             f_node = v  # type: FieldTree.FieldNode
             yield k, f_node.fields, pos, ps
