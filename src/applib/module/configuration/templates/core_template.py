@@ -1,10 +1,10 @@
 from typing import Self, override
 
 from ..internal.core_args import CoreArgs
-from .base_template import BaseTemplate
-from .template_enums import UIGroups, UITypes
+from ..tools.template_options.template_enums import UIGroups, UITypes
 from ..validators import validateLoglevel, validateTheme
 from ..validators.generic_validator import validatePath
+from .base_template import BaseTemplate
 
 
 class CoreTemplate(BaseTemplate):

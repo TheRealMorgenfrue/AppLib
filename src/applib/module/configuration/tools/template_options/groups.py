@@ -1,10 +1,10 @@
 from typing import Any, Iterable, Self
 
-from ...templates.template_enums import UIGroups
 from ....logging import AppLibLogger
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
 from ....tools.utilities import iterToString
+from .template_enums import UIGroups
 
 
 class Group:

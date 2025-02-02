@@ -1,6 +1,7 @@
-from typing import Self, override
-from applib import BaseTemplate, UITypes, UIGroups
 from test.modules.config.test_args import TestArgs
+from typing import Self, override
+
+from applib import BaseTemplate, UIGroups, UITypes
 
 
 class ProcessTemplate(BaseTemplate):
@@ -43,5 +44,5 @@ class ProcessTemplate(BaseTemplate):
                     "ui_type": UITypes.SPINBOX,
                     "ui_group": "pu_threads",
                 },
-            },
+            }
         }

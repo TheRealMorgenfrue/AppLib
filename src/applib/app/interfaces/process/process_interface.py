@@ -174,10 +174,10 @@ class CoreProcessInterface(ScrollArea):
         self,
         config_name: str,
         config_key: str,
-        parent_key: tuple[str | None],
         value_tuple: tuple[Any,],
+        parent_keys: list[str],
     ) -> None:
-        if config_name == self.main_config.getConfigName():
+        if config_name == self.main_config.name:
             (value,) = value_tuple
             if config_key == "maxThreads":
                 self.max_threads = value

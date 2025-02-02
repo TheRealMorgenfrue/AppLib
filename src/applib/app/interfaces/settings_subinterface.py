@@ -1,16 +1,15 @@
-from qfluentwidgets import ScrollArea, FluentIconBase
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
-from PyQt6.QtGui import QIcon
-
 from typing import Literal, Optional, Union
 
-from ..common.core_stylesheet import CoreStyleSheet
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import FluentIconBase, ScrollArea
 
 from ...module.tools.types.config import AnyConfig
-from ...module.tools.types.templates import AnyTemplate
-from ...module.tools.types.gui_generators import AnyCardGenerator
 from ...module.tools.types.gui_cardstacks import AnyCardStack
+from ...module.tools.types.gui_generators import AnyCardGenerator
+from ...module.tools.types.templates import AnyTemplate
+from ..common.core_stylesheet import CoreStyleSheet
 
 
 class CoreSettingsSubInterface(ScrollArea):
@@ -23,7 +22,7 @@ class CoreSettingsSubInterface(ScrollArea):
         title: str | Literal["DEFAULT"] | None = "DEFAULT",
         icons: dict[str, Union[str, QIcon, FluentIconBase]] = None,
         parent: Optional[QWidget] = None,
-        **generator_kwargs
+        **generator_kwargs,
     ):
         """
         Create a default settings panel for a `config`/`template` duo, where GUI components
@@ -47,7 +46,7 @@ class CoreSettingsSubInterface(ScrollArea):
 
         title : str
             The display title of the interface.
-            By default `DEFAULT`, which sets the title to `f"{config.getConfigName()} Settings"`.
+            By default `DEFAULT`, which sets the title to `f"{config.name} Settings"`.
 
         icons : dict[str, Union[str, QIcon, FluentIconBase]]
             The icons shown in the pivot for each GUI element section, if supported by the `CardStack`.
@@ -107,9 +106,13 @@ class CoreSettingsSubInterface(ScrollArea):
 
         card_stack = self._CardStack(
             generator=generator,
-            labeltext=f"{self._config.getConfigName()} Settings" if self._title == "DEFAULT" else self._title,
+            labeltext=(
+                f"{self._config.name} Settings"
+                if self._title == "DEFAULT"
+                else self._title
+            ),
             parent=self,
-            **cardstack_kwargs
+            **cardstack_kwargs,
         )
         CoreStyleSheet.SETTINGS_SUBINTERFACE.apply(card_stack)
         self.vGeneralLayout.addWidget(card_stack)

@@ -1,8 +1,8 @@
 import os
 from typing import SupportsIndex, SupportsInt, TypeAlias
-from typing_extensions import Buffer
 
 from pydantic import BaseModel
+from typing_extensions import Buffer
 
 ReadableBuffer: TypeAlias = Buffer
 ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex
