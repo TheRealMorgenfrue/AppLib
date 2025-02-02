@@ -21,7 +21,7 @@ class CoreSignalBus(QObject):
         Content of GUI message.
     """
 
-    configUpdated = pyqtSignal(str, str, tuple, tuple)
+    configUpdated = pyqtSignal(str, str, tuple, list)
     """
     Notify that a value in a config is updated.
 
@@ -33,11 +33,11 @@ class CoreSignalBus(QObject):
     config_key : str
         The key whose value was updated.
 
-    parent_key : tuple[str | None]
-        The parent key of `config_key`.
-
     value : tuple[Any]
         The updated value mapped to `config_key`.
+
+    parent_keys : list[str]
+        The parent keys of `config_key`.
     """
 
     configNameUpdated = pyqtSignal(str, str)
@@ -53,20 +53,10 @@ class CoreSignalBus(QObject):
         The new config name.
     """
 
-    doSaveConfig = pyqtSignal(str)
-    """
-    Force the config to be saved to disk.
-
-    Parameters
-    ----------
-    config_name : str
-        The name of the config.
-    """
-
     # ───────────────────────────────────────────────────────────────────────────#
     # Setting updates
     # ───────────────────────────────────────────────────────────────────────────#
-    updateConfigSettings = pyqtSignal(str, str, tuple, tuple)
+    updateConfigSettings = pyqtSignal(str, str, tuple, list)
     """
     Update a key's value programmatically both in config and GUI.
 
@@ -80,11 +70,11 @@ class CoreSignalBus(QObject):
     config_key : str
         The key whose value should be updated.
 
-    parent_key : tuple[str | None]
-        The parent key of `config_key`.
-
     value : tuple[Any]
         The updated value mapped to `config_key`.
+
+    parent_keys : list[str]
+        The parent keys of `config_key`.
     """
 
     # ───────────────────────────────────────────────────────────────────────────#
