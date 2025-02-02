@@ -1,15 +1,18 @@
 import traceback
 from typing import Iterable
 
-from ..components.settingcards.card_base import DisableWrapper
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.templates.template_enums import UIGroups, UITypes
 from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.template_enums import (
+    UIGroups,
+    UITypes,
+)
 from ...module.logging import AppLibLogger
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
 from ...module.tools.types.gui_settings import AnyBoolSetting
 from ...module.tools.utilities import iterToString
+from ..components.settingcards.card_base import DisableWrapper
 
 
 class GeneratorUtils:
@@ -76,9 +79,9 @@ class GeneratorUtils:
             try:
                 parent_option = parent.getOption()
             except AttributeError:
-                cls._logger.warning(
+                cls._logger.error(
                     f"Template '{group.getTemplateName()}': Unable to connect cards in UI group '{group.getGroupName()}' "
-                    + f"due to missing card for parent setting '{group.getParentName()}'. Skipping UI group"
+                    + f"due to missing card for parent setting '{group.getParentName()}'"
                 )
                 continue
             try:
