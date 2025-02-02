@@ -1,5 +1,15 @@
 from collections import deque
-from typing import Any, Generator, Hashable, Iterable, Mapping, Self, TypeAlias, Union
+from typing import (
+    Any,
+    Generator,
+    Hashable,
+    Iterable,
+    Literal,
+    Mapping,
+    Self,
+    TypeAlias,
+    Union,
+)
 
 from .pure.meldableheap import MeldableHeap
 from .pure.redblacktree import RedBlackTree
@@ -25,7 +35,7 @@ class RedBlackTreeMapping(RedBlackTree):
             self._parent_nodes = Skiplist([None])  # Pointer to this node's parent
             self.keys = Skiplist([k])  # Keys are identical for each node
             self.values = Skiplist([v])
-            self.position = Skiplist([pos])  # Tracks the order of keys
+            self.positions = Skiplist([pos])  # Tracks the order of keys
             self.parents = Skiplist([ps])  # Uniquely identifies keys
 
         def __iter__(self) -> Generator[_rbtm_item, Any, None]:
@@ -35,6 +45,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 if k[:2].count("_") == 0
                 and k[-2:].count("_") == 0
                 and isinstance(v, Iterable)
+                and not isinstance(v, Mapping)
             ]
             for i in range(len(self.keys)):
                 yield tuple([l[i] for l in attr])
@@ -62,76 +73,106 @@ class RedBlackTreeMapping(RedBlackTree):
             )
             return f"{self.__class__.__name__} -> ({values})"
 
-        def get_multi_index(
-            self, p: Union[Hashable, Iterable[Hashable]], im: bool = False
-        ) -> list[int]:
-            """
-            Return all possible indices given `p` + `im`.
+        def _strict_index(self, parents) -> list[int]:
+            return [self.parents.index(parents)]  # ValueError
 
-            If `p` is iterable, `im` is ignored.
-            """
-            if isinstance(p, Iterable):
-                # TODO: Implement fuzzy matching of array values
-                # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
-                #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
-                i = [self.parents.index(p)]  # Raises ValueError if not present
-            else:
-                if im:
-                    i = [i for i, ps in enumerate(self.parents) if p == ps[-1]]
-                else:
-                    i = [i for i, ps in enumerate(self.parents) if p in ps]
-            return i
+        def _smart_index(self, parents) -> list[int]:
+            if len(self.keys) == 1:
+                return [0]
 
-        def get_index(
-            self, p: Union[Hashable, Iterable[Hashable]], im: bool = False
+            try:
+                return self._strict_index(parents)
+            except ValueError:
+                pass
+
+            imm = self._immediate_index(parents)
+            if len(imm) == 1:
+                return imm
+            anys = self._any_index(parents)
+            if len(anys) == 1:
+                return anys
+
+            # TODO: Implement fuzzy matching of array values
+            # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
+            #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
+            raise LookupError()
+
+        def _immediate_index(self, parents) -> list[int]:
+            return [i for i, ps in enumerate(self.parents) if parents == ps[-1]]
+
+        def _any_index(self, parents) -> list[int]:
+            return [i for i, ps in enumerate(self.parents) if parents in ps]
+
+        def index(
+            self,
+            parents: Union[Hashable, Iterable[Hashable]],
+            search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         ) -> int:
             """
-            Get index of `p`.
-
-            NOTE
-            ----
-            If `p` is not an Iterable, it is in some cases not possible to uniquely identify a key based on `p` + `im`.
-            In such cases `p` must be an Iterable of all parents of the key. However, for the average use-case, `p` + `im` is sufficient.
+            Get index of `parents`.
 
             Parameters
             ----------
-            p : Hashable | Iterable[Hashable] | None, optional
-                The parent of the key.
-                By default None.
+            parents : Union[Hashable, Iterable[Hashable]]
+                The parents of `key`.
 
-            im : bool, optional
-                If True, `p` must be the direct predecessor of the key.
-                If False, `p` must be an ancestor of the key.
-                Is ignored if `p` is an Iterable.
-                By default True.
+            search_mode : Literal["strict", "smart", "immediate", "any"], optional
+                How to select keys.
+                    "strict"
+                        Requires `parents` to match exactly.
+                        I.e. ["a", "b"] == ["a", "b"]
+                    "smart"
+                        Tries to find the key using different heuristics.
+                        Note that it can result in the wrong key under certain conditions.
+                    "immediate"
+                        Requires `parents` to be a Hashable that matches the closest parent.
+                        I.e. "b" == ["a", "b"]
+                    "any"
+                        Requires `parents` to be a Hashable that matches any parent.
+                        I.e. "a" == ["a", "b"]
+
+                By default "smart".
+
+            Returns
+            -------
+            int
+                The index of `parents`.
 
             Raises
             ------
             ValueError
-                If `p` does not exist.
+                If `parents` does not exist.
 
             LookupError
-                If `p` cannot be uniquely identified.
-                Can happen if `p` is not an Iterable of all parents of the key.
+                If `parents` cannot be uniquely identified.
+                Can happen if `parents` is not an Iterable of all parents of the key.
             """
-            i = self.get_multi_index(p, im)
+            match search_mode:
+                case "strict":
+                    i = self._strict_index(parents)
+                case "smart":
+                    i = self._smart_index(parents)
+                case "immediate":
+                    i = self._immediate_index(parents)
+                case "any":
+                    i = self._any_index(parents)
             if len(i) > 1:
-                raise LookupError("multiple possibilities for key")
+                raise LookupError()
             return i[0]
 
         def is_immediate_parent_of(
             self, p: Union[Hashable, Iterable[Hashable]]
         ) -> tuple[bool, int]:
             """`p` is a direct predecessor of `k`."""
-            i = self.get_index(p, True)
+            i = self.index(p, True)
             return (self.parents[i][-1] == p, i)
 
         def is_parent_of(
             self, p: Union[Hashable, Iterable[Hashable]]
         ) -> tuple[bool, int]:
             """`p` is an ancestor of `k`."""
-            i = self.get_index(p, False)
-            return (p in self.parents[i], i)
+            i = self.index(p, False)
+            return (p in self.parents[i] or p == self.parents[i], i)
 
         def add(
             self,
@@ -148,12 +189,12 @@ class RedBlackTreeMapping(RedBlackTree):
             try:
                 i = self.parents.index(ps)
                 self.values[i] = v
-                self.position[i] = pos
+                self.positions[i] = pos
                 self.parents[i] = ps
             except ValueError:
                 self.keys.append(k)
                 self.values.append(v)
-                self.position.append(pos)
+                self.positions.append(pos)
                 self.parents.append(ps)
                 self._parent_nodes.append(None)
 
@@ -164,9 +205,13 @@ class RedBlackTreeMapping(RedBlackTree):
             return (
                 self.keys.pop(i),
                 self.values.pop(i),
-                self.position.pop(i),
+                self.positions.pop(i),
                 self.parents.pop(i),
             )
+
+        def get(self, i: int) -> _rbtm_item:
+            """Return objects at index `i`."""
+            return (self.keys[i], self.values[i], self.positions[i], self.parents[i])
 
     class HeapNode:
         def __init__(
@@ -264,7 +309,6 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         super().__init__()
         self.name = name
-        self._prefix_msg = f"{self.__class__.__name__} '{self.name}'"
         self._key_count = 0
         self._structure_tracker = {}  # type: dict[str, tuple[str, list]]
         self._position_tracker = []
@@ -326,13 +370,16 @@ class RedBlackTreeMapping(RedBlackTree):
             return False
 
     def __str__(self):
-        return f"{self._prefix_msg} :-> (\n  nodes: {len(self)},\n  keys: {self._key_count},\n  positions: {self._position_tracker},\n  structure: {self._structure_tracker}\n)"
+        return f"{self._prefix_msg()} (\n  nodes: {len(self)},\n  keys: {self._key_count},\n  positions: {self._position_tracker}\n)"  # ,\n  structure: {self._structure_tracker}\n)"
 
     def _create_node(self, *args, **kwargs) -> "RedBlackTreeMapping.TreeNode":
         return RedBlackTreeMapping.TreeNode(*args, **kwargs)
 
+    def _prefix_msg(self) -> str:
+        return f"{self.__class__.__name__} '{self.name}':"
+
     def _raise_key_error(self, k, p, from_none: bool = True):
-        e = KeyError(f"{self._prefix_msg}: Key ('{k}', '{p}') does not exist")
+        e = KeyError(f"{self._prefix_msg()} Key ('{k}', '{p}') does not exist")
         if from_none:
             raise e from None
         else:
@@ -340,9 +387,9 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def _raise_lookup_error(self, k, p, tn, from_none: bool = True):
         e = LookupError(
-            f"{self._prefix_msg}: Cannot uniquely identify a value for (key '{k}', parent '{p}')"
+            f"{self._prefix_msg()} Cannot uniquely identify a value for key ('{k}', '{p}')"
         )
-        e.add_note(f"{self._prefix_msg}: Possible values are '{tn}'")
+        e.add_note(f"Possible values: {tn}")
         if from_none:
             raise e from None
         else:
@@ -394,7 +441,7 @@ class RedBlackTreeMapping(RedBlackTree):
     def _check_value(self, v) -> bool:
         """Returns True if `v` is nesting child nodes and thus should be serialized as a dict."""
         return (
-            isinstance(v, Iterable)
+            isinstance(v, list)
             and v
             and isinstance(v[0], tuple)
             and v[0]
@@ -455,11 +502,19 @@ class RedBlackTreeMapping(RedBlackTree):
         if not updated:
             self._update_position(len(parents), key, position, parents)
 
+    def _remove_position(self, position: Iterable[int]):
+        pos_i = "".join([f"{v}" for v in position])
+        try:
+            self._structure_tracker.pop(pos_i)
+            self._position_tracker[len(position) - 1] -= 1
+        except (KeyError, IndexError):
+            pass
+
     def _find_index(
         self,
         key: Hashable,
-        parent: Union[Hashable, Iterable[Hashable], None] = None,
-        immediate: bool = False,
+        parents: Union[Hashable, Iterable[Hashable]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> tuple["RedBlackTreeMapping.TreeNode", int]:
         """
         Return the index of `key` and its TreeNode object.
@@ -469,15 +524,26 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             The key to look for.
 
-        parent : Hashable | Iterable[Hashable] | None, optional
-            The parent of `key`.
-            By default None.
+        parents : Hashable | Iterable[Hashable], optional
+            The parents of `key`.
+            By default [].
 
-        immediate : bool, optional
-            If True, `parent` must be the direct predecessor of `key`.
-            If False, `parent` must be an ancestor of `key`.
-            Is ignored if `parent` is an Iterable.
-            By default False.
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+                "strict"
+                    Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                "smart"
+                    Tries to find `key` using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                "immediate"
+                    Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                "any"
+                    Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
+
+            By default "smart".
 
         Returns
         -------
@@ -487,42 +553,33 @@ class RedBlackTreeMapping(RedBlackTree):
         Raises
         ------
         KeyError
-            If the combination of (`key`,`parent`) does not exist.
+            If the combination of (`key`,`parents`) does not exist.
 
         LookupError
-            If a key-value pair can not be uniquely identified from (`key`,`parent`).
-            Can happen if `parent` information is insufficient.
+            If a key-value pair can not be uniquely identified from (`key`,`parents`).
+            Can happen if `parents` information is insufficient.
         """
-        tn = RedBlackTreeMapping.TreeNode(key, None, None, parent)
-        u = self._find_node(tn)
-        if u is None:
-            self._raise_key_error(key, parent)
+        if not isinstance(parents, Iterable):
+            parents = [parents]
 
-        tn = u.x  # type: RedBlackTreeMapping.TreeNode
-        if parent is None:
-            if len(tn) > 1:
-                self._raise_lookup_error(key, parent, tn)
-            i = 0
-        else:
-            try:
-                if immediate:
-                    yes, i = tn.is_immediate_parent_of(parent)
-                else:
-                    yes, i = tn.is_parent_of(parent)
-                if not yes:
-                    self._raise_key_error(key, parent)
-            except LookupError:
-                # Convert generic LookupError to informative version
-                self._raise_lookup_error(key, parent, tn)
-            except ValueError:
-                self._raise_key_error(key, parent)
-        return (tn, i)
+        tn = self._create_node(key, None, None, parents)
+        u = self._find_node(tn)  # type: RedBlackTreeMapping.TreeNode | None
+        if u is None:
+            self._raise_key_error(key, parents)
+        try:
+            i = u.index(parents, search_mode)
+        except LookupError:
+            # Convert generic LookupError to informative version
+            self._raise_lookup_error(key, parents, u)
+        except ValueError:
+            self._raise_key_error(key, parents)
+        return (u, i)
 
     def find(
         self,
         key: Hashable,
-        parent: Union[Hashable, Iterable[Hashable], None] = None,
-        immediate: bool = False,
+        parents: Union[Hashable, Iterable[Hashable]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> Any:
         """
         Return the value for `key`.
@@ -532,28 +589,39 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             The key to look for.
 
-        parent : Hashable | Iterable[Hashable] | None, optional
-            The parent of `key`.
-            By default None.
+        parents : Hashable | Iterable[Hashable], optional
+            The parents of `key`.
+            By default [].
 
-        immediate : bool, optional
-            If True, `parent` must be the direct predecessor of `key`.
-            If False, `parent` must be an ancestor of `key`.
-            Is ignored if `parent` is an Iterable.
-            By default False.
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+                "strict"
+                    Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                "smart"
+                    Tries to find `key` using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                "immediate"
+                    Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                "any"
+                    Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
+
+            By default "smart".
 
         Raises
         ------
         KeyError
-            If the combination of (`key`,`parent`) does not exist.
+            If the combination of (`key`,`parents`) does not exist.
 
         LookupError
-            If a key-value pair can not be uniquely identified from (`key`,`parent`).
-            Can happen if `parent` information is insufficient.
+            If a key-value pair can not be uniquely identified from (`key`,`parents`).
+            Can happen if `parents` information is insufficient.
         """
-        tn, i = self._find_index(key, parent, immediate)
+        tn, i = self._find_index(key, parents, search_mode)
         v = tn.values[i]
-        return self._tree_dump(v) if self._check_value(v) else v
+        return self._tree_dump(v[0][0]) if self._check_value(v) else v
 
     def add_all(self, iterable: Iterable[_supports_rbtm_iter]):
         """
@@ -640,20 +708,6 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         self._add(key, value, position, parents, *args, **kwargs)
 
-    def _add_nested_mapping(
-        self,
-        key: Hashable,
-        value: Any,
-        position: Iterable[int],
-        parents: Iterable[Hashable],
-        *args,
-        **kwargs,
-    ) -> "RedBlackTreeMapping.TreeNode":
-        """Change behavior of adding nested mappings in subclasses"""
-        return self._add(
-            key=key, value=[], position=position, parents=parents, *args, **kwargs
-        )
-
     def add_mapping(self, m: Mapping):
         """
         Add all key-value pairs in `m` to this tree.
@@ -673,22 +727,18 @@ class RedBlackTreeMapping(RedBlackTree):
                 c_pos = [*pos]
                 c_pos[-1] = i
 
-                # Add current key in mapping
+                tn = self._add(key=k, value=v, position=c_pos, parents=ps)
                 if isinstance(v, Mapping):
-                    tn = self._add_nested_mapping(
-                        key=k, value=v, position=c_pos, parents=ps
-                    )
+                    tn.values[tn.index(ps)] = []
                     q.append((v, [*ps, k], [*c_pos, 0], (tn, ps)))
-                else:
-                    tn = self._add(key=k, value=v, position=c_pos, parents=ps)
 
                 # Add reference to parent/child nodes
                 if tnp_tuple is not None:
                     tnp, tnp_ps = tnp_tuple
                     # parent <- child
-                    tnp.values[tnp.get_index(tnp_ps)].append((tn, ps))
+                    tnp.values[tnp.index(tnp_ps)].append((tn, ps))
                     # child <- parent
-                    tn._parent_nodes[tn.get_index(ps)] = tnp
+                    tn._parent_nodes[tn.index(ps)] = tnp
 
     def add_tree(self, t: Self):
         """
@@ -702,8 +752,8 @@ class RedBlackTreeMapping(RedBlackTree):
     def remove(
         self,
         key: Hashable,
-        parent: Union[Hashable, Iterable[Hashable], None] = None,
-        immediate: bool = False,
+        parents: Union[Hashable, Iterable[Hashable]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> tuple[Hashable, Any, Hashable]:
         """
         Remove and return a key-value pair from this tree.
@@ -713,15 +763,26 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             Key-value pair to remove.
 
-        parent : Hashable | Iterable[Hashable] | None, optional
-            The parent of `key`.
-            By default `None`.
+        parents : Hashable | Iterable[Hashable], optional
+            The parents of `key`.
+            By default [].
 
-        immediate : bool, optional
-            If True, `parent` must be the direct predecessor of `key`.
-            If False, `parent` must be an ancestor of `key`.
-            Is ignored if `parent` is an Iterable.
-            By default False.
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+                "strict"
+                    Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                "smart"
+                    Tries to find `key` using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                "immediate"
+                    Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                "any"
+                    Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
+
+            By default "smart".
 
         Returns
         -------
@@ -731,14 +792,14 @@ class RedBlackTreeMapping(RedBlackTree):
         Raises
         ------
         KeyError
-            If the combination of (`key`,`parent`) does not exist.
+            If the combination of (`key`,`parents`) does not exist.
 
         LookupError
-            If a key-value pair can not be uniquely identified from (`key`,`parent`).
-            Can happen if `parent` information is insufficient.
+            If a key-value pair can not be uniquely identified from (`key`,`parents`).
+            Can happen if `parents` information is insufficient.
         """
         self._modified = True
-        tn, i = self._find_index(key, parent, immediate)
+        tn, i = self._find_index(key, parents, search_mode)
         if len(tn) < 2:  # At most one key in node, remove node entirely
             super().remove(tn)
         self._key_count -= 1  # Update size
@@ -747,19 +808,19 @@ class RedBlackTreeMapping(RedBlackTree):
         ps = tn.parents[i]
         if ps:
             try:
-                # tnp, ip = self._find_index(ps[-1], ps[:-2])
                 tnp = tn._parent_nodes[i]  # type: RedBlackTreeMapping.TreeNode
                 tnp.values.remove((tn, ps))
-            except ValueError:
+            except (ValueError, AttributeError):
                 pass
+        self._remove_position(tn.positions[i])
         return tn.remove(i)  # Remove key from the node's list
 
     def update(
         self,
         key: Hashable,
         value: Any,
-        parent: Union[Hashable, Iterable[Hashable], None] = None,
-        immediate: bool = False,
+        parents: Union[Hashable, Iterable[Hashable]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ):
         """
         Update value of `key` with `value`.
@@ -772,27 +833,38 @@ class RedBlackTreeMapping(RedBlackTree):
         value : Any
             Map value to `key`.
 
-        parent : Hashable | Iterable[Hashable] | None, optional
+        parents : Hashable | Iterable[Hashable], optional
             The parent of `key`.
-            By default None.
+            By default [].
 
-        immediate : bool, optional
-            If True, `parent` must be the direct predecessor of `key`.
-            If False, `parent` must be an ancestor of `key`.
-            Is ignored if `parent` is an Iterable.
-            By default False.
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+                "strict"
+                    Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                "smart"
+                    Tries to find `key` using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                "immediate"
+                    Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                "any"
+                    Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
+
+            By default "smart".
 
         Raises
         ------
         KeyError
-            If the combination of (`key`,`parent`) does not exist.
+            If the combination of (`key`,`parents`) does not exist.
 
         LookupError
-            If a key-value pair can not be uniquely identified from (`key`,`parent`).
-            Can happen if `parent` information is insufficient.
+            If a key-value pair can not be uniquely identified from (`key`,`parents`).
+            Can happen if `parents` information is insufficient.
         """
         self._modified = True
-        tn, i = self._find_index(key, parent, immediate)
+        tn, i = self._find_index(key, parents, search_mode)
         tn.values[i] = value
 
     def _tree_dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
