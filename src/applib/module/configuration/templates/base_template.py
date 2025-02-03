@@ -1,12 +1,10 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Mapping, Optional, Union, override
-
-from PyQt6.QtGui import QIcon
-from qfluentwidgets import FluentIconBase
+from typing import Any, Hashable, Iterable, Mapping, Optional, Self, Union, override
 
 from ...datastructures.pure.meldableheap import MeldableHeap
 from ...datastructures.pure.skiplist import Skiplist
 from ...datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
+from ...tools.types.general import icon_dict
 from ...tools.utilities import checkDictNestingLevel
 from ..mapping_base import MappingBase
 
@@ -16,7 +14,7 @@ class BaseTemplate(MappingBase):
         self,
         name: str,
         template: Mapping,
-        icons: Optional[dict[str, Union[str, QIcon, FluentIconBase]]] = None,
+        icons: Optional[icon_dict] = None,
     ) -> None:
         """
         Base class for all templates.
@@ -30,7 +28,7 @@ class BaseTemplate(MappingBase):
         template : Mapping
             A mapping of key-value pairs.
 
-        icons : Optional[dict[str, Union[str, QIcon, FluentIconBase]]], optional
+        icons : Optional[icon_dict], optional
             A mapping of icons to keys in `template`.
             By default None.
         """
@@ -42,18 +40,12 @@ class BaseTemplate(MappingBase):
     def __or__(self, other):
         if not isinstance(other, (Mapping, RedBlackTreeMapping)):
             return NotImplemented
-        new = super().__new__(type(self))
-        super(type(new), new).__init__(f"{self.name}-union", [], None)
-        new.add_all([self, other])
-        return new
+        return self.new(f"{self.name}-union", [self, other], None)
 
     def __ror__(self, other):
         if not isinstance(other, Mapping):
             return NotImplemented
-        new = super().__new__(type(self))
-        super(type(new), new).__init__(f"{self.name}-union", [], None)
-        new.add_all([other, self])
-        return new
+        return self.new(f"{self.name}-union", [other, self], None)
 
     @override
     def _prefix_msg(self) -> str:
@@ -127,5 +119,15 @@ class BaseTemplate(MappingBase):
             self._settings_cache = d_settings
         return self._settings_cache
 
+    @classmethod
+    def new(
+        self, name: str, template: Union[Mapping, MappingBase], icons: icon_dict
+    ) -> Self:
+        """Let singleton subclasses create a new instance of their class"""
+        new = super().__new__(type(self))
+        # This is called in the subclass. Thus, super() is actually calling this class (if it's a direct subclass)
+        super(type(new), new).__init__(name, template, icons)
+        return new
+
     @abstractmethod
-    def _createTemplate(self) -> dict: ...
+    def _create_template(self) -> dict: ...
