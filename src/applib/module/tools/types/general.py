@@ -13,5 +13,5 @@ StrPath: TypeAlias = str | os.PathLike[str]
 Model: TypeAlias = BaseModel
 """A Pydantic validation model (not constructed)"""
 
-icon_dict: TypeAlias = dict[str, Union[str, QIcon, FluentIconBase]]
+iconDict: TypeAlias = dict[str, Union[str, QIcon, FluentIconBase]]
 """Maps a template section name to an icon"""

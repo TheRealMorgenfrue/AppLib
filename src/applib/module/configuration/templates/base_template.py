@@ -4,7 +4,7 @@ from typing import Any, Hashable, Iterable, Mapping, Optional, Self, Union, over
 from ...datastructures.pure.meldableheap import MeldableHeap
 from ...datastructures.pure.skiplist import Skiplist
 from ...datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
-from ...tools.types.general import icon_dict
+from ...tools.types.general import iconDict
 from ...tools.utilities import checkDictNestingLevel
 from ..mapping_base import MappingBase
 
@@ -14,7 +14,7 @@ class BaseTemplate(MappingBase):
         self,
         name: str,
         template: Mapping,
-        icons: Optional[icon_dict] = None,
+        icons: Optional[iconDict] = None,
     ) -> None:
         """
         Base class for all templates.
@@ -121,7 +121,7 @@ class BaseTemplate(MappingBase):
 
     @classmethod
     def new(
-        self, name: str, template: Union[Mapping, MappingBase], icons: icon_dict
+        self, name: str, template: Union[Mapping, MappingBase], icons: iconDict
     ) -> Self:
         """Let singleton subclasses create a new instance of their class"""
         new = super().__new__(type(self))
