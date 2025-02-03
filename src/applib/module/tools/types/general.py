@@ -1,10 +1,17 @@
 import os
-from typing import SupportsIndex, SupportsInt, TypeAlias
+from typing import SupportsIndex, SupportsInt, TypeAlias, Union
 
 from pydantic import BaseModel
+from PyQt6.QtGui import QIcon
+from qfluentwidgets import FluentIconBase
 from typing_extensions import Buffer
 
 ReadableBuffer: TypeAlias = Buffer
 ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex
 StrPath: TypeAlias = str | os.PathLike[str]
+
 Model: TypeAlias = BaseModel
+"""A Pydantic validation model (not constructed)"""
+
+icon_dict: TypeAlias = dict[str, Union[str, QIcon, FluentIconBase]]
+"""Maps a template section name to an icon"""
