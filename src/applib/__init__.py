@@ -119,7 +119,7 @@ from .module.datastructures.redblacktree_mapping import RedBlackTreeMapping
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from .module.logging import AppLibLogger, createLogger
 from .module.tools.types.config import AnyConfig
-from .module.tools.types.general import Model, StrPath
+from .module.tools.types.general import Model, StrPath, iconDict
 from .module.tools.types.gui_cardgroups import AnyCardGroup
 from .module.tools.types.gui_cards import (
     AnyCard,
@@ -197,6 +197,7 @@ __all__ = [
     "GeneratorUtils",
     "GenericSettingCard",
     "Group",
+    "iconDict",
     "IndeterminateProgressBarCard",
     "IndeterminateProgressRingCard",
     "InfoBar",
