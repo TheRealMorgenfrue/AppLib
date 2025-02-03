@@ -103,7 +103,7 @@ class ConfigBase(MappingBase):
         all_errors, section_errors, field_errors = [], [], []
         parents = []
 
-        def searchFields(
+        def search_fields(
             config: dict,
             model_dict: dict,
             search_mode: Literal["missing", "unknown"],
@@ -137,7 +137,7 @@ class ConfigBase(MappingBase):
                             if search_mode == "missing"
                             else (value, model_dict[key])
                         )
-                        searchFields(*next_search, search_mode=search_mode)
+                        search_fields(*next_search, search_mode=search_mode)
                     else:
                         section_errors.append(
                             f"{search_mode.capitalize()} {f"subsection '{".".join(parents)}.{key}'" if parents else f"section '{key}'"}"
@@ -156,8 +156,8 @@ class ConfigBase(MappingBase):
                 if parents:
                     parents.pop()
 
-        searchFields(config, model_dict, search_mode="missing")
-        searchFields(config, model_dict, search_mode="unknown")
+        search_fields(config, model_dict, search_mode="missing")
+        search_fields(config, model_dict, search_mode="unknown")
 
         # Ensure all section errors are displayed first
         all_errors.extend(section_errors)

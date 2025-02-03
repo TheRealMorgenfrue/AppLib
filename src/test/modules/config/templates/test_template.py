@@ -30,13 +30,13 @@ class TestTemplate(BaseTemplate):
         if not self._created:
             super().__init__(
                 name=TestArgs.main_template_name,
-                template=self._createTemplate(),
+                template=self._create_template(),
                 icons=None,
             )
             self._created = True
 
     @override
-    def _createTemplate(self) -> dict:
+    def _create_template(self) -> dict:
         return {
             "General": {
                 "loglevel": {
