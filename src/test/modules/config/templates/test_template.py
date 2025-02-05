@@ -1,6 +1,8 @@
 from test.modules.config.test_args import TestArgs
 from typing import Self, override
 
+from qfluentwidgets import setTheme, setThemeColor
+
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
 from applib.module.configuration.templates.base_template import BaseTemplate
@@ -40,11 +42,12 @@ class TestTemplate(BaseTemplate):
         return {
             "General": {
                 "loglevel": {
-                    "ui_type": UITypes.LINE_EDIT,
+                    "ui_type": UITypes.COMBOBOX,
                     "ui_title": f"Set log level for {CoreArgs._core_app_name}",
                     "default": "INFO" if CoreArgs._core_is_release else "DEBUG",
                     "values": TestArgs.main_loglevels,
                     "validators": [validateLoglevel],
+                    "actions": [self._logger.setLevel],
                 }
             },
             "Appearance": {
@@ -54,11 +57,13 @@ class TestTemplate(BaseTemplate):
                     "default": "System",
                     "values": TestArgs.main_themes,
                     "validators": [validateTheme],
+                    "actions": [lambda theme: setTheme(theme=theme, lazy=True)],
                 },
                 "appColor": {
                     "ui_type": UITypes.COLOR_PICKER,
                     "ui_title": "Set application color",
                     "default": "#2abdc7",
+                    "actions": [setThemeColor],
                 },
                 "appBackground": {
                     "ui_type": UITypes.FILE_SELECTION,
