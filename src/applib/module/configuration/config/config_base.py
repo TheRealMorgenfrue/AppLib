@@ -55,8 +55,8 @@ class ConfigBase(MappingBase):
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
         self._last_save_time = time()  # Prevent excessive disk writing
-        self._template = template
-        self._validation_model = validation_model.model_construct()
+        self.template = template
+        self.validation_model = validation_model.model_construct()
         self.name = name
         self.file_path = file_path
         self.failure = False  # The config failed to load
@@ -171,7 +171,7 @@ class ConfigBase(MappingBase):
         """Loads the config from a file."""
         config, self.failure = self._load_config(
             validator=self._validate_load,
-            model_dict=self._validation_model.model_dump(),
+            model_dict=self.validation_model.model_dump(),
         )
         return config
 
@@ -189,7 +189,7 @@ class ConfigBase(MappingBase):
         dict
             The validated config.
         """
-        config = self._validation_model.model_validate(raw_config).model_dump()
+        config = self.validation_model.model_validate(raw_config).model_dump()
         self._check_missing_fields(raw_config, config)
         return config
 
@@ -203,7 +203,7 @@ class ConfigBase(MappingBase):
         config : dict
             The config to validate.
         """
-        self.add_mapping(self._validation_model.model_validate(config).model_dump())
+        self.add_mapping(self.validation_model.model_validate(config).model_dump())
 
     def _validation_wrapper(
         self,
@@ -442,20 +442,6 @@ class ConfigBase(MappingBase):
                 repaired_config |= {template_key: value}
         return repaired_config
 
-    def set_validation_model(self, validation_model: Model):
-        """
-        Set a `validation_model` for this config.
-
-        Parameters
-        ----------
-        validation_model : Model
-            The Pydantic model used to validate the config.
-        """
-        self._validation_model = validation_model
-
-    def set_template(self, template: AnyTemplate):
-        self._template = template
-
     @override
     def set_value(
         self,
@@ -508,16 +494,6 @@ class ConfigBase(MappingBase):
             parents=parents,
             search_mode=search_mode,
         )
-
-    def get_template_value(
-        self, key: str, parents: Union[str, Iterable[str]] = []
-    ) -> Any:
-        return self._template.get_value(key=key, parents=parents)
-
-    def set_template_value(
-        self, key: str, value, parent: Union[str, Iterable[str]] = []
-    ) -> None:
-        self._template.set_value(key=key, value=value, parents=parent)
 
     def save_config(self) -> None:
         """Write config to disk"""
