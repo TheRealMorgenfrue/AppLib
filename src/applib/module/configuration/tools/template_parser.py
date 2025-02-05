@@ -29,30 +29,6 @@ class TemplateParser:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def _parseContent(
-        self,
-        setting: str,
-        options: dict,
-        position: Iterable[int],
-        parents: Iterable[str],
-        template_name: str,
-        validation_info: ValidationInfo,
-    ):
-        # Gather UI flags
-        self._parse_flags(setting=setting, options=options, template_name=template_name)
-        # Gather UI groups
-        if self._group_is_included(options):
-            self._parse_group(
-                setting=setting, options=options, template_name=template_name
-            )
-        self._parse_validation_info(
-            setting=setting,
-            options=options,
-            position=position,
-            parents=parents,
-            validation_info=validation_info,
-        )
-
     def _group_is_included(self, options: dict[str, Any]) -> bool:
         # options["ui_flags"] is a list after parsing flags
         return not ("ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"])
@@ -281,12 +257,20 @@ class TemplateParser:
             validation_info = ValidationInfo()
             for k, v, i, ps in template.get_settings():
                 setting, options = next(iter(v.items()))
-                self._parseContent(
+                # Gather UI flags
+                self._parse_flags(
+                    setting=setting, options=options, template_name=template_name
+                )
+                # Gather UI groups
+                if self._group_is_included(options):
+                    self._parse_group(
+                        setting=setting, options=options, template_name=template_name
+                    )
+                self._parse_validation_info(
                     setting=setting,
                     options=options,
                     position=i,
                     parents=ps,
-                    template_name=template_name,
                     validation_info=validation_info,
                 )
             self._checkGroups(template_name)
@@ -324,5 +308,5 @@ class TemplateParser:
                     )
         return group_list
 
-    def get_validation_info(self, template_name: str) -> ValidationInfo | None:
-        return self._validation_infos.get(template_name)
+    def get_validation_info(self, template_name: str) -> ValidationInfo:
+        return self._validation_infos[template_name]
