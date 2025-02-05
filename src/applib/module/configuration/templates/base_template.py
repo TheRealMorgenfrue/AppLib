@@ -1,9 +1,13 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Mapping, Optional, Self, Union, override
+from typing import Any, Hashable, Iterable, Mapping, Optional, Self, override
 
 from ...datastructures.pure.meldableheap import MeldableHeap
 from ...datastructures.pure.skiplist import Skiplist
-from ...datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
+from ...datastructures.redblacktree_mapping import (
+    RedBlackTreeMapping,
+    _rbtm_item,
+    _supports_rbtm_iter,
+)
 from ...tools.types.general import iconDict
 from ...tools.utilities import checkDictNestingLevel
 from ..mapping_base import MappingBase
@@ -121,12 +125,13 @@ class BaseTemplate(MappingBase):
 
     @classmethod
     def new(
-        self, name: str, template: Union[Mapping, MappingBase], icons: iconDict
+        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict
     ) -> Self:
         """Let singleton subclasses create a new instance of their class"""
-        new = super().__new__(type(self))
-        # This is called in the subclass. Thus, super() is actually calling this class (if it's a direct subclass)
-        super(type(new), new).__init__(name, template, icons)
+        new = super().__new__(cls)
+        # This is called in a direct subclass. Thus, super() is actually calling this class
+        super(type(new), new).__init__(name, [], icons)
+        new.add_all(iterable)
         return new
 
     @abstractmethod
