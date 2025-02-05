@@ -47,7 +47,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             config_key=config_key,
             options=options,
             current_value=config.get_value(key=config_key, parents=parent_keys),
-            default_value=config.get_template_value(
+            default_value=config.template.get_value(
                 key="default", parents=[*parent_keys, config_key]
             ),
             parent_keys=parent_keys,

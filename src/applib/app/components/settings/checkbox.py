@@ -47,7 +47,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
                 config.get_value(key=config_key, parents=parent_keys)
             ),
             default_value=self._convertBool(
-                config.get_template_value(
+                config.template.get_value(
                     key="default", parents=[*parent_keys, config_key]
                 )
             ),

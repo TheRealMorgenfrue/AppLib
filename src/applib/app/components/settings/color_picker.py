@@ -50,7 +50,7 @@ class CoreColorPicker(BaseSetting):
             options=options,
             current_value=QColor(config.get_value(key=config_key, parents=parent_keys)),
             default_value=QColor(
-                config.get_template_value(
+                config.template.get_value(
                     key="default", parents=[*parent_keys, config_key]
                 )
             ),
