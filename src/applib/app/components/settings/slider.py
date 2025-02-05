@@ -60,7 +60,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             config_key=config_key,
             options=options,
             current_value=config.get_value(key=config_key, parents=parent_keys),
-            default_value=config.get_template_value(
+            default_value=config.template.get_value(
                 key="default", parents=[*parent_keys, config_key]
             ),
             parent_keys=parent_keys,
@@ -68,17 +68,19 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         )
         try:
             self.baseunit = baseunit
-            self.min_value, self.maxValue = num_range
+            if baseunit:
+                self.unit = self._get_unit(baseunit)
+            self.min_value, self.max_value = num_range
             self.setting = Slider(Qt.Orientation.Horizontal, self)
             self.valueLabel = QLabel(self)
 
             # Configure slider and label
             w = 268
             if is_tight:
-                w = int(w * 0.67) if self.maxValue > 40 else w // 2
+                w = int(w * 0.67) if self.max_value > 40 else w // 2
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.min_value, self.maxValue)
+            self.setting.setRange(self.min_value, self.max_value)
             self.setWidgetValue(self.current_value)
             self.valueLabel.setObjectName("valueLabel")
 
@@ -95,18 +97,20 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
     def _connectSignalToSlot(self) -> None:
         self.setting.valueChanged.connect(self.setConfigValue)
 
+    def _get_unit(self, baseunit: str) -> str:
+        unit = dictLookup(CoreArgs._core_config_units, baseunit)
+        # Found a unit definition for the base unit
+        if unit is not None:
+            # This unit does not have a plural definition
+            if unit == "":
+                unit = baseunit
+        return unit
+
     def _setLabelText(self, value: int) -> None:
         if self.baseunit:
-            unit = dictLookup(CoreArgs._core_config_units, self.baseunit)
-
-            # Found a unit definition for the base unit
-            if unit is not None:
-                # This unit does not have a plural definition
-                if unit == "":
-                    unit = self.baseunit
-                self.valueLabel.setText(
-                    f"{value} {unit if value != 1 else self.baseunit}"
-                )
+            self.valueLabel.setText(
+                f"{value} {self.unit if value != 1 and value != -1 else self.baseunit}"
+            )
         else:
             self.valueLabel.setNum(value)
 
