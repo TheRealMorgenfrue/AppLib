@@ -22,6 +22,8 @@ Syntax explanation:
 If multiple syntaxes are present for an option, it means they are interchangeable.
 'Callable' could be function pointer.
 
+'Required = True' means it is required by all settings listing under "Applicable settings"
+
 
 ┌─────────────────────────┐
 │   Creation/Validation   │
@@ -37,6 +39,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "default": Any
 
     *********************
+    Required: True
+
+    *********************
     Applicable settings:
     - All
 
@@ -47,6 +52,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     This value is used in validation if it is the smallest of all other values (e.g. default, min)
 
     *********************
+    Required: False
+
+    *********************
     For further information, please see the corresponding ui_disable_self option under GUI elements.
 
 ───────────────────────────────────────────────────────────────────────────
@@ -54,6 +62,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 - ui_disable_other    (GUI)
     The value which disables children of this setting.
     This value is used in validation if it is the smallest of all other values (e.g. default, min)
+
+    *********************
+    Required: False
 
     *********************
     For further information, please see the corresponding ui_disable_other option under GUI elements.
@@ -68,9 +79,12 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "min": int
 
     *********************
+    Required: True (for numbers)
+
+    *********************
     Applicable settings:
     - Any number ranges, e.g. slider or spinbox
-    # NOTE: Sliders do not support floats directly
+    # NOTE: Sliders do not support floats currently
 
 ───────────────────────────────────────────────────────────────────────────
 
@@ -83,18 +97,24 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "max": int
 
     *********************
+    Required: False
+
+    *********************
     Applicable settings:
     - Any number ranges, e.g. slider or spinbox
-    # NOTE: Sliders do not support floats directly
+    # NOTE: Sliders do not support floats currently
 
 ───────────────────────────────────────────────────────────────────────────
 
-- type    (Optional)
+- type
     The Python type for the value of a setting. For instance, 3 has type 'int'.
 
     *********************
     Syntax:
     "type": <type>
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -112,18 +132,24 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "values": [Any]
 
     *********************
+    Required: True
+
+    *********************
     Applicable settings:
     - Combobox
 
 ───────────────────────────────────────────────────────────────────────────
 
-- validators    (Optional)
+- validators
     A list of functions used to validate the value of this setting
     (in addition to default Pydantic validation).
 
     *********************
     Syntax:
     "validators": [<Callable>]
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -142,17 +168,23 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "ui_title": ""
 
     *********************
+    Required: True
+
+    *********************
     Applicable settings:
     - All
 
 ───────────────────────────────────────────────────────────────────────────
 
-- ui_desc   (Optional)
+- ui_desc
     Description of this setting.
 
     *********************
     Syntax:
     "ui_desc": ""
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -171,6 +203,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "ui_disable_self": Any
 
     *********************
+    Required: False
+
+    *********************
     Applicable settings:
     - All
 
@@ -183,6 +218,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     *********************
     Syntax:
     "ui_disable_other": Any
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -202,6 +240,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "disable_button": bool
 
     *********************
+    Required: False
+
+    *********************
     Applicable settings:
     - All
 
@@ -217,13 +258,15 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
     *********************
     Syntax:
-    "ui_group": Any
-    "ui_group": Any, Any, ...
-    "ui_group": "str, str" ...
+    "ui_group": Hashable
+    "ui_group": Hashable, Hashable, ...
 
     *********************
     Applicable settings:
     - All
+
+    *********************
+    Required: True
 
     *********************
     Possible values:
@@ -243,6 +286,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "ui_group_parent": [<UIGroups>, <UIGroups>, ...]
 
     *********************
+    Required: False
+
+    *********************
     Applicable settings:
     - All
 
@@ -252,18 +298,18 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
              however, please use common sense when combining them.
      # NOTE: If a setting can be disabled, you must specify its disable value (ui_disable_self).
              Otherwise it will only be disabled in the GUI.
-     * NOTE: All values are specified here:
-             #LINK applib\module\config\templates\template_docs.txt
+     * NOTE: All values are specified here (and down below):
+             #LINK src\applib\module\configuration\tools\template_options\template_enums.py
 
     - CLUSTERED  (Applies to: All)
         This setting and its children will be clustered together.
         Essentially a 'flat' NESTED_CHILDREN (i.e. they're all nested on the same level).
         - CLUSTERED and NESTED_CHILDREN are mutually exclusive!
-        - DISABLE_CHILDREN and DESYNC_DISABLE_CHILDREN have no effect when CLUSTERED is applied.
+        - DISABLE_CHILDREN and DESYNC_DISABLE_CHILDREN are ignored when CLUSTERED is applied.
 
     - NESTED_CHILDREN   (Applies to: All)
         This setting's children will be nested under it.
-        However, the specifics of the nesting depends on the GUI config generator used.
+        However, the specifics of the nesting depends on the GUI Generator used.
         NESTED_CHILDREN and CLUSTERED are mutually exclusive!
 
     - DISABLE_CHILDREN  (Applies to: All)
@@ -280,7 +326,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
         disabled when parent is True and enabled when parent is False.
 
     - SYNC_CHILDREN     (Applies to: Switch, CheckBox)
-        This setting's children will change their value according to their parent.
+        This setting's children will match their value with their parent's.
 
     - DESYNC_CHILDREN   (Applies to: Switch, CheckBox)
         This setting's children will change their value opposite of their parent.
@@ -303,7 +349,6 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 - ui_invalidmsg
     Message informing the user that they typed invalid data into this setting.
-    Only relevant on free-form input, e.g., a line edit.
 
     A UI message is created with the `UIMsg` class.
 
@@ -312,8 +357,11 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "ui_invalidmsg": UIMsg(title=..., content=...)
 
     *********************
+    Required: True
+
+    *********************
     Applicable settings:
-    - Any free-form input
+    - Any free-form input, e.g., a line edit.
 
 ───────────────────────────────────────────────────────────────────────────
 
@@ -323,6 +371,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     *********************
     Syntax:
     "ui_type": <UITypes>
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -335,12 +386,15 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 ───────────────────────────────────────────────────────────────────────────
 
-- ui_unit   (Optional, must be singular!)
+- ui_unit   (must be singular!)
     The unit associated with this setting, e.g. kB, day.
 
     *********************
     Syntax:
     "ui_unit": ""
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
@@ -356,6 +410,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     "ui_file_filter": ""
 
     *********************
+    Required: True
+
+    *********************
     Applicable settings:
     - File Selectors
 
@@ -368,6 +425,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     Syntax:
     "ui_flags": <UIFlags>
     "ui_flags": [<UIFlags>, <UIFlags>, ...]
+
+    *********************
+    Required: False
 
     *********************
     Applicable settings:
