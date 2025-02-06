@@ -189,7 +189,7 @@ class GeneratorBase:
                 config_key=key,
                 options=options,
                 is_tight=self._is_tight,
-                invalidmsg=(
+                ui_invalidmsg=(
                     options["ui_invalidmsg"] if "ui_invalidmsg" in options else ""
                 ),
                 tooltip=None,
