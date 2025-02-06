@@ -101,7 +101,6 @@ from .module.configuration.tools.template_options.template_enums import (
     UIGroups,
     UITypes,
 )
-from .module.configuration.tools.template_options.template_utils import UIMsg
 from .module.configuration.tools.template_options.validation_info import ValidationInfo
 from .module.configuration.tools.template_parser import TemplateParser
 from .module.configuration.tools.validation_model_gen import (
@@ -235,7 +234,6 @@ __all__ = [
     "ThreadManager",
     "ThreadUIStreamer",
     "UIFlags",
-    "UIMsg",
     "UIGroups",
     "UITypes",
     "ValidationInfo",

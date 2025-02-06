@@ -11,7 +11,6 @@ from applib.module.configuration.tools.template_options.template_enums import (
     UIGroups,
     UITypes,
 )
-from applib.module.configuration.tools.template_options.template_utils import UIMsg
 from applib.module.configuration.validators.app_validator import (
     validateLoglevel,
     validateTheme,
@@ -63,7 +62,7 @@ class TestTemplate(BaseTemplate):
                     "ui_type": UITypes.COLOR_PICKER,
                     "ui_title": "Set application color",
                     "default": "#2abdc7",
-                    "actions": [setThemeColor],
+                    "actions": [lambda color: setThemeColor(color, lazy=True)],
                 },
                 "appBackground": {
                     "ui_type": UITypes.FILE_SELECTION,
@@ -148,7 +147,7 @@ class TestTemplate(BaseTemplate):
                 "downloadListDirectory": {
                     "ui_title": "Folder for download lists",
                     "ui_desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt",
-                    "ui_invalidmsg": UIMsg("WIP", "This is a test"),
+                    "ui_invalidmsg": ("WIP", "This is a test"),
                     "default": "",
                     "validators": [validatePath],
                     "ui_group": "downloadListFolder",

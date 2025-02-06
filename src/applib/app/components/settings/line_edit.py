@@ -3,7 +3,6 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
 
-from ....module.configuration.tools.template_options.template_utils import UIMsg
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
@@ -16,7 +15,7 @@ class CoreLineEdit(BaseSetting):
         config_key: str,
         options: dict,
         is_tight: bool,
-        invalidmsg: Optional[UIMsg] = None,
+        ui_invalidmsg: Optional[tuple[str, str]] = None,
         tooltip: Optional[str] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
@@ -38,7 +37,7 @@ class CoreLineEdit(BaseSetting):
         is_tight : bool, optional
             Use a smaller version of the line edit.
 
-        invalidmsg : UIMsg
+        ui_invalidmsg : tuple[str, str]
             If a validation error occurs, this message is shown in the GUI.
 
         tooltip : str, optional
@@ -64,7 +63,7 @@ class CoreLineEdit(BaseSetting):
         )
         self.minWidth = 100
         self.maxWidth = 200 if is_tight else 400
-        self.invalid_msg = invalidmsg
+        self.ui_invalidmsg = ui_invalidmsg if ui_invalidmsg else ("Invalid value", "")
         try:
             self.setting = LineEdit(self)
 
@@ -112,7 +111,7 @@ class CoreLineEdit(BaseSetting):
             core_signalbus.genericError.emit("Failed to save setting", "")
         else:
             core_signalbus.configValidationError.emit(
-                self.config.name, self.invalid_msg.title, self.invalid_msg.content
+                self.config.name, self.ui_invalidmsg[0], self.ui_invalidmsg[1]
             )
             self.setWidgetValue(value)
 
