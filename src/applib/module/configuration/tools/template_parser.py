@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Hashable, Iterable, Self, Union
 
 from pydantic import Field
@@ -6,6 +7,7 @@ from ...exceptions import OrphanGroupWarning
 from ...logging import AppLibLogger
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import iterToString
+from ..tools.template_options.actions import Actions
 from .template_options.groups import Group
 from .template_options.template_enums import UIFlags, UIGroups
 from .template_options.validation_info import ValidationInfo
@@ -16,13 +18,13 @@ class TemplateParser:
     _logger = AppLibLogger().getLogger()
 
     # Remember templates already parsed
-    _parsed_templates = []  # type: list[str]
+    _parsed_templates = set()  # type: set[str]
     # Store information used to generate validation models
     _validation_infos = {}  # type: dict[str, ValidationInfo]
     # These groups have no parent assigned to them (which is an error)
     _orphan_groups = {}  # type: dict[str, list[str]]
-    # Keep a reference to Group
     group = None  # type: Group
+    actions = Actions()
 
     def __new__(cls) -> Self:
         if cls._instance is None:
@@ -143,23 +145,42 @@ class TemplateParser:
         ):
             self._orphan_groups[template_name].append(group_name)
 
-    def _parse_flags(
-        self, setting: str, options: dict[str, Any], template_name: str
-    ) -> None:
+    def _parse_flags(self, setting: str, options: dict[str, Any], template_name: str):
         if "ui_flags" in options:
             if not isinstance(options["ui_flags"], list):
                 options["ui_flags"] = [options["ui_flags"]]
 
-            for i, value in enumerate(options["ui_flags"]):
-                if not value.name in UIFlags._member_names_:
+            for i, flag in enumerate(deepcopy(options["ui_flags"])):
+                if not flag.name in UIFlags._member_names_:
                     self._logger.error(
-                        f"Template '{template_name}': Setting '{setting}' has invalid flag '{value}'. "
+                        f"Template '{template_name}': Setting '{setting}' has invalid flag '{flag}'. "
                         + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
                         + f"Removing value"
                     )
                     options["ui_flags"].pop(i)
 
-    def _checkGroups(self, template_name: str) -> None:
+    def _parse_actions(
+        self,
+        setting: str,
+        options: dict[str, Any],
+        parents: list[str],
+        template_name: str,
+    ):
+        if "actions" in options:
+            if not isinstance(options["actions"], list):
+                options["actions"] = [options["actions"]]
+
+            for i, action in enumerate(deepcopy(options["actions"])):
+                if callable(action):
+                    self.actions.add_action(setting, action, parents, template_name)
+                else:
+                    self._logger.error(
+                        f"Template '{template_name}': Setting '{setting}' has invalid action '{action}'. "
+                        + f"An action must be callable. Removing value"
+                    )
+                    options["actions"].pop(i)
+
+    def _check_groups(self, template_name: str) -> None:
         self._check_orphan_groups(template_name)
         self._check_childless_parent_groups(template_name)
 
@@ -253,15 +274,19 @@ class TemplateParser:
         """
         template_name = template.name
         if not template_name in self._parsed_templates or force:
-            self._orphan_groups |= {template_name: []}
+            self._orphan_groups[template_name] = []
             validation_info = ValidationInfo()
             for k, v, i, ps in template.get_settings():
                 setting, options = next(iter(v.items()))
-                # Gather UI flags
                 self._parse_flags(
                     setting=setting, options=options, template_name=template_name
                 )
-                # Gather UI groups
+                self._parse_actions(
+                    setting=setting,
+                    options=options,
+                    parents=ps,
+                    template_name=template_name,
+                )
                 if self._group_is_included(options):
                     self._parse_group(
                         setting=setting, options=options, template_name=template_name
@@ -273,9 +298,9 @@ class TemplateParser:
                     parents=ps,
                     validation_info=validation_info,
                 )
-            self._checkGroups(template_name)
-            self._validation_infos |= {template_name: validation_info}
-            self._parsed_templates.append(template_name)
+            self._check_groups(template_name)
+            self._validation_infos[template_name] = validation_info
+            self._parsed_templates.add(template_name)
 
     def format_raw_group(self, template_name, raw_ui_group: str) -> list[str]:
         """
