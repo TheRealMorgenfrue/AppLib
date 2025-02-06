@@ -20,7 +20,7 @@ Explanation of terms:
 Syntax explanation:
 <> means the type of the value. I.e. <UITypes> means the value is a 'UITypes' enum.
 If multiple syntaxes are present for an option, it means they are interchangeable.
-'Callable' could be function pointer.
+'Callable' is a function pointer.
 
 'Required = True' means it is required by all settings listing under "Applicable settings"
 
@@ -350,11 +350,9 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 - ui_invalidmsg
     Message informing the user that they typed invalid data into this setting.
 
-    A UI message is created with the `UIMsg` class.
-
     *********************
     Syntax:
-    "ui_invalidmsg": UIMsg(title=..., content=...)
+    "ui_invalidmsg": ("title", "content")
 
     *********************
     Required: True
