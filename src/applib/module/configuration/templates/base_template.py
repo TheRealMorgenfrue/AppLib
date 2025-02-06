@@ -9,7 +9,6 @@ from ...datastructures.redblacktree_mapping import (
     _supports_rbtm_iter,
 )
 from ...tools.types.general import iconDict
-from ...tools.utilities import checkDictNestingLevel
 from ..mapping_base import MappingBase
 
 
@@ -67,8 +66,8 @@ class BaseTemplate(MappingBase):
     ):
         is_setting = False
         if isinstance(value, Mapping):
-            # A setting mapping has a nesting level of exactly 0
-            if checkDictNestingLevel(value, 0):
+            # A setting mapping must have specific keys
+            if "default" in value or "ui_title" in value:
                 is_setting = True
         elif self._check_value(value):
             # A setting tree node has a nesting level of exactly 1
