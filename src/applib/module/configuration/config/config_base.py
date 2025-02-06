@@ -269,7 +269,9 @@ class ConfigBase(MappingBase):
                     False, "Failed to save setting", ""
                 )
             else:
-                core_signalbus.configUpdated.emit(self.name, key, (value,), parents)
+                core_signalbus.configUpdated.emit(
+                    (self.name, self.template.name), key, (value,), parents
+                )
                 self._is_modified = True
             return is_error
 

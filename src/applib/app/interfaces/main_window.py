@@ -169,12 +169,12 @@ class CoreMainWindow(MSFluentWindow):
 
     def _onConfigUpdated(
         self,
-        config_name: str,
+        names: tuple[str, str],
         config_key: str,
         value_tuple: tuple[Any,],
         parent_keys: list[str],
     ) -> None:
-        if config_name == self.main_config.name:
+        if names[0] == self.main_config.name:
             (value,) = value_tuple
             if config_key == "appBackground":
                 self.background = QPixmap(value) if value else None

@@ -21,14 +21,15 @@ class CoreSignalBus(QObject):
         Content of GUI message.
     """
 
-    configUpdated = pyqtSignal(str, str, tuple, list)
+    configUpdated = pyqtSignal(tuple, str, tuple, list)
     """
     Notify that a value in a config is updated.
 
     Parameters
     ----------
-    config_name : str
-        The name of the config.
+    names : tuple[str, str]
+        [0]: The name of the config.
+        [1]: The name of the template.
 
     config_key : str
         The key whose value was updated.

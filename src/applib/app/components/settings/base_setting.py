@@ -114,12 +114,12 @@ class BaseSetting(QWidget):
 
     def _onConfigUpdated(
         self,
-        name: str,
+        names: tuple[str, str],
         key: str,
         value_tuple: tuple[Any,],
         parent_keys: list[str],
     ) -> None:
-        if self._validate_key(name, key, parent_keys):
+        if self._validate_key(names[0], key, parent_keys):
             self.setWidgetValue(value_tuple[0])
 
     def _onUpdateConfigSettings(
