@@ -107,9 +107,9 @@ from .module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
 from .module.configuration.validators import (
-    validateLoglevel,
-    validatePath,
-    validateTheme,
+    validate_loglevel,
+    validate_path,
+    validate_theme,
 )
 from .module.datastructures.pure.meldableheap import MeldableHeap
 from .module.datastructures.pure.redblacktree import RedBlackTree
@@ -247,8 +247,8 @@ __all__ = [
     "insertDictValue",
     "iterToString",
     "retrieveDictValue",
-    "validateLoglevel",
-    "validatePath",
-    "validateTheme",
+    "validate_loglevel",
+    "validate_path",
+    "validate_theme",
     "YFastTrie",
 ]

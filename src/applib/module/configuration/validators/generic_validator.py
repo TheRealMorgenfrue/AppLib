@@ -1,7 +1,7 @@
 from pathlib import Path
 
 
-def validatePath(path: str) -> str:
+def validate_path(path: str) -> str:
     """Ensure a path exists
 
     Parameters
@@ -19,6 +19,6 @@ def validatePath(path: str) -> str:
         The path does not exist
     """
     if not Path(path).exists() and not Path(path).resolve().exists():
-        err_msg = f"'{path}' does not exist"
+        err_msg = f"'{path}' does not exist on the filesystem"
         raise AssertionError(err_msg)
     return path

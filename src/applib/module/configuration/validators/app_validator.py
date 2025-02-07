@@ -1,8 +1,8 @@
-from ..internal.core_args import CoreArgs
 from ...tools.utilities import iterToString
+from ..internal.core_args import CoreArgs
 
 
-def validateLoglevel(loglevel: str) -> str:
+def validate_loglevel(loglevel: str) -> str:
     """Validate loglevel which must confirm to the loglevel specification
 
     Parameters
@@ -30,7 +30,7 @@ def validateLoglevel(loglevel: str) -> str:
     return loglevel
 
 
-def validateTheme(theme: str) -> str:
+def validate_theme(theme: str) -> str:
     """Ensure the theme is a valid argument for the app
 
     Parameters

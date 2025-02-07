@@ -2,8 +2,8 @@ from typing import Self, override
 
 from ..internal.core_args import CoreArgs
 from ..tools.template_options.template_enums import UIGroups, UITypes
-from ..validators import validateLoglevel, validateTheme
-from ..validators.generic_validator import validatePath
+from ..validators import validate_loglevel, validate_theme
+from ..validators.generic_validator import validate_path
 from .base_template import BaseTemplate
 
 
@@ -34,7 +34,7 @@ class CoreTemplate(BaseTemplate):
                     "ui_title": f"Set log level for {CoreArgs._core_app_name}",
                     "default": "INFO" if CoreArgs._core_is_release else "DEBUG",
                     "values": CoreArgs._core_template_loglevels,
-                    "validators": [validateLoglevel],
+                    "validators": [validate_loglevel],
                 }
             },
             "Appearance": {
@@ -43,7 +43,7 @@ class CoreTemplate(BaseTemplate):
                     "ui_title": "Set application theme",
                     "default": "System",
                     "values": CoreArgs._core_template_themes,
-                    "validators": [validateTheme],
+                    "validators": [validate_theme],
                 },
                 "appColor": {
                     "ui_type": UITypes.COLOR_PICKER,
@@ -55,7 +55,7 @@ class CoreTemplate(BaseTemplate):
                     "ui_title": "Select background image",
                     "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
                     "default": "",
-                    "validators": [validatePath],
+                    "validators": [validate_path],
                 },
                 "backgroundOpacity": {
                     "ui_title": "Set background opacity",

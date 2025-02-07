@@ -1,21 +1,22 @@
 from test.modules.config.test_args import TestArgs
 from typing import Self, override
 
-from qfluentwidgets import setTheme, setThemeColor
+from qfluentwidgets import setThemeColor
 
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
 from applib.module.configuration.templates.base_template import BaseTemplate
+from applib.module.configuration.tools.template_options.actions import change_theme
 from applib.module.configuration.tools.template_options.template_enums import (
     UIFlags,
     UIGroups,
     UITypes,
 )
 from applib.module.configuration.validators.app_validator import (
-    validateLoglevel,
-    validateTheme,
+    validate_loglevel,
+    validate_theme,
 )
-from applib.module.configuration.validators.generic_validator import validatePath
+from applib.module.configuration.validators.generic_validator import validate_path
 
 
 class TestTemplate(BaseTemplate):
@@ -45,7 +46,7 @@ class TestTemplate(BaseTemplate):
                     "ui_title": f"Set log level for {CoreArgs._core_app_name}",
                     "default": "INFO" if CoreArgs._core_is_release else "DEBUG",
                     "values": TestArgs.main_loglevels,
-                    "validators": [validateLoglevel],
+                    "validators": [validate_loglevel],
                     "actions": [self._logger.setLevel],
                 }
             },
@@ -55,8 +56,8 @@ class TestTemplate(BaseTemplate):
                     "ui_title": "Set application theme",
                     "default": "System",
                     "values": TestArgs.main_themes,
-                    "validators": [validateTheme],
-                    "actions": [lambda theme: setTheme(theme=theme, lazy=True)],
+                    "validators": [validate_theme],
+                    "actions": [change_theme],
                 },
                 "appColor": {
                     "ui_type": UITypes.COLOR_PICKER,
@@ -69,7 +70,7 @@ class TestTemplate(BaseTemplate):
                     "ui_title": "Select background image",
                     "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
                     "default": "",
-                    "validators": [validatePath],
+                    "validators": [validate_path],
                 },
                 "backgroundOpacity": {
                     "ui_title": "Set background opacity",
@@ -149,7 +150,7 @@ class TestTemplate(BaseTemplate):
                     "ui_desc": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt",
                     "ui_invalidmsg": ("WIP", "This is a test"),
                     "default": "",
-                    "validators": [validatePath],
+                    "validators": [validate_path],
                     "ui_group": "downloadListFolder",
                 },
             },
