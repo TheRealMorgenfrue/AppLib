@@ -47,6 +47,24 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 ───────────────────────────────────────────────────────────────────────────
 
+- actions
+    Functions to call when the setting changes value.
+    The function must take one argument, which is the new value of the setting.
+
+    *********************
+    Syntax:
+    "actions": <Callable>
+    "actions": [<Callable>]
+
+    *********************
+    Required: False
+
+    *********************
+    Applicable settings:
+    - All
+
+───────────────────────────────────────────────────────────────────────────
+
 - ui_disable_self    (GUI)
     The value which disables this setting.
     This value is used in validation if it is the smallest of all other values (e.g. default, min)
@@ -447,85 +465,79 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 ───────────────────────────────────────────────────────────────────────────
 *SECTION Example of a valid template:
 
-        return {
-            "Network": {
-                "proxyAddress": {
-                    "ui_title": "Proxy server address",
-                    "ui_invalidmsg": {
-                        "title": "Invalid proxy address",
-                        "desc": "See HELP PAGE for format help",
-                    },
-                    "default": "",
-                    "validators": [
-                        validateProxyAddress
-                    ],
-                },
+return {
+    "Network": {
+        "proxyAddress": {
+            "ui_title": "Proxy server address",
+            "ui_invalidmsg": {
+                "title": "Invalid proxy address",
+                "desc": "See HELP PAGE for format help",
             },
-            "Appearance": {
-                "appTheme": {
-                    "ui_type": UITypes.COMBOBOX,
-                    "ui_title": "Set application theme",
-                    "default": "System",
-                    "values": AppArgs.template_themes,
-                    "validators": [
-                        validateTheme
-                    ]
-                },
-                "appColor": {
-                    "ui_type": UITypes.COLOR_PICKER,
-                    "ui_title": "Set application color",
-                    "default": "#2abdc7"
-                },
-                "appBackground": {
-                    "ui_type": UITypes.FILE_SELECTION,
-                    "ui_title": "Select background image",
-                    "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
-                    "default": "",
-                    "validators": [
-                        validatePath
-                    ]
-                },
-                "backgroundBlur": {
-                    "ui_title": "Set background blur radius",
-                    "ui_desc": "A greater radius increases the blur effect",
-                    "default": 0,
-                    "min": 0,
-                    "max": 30
-                }
-            },
-            "Irfanview": {
-                "startIrfanView": {
-                    "ui_title": f"Start IrfanView with downloaded images when exiting {ModuleNames.pu_name}",
-                    "ui_desc": "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files",
-                    "default": False,
-                    "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
-                    "ui_group": "downloadList_1"
-                },
-                "startIrfanSlide": {
-                    "ui_title": f"Start IrfanView Slideshow with downloaded images when exiting {ModuleNames.pu_name}",
-                    "ui_desc": "This will create download-lists. Slideshow-options will be same as you have set in IrfanView before",
-                    "default": False,
-                    "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
-                    "ui_group": "downloadList_2"
-                },
-                "createDownloadLists": {
-                    "ui_title": "Automatically create download-lists",
-                    "default": False,
-                    "ui_group_parent": [UIGroups.NESTED_CHILDREN, UIGroups.DISABLE_CHILDREN],
-                    "ui_group": "downloadListFolder, downloadList_1, downloadList_2",
-                    "ui_disable_self": False
-                },
-            },
-            "Settings": {
-                "downloadListDirectory": {
-                    "ui_title": "Folder for download lists.",
-                    "default": f"{AppArgs.download_list_dir}",
-                    "validators": [
-                        validatePath
-                    ],
-                    "ui_group": "downloadListFolder",
-                    "ui_flags": UIFlags.REQUIRES_RELOAD
-                }
-            }
+            "default": "",
+            "validators": [validate_proxy_address],
+        },
+    },
+    "Appearance": {
+        "appTheme": {
+            "ui_type": UITypes.COMBOBOX,
+            "ui_title": "Set application theme",
+            "default": "System",
+            "values": AppArgs.template_themes,
+            "validators": [validate_theme],
+            "actions": [change_theme],
+        },
+        "appColor": {
+            "ui_type": UITypes.COLOR_PICKER,
+            "ui_title": "Set application color",
+            "default": "#2abdc7",
+            "actions": [lambda color: setThemeColor(color, lazy=True)],
+        },
+        "appBackground": {
+            "ui_type": UITypes.FILE_SELECTION,
+            "ui_title": "Select background image",
+            "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
+            "default": "",
+            "validators": [validate_path],
+        },
+        "backgroundBlur": {
+            "ui_title": "Set background blur radius",
+            "ui_desc": "A greater radius increases the blur effect",
+            "default": 0,
+            "min": 0,
+            "max": 30
         }
+    },
+    "Irfanview": {
+        "startIrfanView": {
+            "ui_title": f"Start IrfanView with downloaded images when exiting {ModuleNames.pu_name}",
+            "ui_desc": "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files",
+            "default": False,
+            "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
+            "ui_group": "downloadList_1"
+        },
+        "startIrfanSlide": {
+            "ui_title": f"Start IrfanView Slideshow with downloaded images when exiting {ModuleNames.pu_name}",
+            "ui_desc": "This will create download-lists. Slideshow-options will be same as you have set in IrfanView before",
+            "default": False,
+            "ui_group_parent": UIGroups.DESYNC_TRUE_CHILDREN,
+            "ui_group": "downloadList_2"
+        },
+        "createDownloadLists": {
+            "ui_title": "Automatically create download-lists",
+            "default": False,
+            "ui_group_parent": [UIGroups.NESTED_CHILDREN, UIGroups.DISABLE_CHILDREN],
+            "ui_group": "downloadListFolder, downloadList_1, downloadList_2",
+            "ui_disable_self": False
+        },
+    },
+    "Settings": {
+        "downloadListDirectory": {
+            "ui_title": "Folder for download lists.",
+            "default": f"{AppArgs.download_list_dir}",
+            "validators": [validate_path],
+            "ui_group": "downloadListFolder",
+            "ui_flags": UIFlags.REQUIRES_RELOAD
+        }
+    }
+}
 ───────────────────────────────────────────────────────────────────────────
