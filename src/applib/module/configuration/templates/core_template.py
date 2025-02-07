@@ -2,7 +2,7 @@ from typing import Self, override
 
 from ..internal.core_args import CoreArgs
 from ..tools.template_options.template_enums import UIGroups, UITypes
-from ..validators import validate_loglevel, validate_theme
+from ..validators.app_validator import validate_loglevel, validate_theme
 from ..validators.generic_validator import validate_path
 from .base_template import BaseTemplate
 
