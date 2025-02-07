@@ -25,10 +25,9 @@ from qfluentwidgets import (
     toggleTheme,
 )
 
-from applib.module.configuration.tools.template_options.actions import change_theme
-
 from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
+from ...module.configuration.tools.template_options.actions import change_theme
 from ...module.logging import AppLibLogger
 from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig
@@ -189,8 +188,8 @@ class CoreMainWindow(MSFluentWindow):
     def _onGenericError(self, title: str, content: str) -> None:
         InfoBar.error(
             title=self.tr(title),
-            content=(self.tr(content) if content else self._default_logmsg),
-            orient=(Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal),
+            content=self.tr(content) if content else self._default_logmsg,
+            orient=Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal,
             isClosable=True,
             duration=7000,
             position=InfoBarPosition.TOP,
