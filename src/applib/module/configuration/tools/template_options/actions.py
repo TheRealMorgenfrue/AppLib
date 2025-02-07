@@ -1,6 +1,6 @@
 from typing import Any, Callable
 
-from qfluentwidgets import Theme
+from qfluentwidgets import Theme, setTheme
 
 from .....app.common.core_signalbus import core_signalbus
 
@@ -44,10 +44,11 @@ class Actions:
         )
 
 
-def convert_theme(value: str):
+def change_theme(value: str):
     if value == "Light":
-        return Theme.LIGHT
+        theme = Theme.LIGHT
     elif value == "Dark":
-        return Theme.DARK
+        theme = Theme.DARK
     else:
-        return Theme.AUTO
+        theme = Theme.AUTO
+    setTheme(theme=theme, lazy=True)
