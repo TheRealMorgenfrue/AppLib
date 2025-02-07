@@ -1,10 +1,10 @@
 import logging
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Union
 
 
-def createLogger(
+def create_logger(
     name: str,
     level: str = "DEBUG",
     format: str = "%(message)s",
@@ -92,8 +92,8 @@ def createLogger(
     logger.setLevel(level)
 
     if use_color:
-        from .coloredformatter import ColoredFormatter
         from .colorcodefilter import ColorCodeFilter
+        from .coloredformatter import ColoredFormatter
 
         console_formatter = ColoredFormatter(format)
         file_formatter = ColorCodeFilter(format)

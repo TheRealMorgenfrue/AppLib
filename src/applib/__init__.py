@@ -85,7 +85,7 @@ from .app.interfaces.settings_interface import CoreSettingsInterface
 from .app.interfaces.settings_subinterface import CoreSettingsSubInterface
 from .module.concurrency.process.process_base import ProcessBase
 from .module.concurrency.process.process_generator import ProcessGenerator
-from .module.concurrency.process.stream_reader import asyncReadPipe
+from .module.concurrency.process.stream_reader import async_read_pipe
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from .module.configuration.config.config_base import ConfigBase
@@ -95,6 +95,7 @@ from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.ini_file_parser import IniFileParser
+from .module.configuration.tools.template_options.actions import change_theme
 from .module.configuration.tools.template_options.groups import Group
 from .module.configuration.tools.template_options.template_enums import (
     UIFlags,
@@ -106,17 +107,17 @@ from .module.configuration.tools.template_parser import TemplateParser
 from .module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
-from .module.configuration.validators import (
+from .module.configuration.validators.app_validator import (
     validate_loglevel,
-    validate_path,
     validate_theme,
 )
+from .module.configuration.validators.generic_validator import validate_path
 from .module.datastructures.pure.meldableheap import MeldableHeap
 from .module.datastructures.pure.redblacktree import RedBlackTree
 from .module.datastructures.pure.yfasttrie import YFastTrie
 from .module.datastructures.redblacktree_mapping import RedBlackTreeMapping
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
-from .module.logging import AppLibLogger, createLogger
+from .module.logging import AppLibLogger, create_logger
 from .module.tools.types.config import AnyConfig
 from .module.tools.types.general import Model, StrPath, iconDict
 from .module.tools.types.gui_cardgroups import AnyCardGroup
@@ -131,13 +132,13 @@ from .module.tools.types.gui_generators import AnyCardGenerator
 from .module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 from .module.tools.types.templates import AnyTemplate
 from .module.tools.utilities import (
-    checkDictNestingLevel,
-    dictLookup,
-    formatListForDisplay,
-    formatValidationError,
-    insertDictValue,
-    iterToString,
-    retrieveDictValue,
+    check_dict_nestingLevel,
+    dict_lookup,
+    format_list_for_display,
+    format_validation_error,
+    insert_dict_value,
+    iter_to_str,
+    retrieve_dict_value,
 )
 from .module.tools.version import VERSION
 
@@ -237,16 +238,17 @@ __all__ = [
     "UIGroups",
     "UITypes",
     "ValidationInfo",
-    "asyncReadPipe",
+    "async_read_pipe",
     "core_signalbus",
-    "createLogger",
-    "dictLookup",
-    "formatListForDisplay",
-    "formatValidationError",
-    "checkDictNestingLevel",
-    "insertDictValue",
-    "iterToString",
-    "retrieveDictValue",
+    "change_theme",
+    "check_dict_nestingLevel",
+    "create_logger",
+    "dict_lookup",
+    "format_list_for_display",
+    "format_validation_error",
+    "insert_dict_value",
+    "iter_to_str",
+    "retrieve_dict_value",
     "validate_loglevel",
     "validate_path",
     "validate_theme",

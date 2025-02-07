@@ -6,7 +6,7 @@ from pydantic import Field
 from ...exceptions import OrphanGroupWarning
 from ...logging import AppLibLogger
 from ...tools.types.templates import AnyTemplate
-from ...tools.utilities import iterToString
+from ...tools.utilities import iter_to_str
 from ..tools.template_options.actions import Actions
 from .template_options.groups import Group
 from .template_options.template_enums import UIFlags, UIGroups
@@ -116,7 +116,7 @@ class TemplateParser:
             if not value.name in UIGroups._member_names_:
                 self._logger.error(
                     f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
-                    + f"Expected one of '{iterToString(UIGroups._member_names_, separator=", ")}'. "
+                    + f"Expected one of '{iter_to_str(UIGroups._member_names_, separator=", ")}'. "
                     + f"Removing value"
                 )
                 options["ui_group_parent"].pop(i)
@@ -154,7 +154,7 @@ class TemplateParser:
                 if not flag.name in UIFlags._member_names_:
                     self._logger.error(
                         f"Template '{template_name}': Setting '{setting}' has invalid flag '{flag}'. "
-                        + f"Expected one of '{iterToString(UIFlags._member_names_, separator=", ")}'. "
+                        + f"Expected one of '{iter_to_str(UIFlags._member_names_, separator=", ")}'. "
                         + f"Removing value"
                     )
                     options["ui_flags"].pop(i)

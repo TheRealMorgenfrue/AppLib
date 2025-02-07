@@ -1,4 +1,4 @@
-from ...tools.utilities import iterToString
+from ...tools.utilities import iter_to_str
 from ..internal.core_args import CoreArgs
 
 
@@ -24,7 +24,7 @@ def validate_loglevel(loglevel: str) -> str:
     if not loglevel in CoreArgs._core_template_loglevels:
         err_msg = (
             f"Invalid log level '{loglevel}'. "
-            + f"Expected one of '{iterToString(CoreArgs._core_template_loglevels, separator=", ")}'"
+            + f"Expected one of '{iter_to_str(CoreArgs._core_template_loglevels, separator=", ")}'"
         )
         raise AssertionError(err_msg)
     return loglevel
@@ -49,6 +49,6 @@ def validate_theme(theme: str) -> str:
         The theme is invalid
     """
     if not theme in CoreArgs._core_template_themes:
-        err_msg = f"Invalid theme '{theme}'. Expected one of '{iterToString(CoreArgs._core_template_themes, separator=", ")}'"
+        err_msg = f"Invalid theme '{theme}'. Expected one of '{iter_to_str(CoreArgs._core_template_themes, separator=", ")}'"
         raise AssertionError(err_msg)
     return theme

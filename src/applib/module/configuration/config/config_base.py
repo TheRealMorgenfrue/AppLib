@@ -15,7 +15,7 @@ from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
 from ...tools.types.templates import AnyTemplate
-from ...tools.utilities import formatValidationError
+from ...tools.utilities import format_validation_error
 from ..internal.core_args import CoreArgs
 from ..mapping_base import MappingBase
 from ..tools.config_tools import ConfigUtils
@@ -251,7 +251,7 @@ class ConfigBase(MappingBase):
             is_error = True
             self._logger.warning(
                 f"{self._prefix_msg()} Unable to validate value '{value}' for key '{key}': "
-                + formatValidationError(err)
+                + format_validation_error(err)
             )
             if not is_missing_key:
                 super().set_value(
@@ -339,7 +339,7 @@ class ConfigBase(MappingBase):
             self._logger.warning(
                 f"{self._prefix_msg()} Could not validate '{filename}'"
             )
-            self._logger.debug(formatValidationError(err))
+            self._logger.debug(format_validation_error(err))
             if do_write_config:
                 self.backup_config()
                 ConfigUtils.writeConfig(model_dict, self.file_path)

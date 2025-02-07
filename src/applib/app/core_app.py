@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QWidget
 
@@ -28,9 +29,9 @@ class CoreApp:
             w = MainWindow()
             sys.exit(app.exec())
         except Exception:
+            import time
             import traceback
             from datetime import datetime
-            import time
 
             line = "─" * 20
             header = f"{line} Crash reported at {time.asctime()} {line}\n"
@@ -39,9 +40,9 @@ class CoreApp:
             terminal_str = f"{header}\n{content}\n{footer}"
 
             try:
-                from ..module.logging import createLogger
+                from ..module.logging import create_logger
 
-                logger = createLogger("app_crash")
+                logger = create_logger("app_crash")
                 logger.debug(terminal_str)
             except:  # Catch everything as we're crashing
                 print(terminal_str)

@@ -1,9 +1,10 @@
 import asyncio
 from typing import Optional
+
 from PyQt6.QtCore import pyqtBoundSignal
 
 
-async def asyncReadPipe(
+async def async_read_pipe(
     process: asyncio.subprocess.Process,
     stdout: pyqtBoundSignal,
     stderr: Optional[pyqtBoundSignal] = None,

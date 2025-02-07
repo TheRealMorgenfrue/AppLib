@@ -1,13 +1,13 @@
+import traceback
 from typing import Any, Generator, Optional
+
 from PyQt6.QtCore import QThread, pyqtSignal
 
-import traceback
-
-from ..process.process_base import ProcessBase
-from ..process.process_generator import ProcessGenerator
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import AppLibLogger
-from ...tools.utilities import iterToString
+from ...tools.utilities import iter_to_str
+from ..process.process_base import ProcessBase
+from ..process.process_generator import ProcessGenerator
 
 
 # A subclassed QThread has no event loop per default
@@ -82,7 +82,7 @@ class ThreadManager(QThread):
             length = len(still_alive)
             if length > 0:
                 self._logger.warning(
-                    f"Process {iterToString(still_alive, separator=", ")} {'are' if length > 1 else ' is'} still alive"
+                    f"Process {iter_to_str(still_alive, separator=", ")} {'are' if length > 1 else ' is'} still alive"
                 )
         except Exception:
             self._logger.critical("Process termination failed catastrophically!")

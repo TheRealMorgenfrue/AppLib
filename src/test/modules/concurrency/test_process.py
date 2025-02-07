@@ -1,11 +1,11 @@
 import asyncio
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 from applib.module.concurrency.process.process_base import ProcessBase
-from applib.module.concurrency.process.stream_reader import asyncReadPipe
+from applib.module.concurrency.process.stream_reader import async_read_pipe
 
 
 class TestProcess(ProcessBase):
@@ -38,5 +38,5 @@ class TestProcess(ProcessBase):
         )
 
         self._logger.debug(f"Process {self.process_id} started")
-        await asyncReadPipe(self.process, self.consoleStream)  # Thread Blocking
+        await async_read_pipe(self.process, self.consoleStream)  # Thread Blocking
         self._logger.debug(f"Process {self.process_id} exited")

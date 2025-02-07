@@ -3,7 +3,7 @@ from typing import Any, Iterable, Optional
 from pydantic import ValidationError
 
 
-def iterToString(arg: Iterable, separator: str = "") -> str:
+def iter_to_str(arg: Iterable, separator: str = "") -> str:
     """
     Converts an iterable into a string, optionally separated by a string.
 
@@ -32,7 +32,7 @@ def iterToString(arg: Iterable, separator: str = "") -> str:
     return string
 
 
-def dictLookup(input: dict, search_param: Any) -> Any:
+def dict_lookup(input: dict, search_param: Any) -> Any:
     """
     Searches provided dictionary for first occurence of search_param.
     This search include both keys and values, starting with values.
@@ -58,7 +58,7 @@ def dictLookup(input: dict, search_param: Any) -> Any:
         return value
 
 
-def formatValidationError(
+def format_validation_error(
     err: ValidationError, include_url: bool = False, include_input: bool = True
 ) -> str:
     """
@@ -100,7 +100,7 @@ def formatValidationError(
         input_type = f"input_type={type(error.get("input")).__name__}"
         details = [error_type, input_value, input_type]
 
-        msg += f"  {error.get("msg")} [{iterToString(details, separator=", ")}]\n"
+        msg += f"  {error.get("msg")} [{iter_to_str(details, separator=", ")}]\n"
         msg += (
             f"    For further information visit {error.get("url")}\n"
             if include_url
@@ -115,7 +115,7 @@ def decodeInput(input: str | bytes, encoding: str = "utf-8") -> str:
     return input.decode(encoding=encoding, errors="ignore")
 
 
-def checkDictNestingLevel(input: dict, stop_at: int) -> bool:
+def check_dict_nestingLevel(input: dict, stop_at: int) -> bool:
     stack = [iter(input.items())]
     nestingLevel = 0
     while stack:
@@ -133,7 +133,7 @@ def checkDictNestingLevel(input: dict, stop_at: int) -> bool:
     return False
 
 
-def formatListForDisplay(
+def format_list_for_display(
     input: list[str], display_items: int = 15, join_string: str = "\n"
 ) -> str:
     """
@@ -173,7 +173,7 @@ def formatListForDisplay(
     return f"{join_string.join(input[0:display_items] if do_truncate else input)}{truncated_msg}"
 
 
-def retrieveDictValue(
+def retrieve_dict_value(
     d: dict,
     key: str,
     parent_key: Optional[str] = None,
@@ -244,7 +244,7 @@ def retrieveDictValue(
     return (found_value, immediate_parent) if get_parent_key else found_value
 
 
-def insertDictValue(
+def insert_dict_value(
     input: dict, key: str, value: Any, parent_key: Optional[str] = None
 ) -> Any:
     """

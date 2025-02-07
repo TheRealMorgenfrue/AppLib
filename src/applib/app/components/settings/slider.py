@@ -6,7 +6,7 @@ from qfluentwidgets import Slider
 
 from ....module.configuration.internal.core_args import CoreArgs
 from ....module.tools.types.config import AnyConfig
-from ....module.tools.utilities import dictLookup
+from ....module.tools.utilities import dict_lookup
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
 
@@ -98,7 +98,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         self.setting.valueChanged.connect(self.setConfigValue)
 
     def _get_unit(self, baseunit: str) -> str:
-        unit = dictLookup(CoreArgs._core_config_units, baseunit)
+        unit = dict_lookup(CoreArgs._core_config_units, baseunit)
         # Found a unit definition for the base unit
         if unit is not None:
             # This unit does not have a plural definition

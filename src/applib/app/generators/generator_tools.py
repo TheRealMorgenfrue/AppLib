@@ -11,7 +11,7 @@ from ...module.logging import AppLibLogger
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
 from ...module.tools.types.gui_settings import AnyBoolSetting
-from ...module.tools.utilities import iterToString
+from ...module.tools.utilities import iter_to_str
 from ..components.settingcards.card_base import DisableWrapper
 
 
@@ -245,6 +245,6 @@ class GeneratorUtils:
             if baseunit not in CoreArgs._core_config_units.keys():
                 cls._logger.warning(
                     f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                    + f"Expected one of '{iterToString(CoreArgs._core_config_units.keys(), separator=', ')}'"
+                    + f"Expected one of '{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}'"
                 )
         return baseunit

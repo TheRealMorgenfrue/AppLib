@@ -3,7 +3,7 @@ from typing import Any, Iterable, Self
 from ....logging import AppLibLogger
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
-from ....tools.utilities import iterToString
+from ....tools.utilities import iter_to_str
 from .template_enums import UIGroups
 
 
@@ -114,7 +114,7 @@ class Group:
             if self._nesting_level > 1:
                 self._logger.warning(
                     f"Group '{self.getGroupName()}': Multiple parents want to nest this UI group. "
-                    + f"Only the first parent in the list '{iterToString(self._parent_group_names, separator=", ")}' "
+                    + f"Only the first parent in the list '{iter_to_str(self._parent_group_names, separator=", ")}' "
                     + f"will be allowed nesting."
                 )
                 # Only the first parent is allowed to nest - all other parent groups have their reference to this child group deleted.

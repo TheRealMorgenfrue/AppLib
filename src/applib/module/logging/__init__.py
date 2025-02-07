@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from typing import Self, Union
 
-from .create_logger import createLogger
 from ..configuration.internal.core_args import CoreArgs
+from .create_logger import create_logger
 
 
 class AppLibLogger:
@@ -19,7 +19,7 @@ class AppLibLogger:
 
     def __init__(self):
         if not self._created:
-            self.logger = createLogger(
+            self.logger = create_logger(
                 name=CoreArgs._core_app_name,
                 format=CoreArgs._core_log_format,
                 log_dir=CoreArgs._core_log_dir,
@@ -30,7 +30,7 @@ class AppLibLogger:
 
     def writeHeaderToLog(self) -> None:
         if not CoreArgs._core_log_disable_header:
-            self.logger_nocolor = createLogger(
+            self.logger_nocolor = create_logger(
                 name=f"{CoreArgs._core_app_name}_nocolor",
                 level="INFO",
                 use_color=False,
