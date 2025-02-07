@@ -21,10 +21,11 @@ from qfluentwidgets import (
     SplashScreen,
     Theme,
     setTheme,
-    setThemeColor,
     theme,
     toggleTheme,
 )
+
+from applib.module.configuration.tools.template_options.actions import change_theme
 
 from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
@@ -82,7 +83,6 @@ class CoreMainWindow(MSFluentWindow):
             self._error_log.append(
                 traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
-
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
         self._displayErrors()
@@ -96,7 +96,7 @@ class CoreMainWindow(MSFluentWindow):
         self.background_blur_radius = float(
             self.main_config.get_value("backgroundBlur", default=0.0)
         )
-        self._onThemeChanged(self.main_config.get_value("appTheme"))
+        change_theme(self.main_config.get_value("appTheme"))
 
     def _initNavigation(self):
         if self._subinterfaces:
@@ -179,24 +179,12 @@ class CoreMainWindow(MSFluentWindow):
             if config_key == "appBackground":
                 self.background = QPixmap(value) if value else None
                 self.update()
-            elif config_key == "appTheme":
-                self._onThemeChanged(value)
-            elif config_key == "appColor":
-                setThemeColor(value, lazy=True)
             elif config_key == "backgroundOpacity":
                 self.background_opacity = value / 100
                 self.update()
             elif config_key == "backgroundBlur":
                 self.background_blur_radius = float(value)
                 self.update()
-
-    def _onThemeChanged(self, value: str):
-        if value == "Light":
-            setTheme(Theme.LIGHT, lazy=True)
-        elif value == "Dark":
-            setTheme(Theme.DARK, lazy=True)
-        else:
-            setTheme(Theme.AUTO, lazy=True)
 
     def _onGenericError(self, title: str, content: str) -> None:
         InfoBar.error(
