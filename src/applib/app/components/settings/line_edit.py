@@ -107,8 +107,6 @@ class CoreLineEdit(BaseSetting):
         if success:
             if not self.is_disabled:
                 self.setWidgetValue(value)
-        elif success is None:
-            core_signalbus.genericError.emit("Failed to save setting", "")
         else:
             core_signalbus.configValidationError.emit(
                 self.config.name, self.ui_invalidmsg[0], self.ui_invalidmsg[1]
