@@ -123,18 +123,18 @@ class RedBlackTreeMapping(RedBlackTree):
 
             search_mode : Literal["strict", "smart", "immediate", "any"], optional
                 How to select keys.
-                    "strict"
-                        Requires `parents` to match exactly.
-                        I.e. ["a", "b"] == ["a", "b"]
-                    "smart"
-                        Tries to find the key using different heuristics.
-                        Note that it can result in the wrong key under certain conditions.
-                    "immediate"
-                        Requires `parents` to be a Hashable that matches the closest parent.
-                        I.e. "b" == ["a", "b"]
-                    "any"
-                        Requires `parents` to be a Hashable that matches any parent.
-                        I.e. "a" == ["a", "b"]
+                - "strict"
+                    &ensp; Requires `parents` to match exactly.
+                    I.e. ["a", "b"] == ["a", "b"]
+                - "smart"
+                    &ensp; Tries to find the key using different heuristics.
+                    Note that it can result in the wrong key under certain conditions.
+                - "immediate"
+                    &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                    I.e. "b" == ["a", "b"]
+                - "any"
+                    &ensp; Requires `parents` to be a Hashable that matches any parent.
+                    I.e. "a" == ["a", "b"]
 
                 By default "smart".
 
@@ -275,21 +275,21 @@ class RedBlackTreeMapping(RedBlackTree):
             Add elements in `iterable` to the tree.
 
             `iterable` may contain any of:
-            _rbtm_iterable : Iterable[_rbtm_item]
+            - _rbtm_iterable : Iterable[_rbtm_item]
                 A tuple that must contain 3 or 4 items (`key`, `value`, `position`, `parents`), where `parents` may be omitted.
-                    key : Hashable
-                        Key to insert.
-                    value : Any
-                       Value mapped to `key`.
-                    position : Iterable[int]
-                        The index of `key` and all its parents in the mapping.
-                        The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
-                    parents : Iterable[Hashable], optional
-                        Iterable of all `key`'s parents (a.k.a. ancestors).
-                        May be omitted from the tuple, resulting in a "flat" tree.
-            Mapping :
+                key : Hashable
+                    Key to insert.
+                value : Any
+                    Value mapped to `key`.
+                position : Iterable[int]
+                    The index of `key` and all its parents in the mapping.
+                    The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
+                parents : Iterable[Hashable], optional
+                    Iterable of all `key`'s parents (a.k.a. ancestors).
+                    May be omitted from the tuple, resulting in a "flat" tree.
+            - Mapping
                 Any class supporting the Mapping interface for providing key-value pairs.
-            RedBlackTreeMapping :
+            - RedBlackTreeMapping
                 An instance of this class.
 
         name : str, optional
@@ -518,19 +518,19 @@ class RedBlackTreeMapping(RedBlackTree):
             By default [].
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
-            How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            How to select keys.
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 
@@ -584,18 +584,18 @@ class RedBlackTreeMapping(RedBlackTree):
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
             How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 
@@ -620,7 +620,7 @@ class RedBlackTreeMapping(RedBlackTree):
         ----------
         iterable : Iterable[_supports_rbtm_iter]
             `iterable` may contain any of:
-            _rbtm_iterable : Iterable[_rbtm_item]
+            - _rbtm_iterable : Iterable[_rbtm_item]
                 The tuple must contain 3 or 4 items (`key`, `value`, `position`, `parents`), where `parents` may be omitted.
                     key : Hashable
                         Key to insert.
@@ -632,9 +632,9 @@ class RedBlackTreeMapping(RedBlackTree):
                     parents : Iterable[Hashable], optional
                         Iterable of all `key`'s parents (a.k.a. ancestors).
                         May be omitted from the tuple, resulting in a "flat" tree.
-            Mapping :
+            - Mapping :
                 Any class supporting the Mapping interface for providing key-value pairs.
-            RedBlackTreeMapping :
+            - RedBlackTreeMapping :
                 An instance of this class.
         """
         for x in iterable:
@@ -758,18 +758,18 @@ class RedBlackTreeMapping(RedBlackTree):
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
             How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 
@@ -828,18 +828,18 @@ class RedBlackTreeMapping(RedBlackTree):
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
             How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 

@@ -44,18 +44,18 @@ class MappingBase(RedBlackTreeMapping):
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
             How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 
@@ -106,18 +106,18 @@ class MappingBase(RedBlackTreeMapping):
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
             How to search for `key`.
-                "strict"
-                    Requires `parents` to match exactly.
-                    I.e. ["a", "b"] == ["a", "b"]
-                "smart"
-                    Tries to find `key` using different heuristics.
-                    Note that it can result in the wrong key under certain conditions.
-                "immediate"
-                    Requires `parents` to be a Hashable that matches the closest parent.
-                    I.e. "b" == ["a", "b"]
-                "any"
-                    Requires `parents` to be a Hashable that matches any parent.
-                    I.e. "a" == ["a", "b"]
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
 
             By default "smart".
 

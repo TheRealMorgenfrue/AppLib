@@ -28,43 +28,41 @@ def create_logger(
         The format of log messages.
 
         Available format strings are:
-        ```
-            %(name)s
+            - %(name)s
                 Name of the logger (logging channel).
-            %(levelno)s
+            - %(levelno)s
                 Numeric logging level for the message (DEBUG, INFO, WARNING, ERROR, CRITICAL).
-            %(levelname)s
+            - %(levelname)s
                 Text logging level for the message ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL").
-            %(pathname)s
+            - %(pathname)s
                 Full pathname of the source file where the logging call was issued (if available).
-            %(filename)s
+            - %(filename)s
                 Filename portion of pathname.
-            %(module)s
+            - %(module)s
                 Module (name portion of filename).
-            %(lineno)d
+            - %(lineno)d
                 Source line number where the logging call was issued (if available).
-            %(funcName)s
+            - %(funcName)s
                 Function name
-            %(created)f
+            - %(created)f
                 Time when the LogRecord was created (time.time() return value).
-            %(asctime)s
+            - %(asctime)s
                 Textual time when the LogRecord was created.
-            %(msecs)d
+            - %(msecs)d
                 Millisecond portion of the creation time.
-            %(relativeCreated)d
+            - %(relativeCreated)d
                 Time in milliseconds when the LogRecord was created, relative to the time
                 the logging module was loaded (typically at application startup time).
-            %(thread)d
+            - %(thread)d
                 Thread ID (if available).
-            %(threadName)s
+            - %(threadName)s
                 Thread name (if available).
-            %(taskName)s
+            - %(taskName)s
                 Task name (if available).
-            %(process)d
+            - %(process)d
                 Process ID (if available).
-            %(message)s
+            - %(message)s
                 The result of record.getMessage(), computed just as the record is emitted.
-            ```
 
         By default `"%(message)s"`
 
