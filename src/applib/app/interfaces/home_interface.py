@@ -101,6 +101,7 @@ class BannerWidget(QWidget):
             painter.setRenderHints(
                 QPainter.RenderHint.SmoothPixmapTransform
                 | QPainter.RenderHint.Antialiasing
+                | QPainter.RenderHint.LosslessImageRendering
             )
             painter.setPen(Qt.PenStyle.NoPen)
 
@@ -113,14 +114,11 @@ class BannerWidget(QWidget):
             path.addRect(QRectF(w - 50, h - 50, 50, 50))
             path = path.simplified()
 
-            # Calculate the required height for maintaining image aspect ratio
-            image_height = self.width() * self.banner.height() // self.banner.width()
-
             # draw banner image with aspect ratio preservation
             pixmap = self.banner.scaled(
                 self.width(),
-                image_height,
-                aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatio,
+                self.height(),
+                aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding,
                 transformMode=Qt.TransformationMode.SmoothTransformation,
             )
             path.addRect(QRectF(0, h, w, self.height() - h))
