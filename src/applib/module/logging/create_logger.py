@@ -28,6 +28,7 @@ def create_logger(
         The format of log messages.
 
         Available format strings are:
+        ```
             %(name)s
                 Name of the logger (logging channel).
             %(levelno)s
@@ -63,6 +64,7 @@ def create_logger(
                 Process ID (if available).
             %(message)s
                 The result of record.getMessage(), computed just as the record is emitted.
+            ```
 
         By default `"%(message)s"`
 
