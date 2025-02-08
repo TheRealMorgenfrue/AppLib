@@ -430,18 +430,26 @@ class ConfigBase(MappingBase):
             preserved from `config`.
         """
         repaired_config = {}
-        for template_key, value in model_dict.items():
-            if isinstance(value, dict) and template_key in config:
-                # Search config/model_dict recursively, depth-first
-                repaired_config |= {
-                    template_key: self._repair_config(config[template_key], value)
-                }
-            elif template_key in config:
-                # Preserve value from config
-                repaired_config |= {template_key: config[template_key]}
+        stack = [(config, model_dict, repaired_config)]
+        while stack:
+            c, m, r = stack[-1]
+            for template_key, value in m.items():
+                if template_key in r:
+                    continue
+                elif isinstance(value, dict) and template_key in c:
+                    # Search config/model_dict recursively, depth-first
+                    r[template_key] = {}
+                    stack.append((c[template_key], value, r[template_key]))
+                    break
+                elif template_key in c:
+                    # Preserve value from config
+                    r[template_key] = c[template_key]
+                else:
+                    # Use value from model_dict
+                    r[template_key] = value
             else:
-                # Use value from model_dict
-                repaired_config |= {template_key: value}
+                if stack:
+                    stack.pop()
         return repaired_config
 
     @override
