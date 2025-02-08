@@ -2,13 +2,7 @@ from typing import Any, Optional
 
 from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QBrush, QPainter, QPainterPath, QPixmap
-from PyQt6.QtWidgets import (
-    QGraphicsDropShadowEffect,
-    QHBoxLayout,
-    QLabel,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt6.QtWidgets import QGraphicsDropShadowEffect, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import FluentIcon, ScrollArea
 
 from ...module.configuration.internal.core_args import CoreArgs
@@ -27,13 +21,15 @@ class BannerWidget(QWidget):
         parent: Optional[QWidget] = None,
     ):
         super().__init__(parent=parent)
+        self.banner = QPixmap(banner_path)
+        self.setMinimumHeight(350)
+        self.setMaximumHeight(self.banner.height())
         self.main_config = main_config
         self.is_background_active = bool(self.main_config.get_value("appBackground"))
         self.show_banner = (
             not self.is_background_active
             or int(self.main_config.get_value("backgroundOpacity")) == 0
         )
-
         self.vBoxLayout = QVBoxLayout(self)
         self.galleryLabel = QLabel(
             f"{CoreArgs._core_app_name}\nv{CoreArgs._core_app_version}", self
@@ -47,33 +43,23 @@ class BannerWidget(QWidget):
         self.galleryLabel.setGraphicsEffect(shadow)
         self.galleryLabel.setObjectName("galleryLabel")
 
-        self.banner = QPixmap(banner_path)
-
         self.linkCardView = LinkCardView(self)
-        self.linkCardView.setContentsMargins(0, 0, 0, 36)
-
-        # Create a horizontal layout for the linkCardView with bottom alignment and margin
-        linkCardLayout = QHBoxLayout()
-        linkCardLayout.addWidget(self.linkCardView)
-        linkCardLayout.setAlignment(Qt.AlignmentFlag.AlignBottom)
-
-        self.setMinimumHeight(350)
-        self.setMaximumHeight(self.banner.height())
-
-        self.vBoxLayout.setSpacing(0)
-        self.vBoxLayout.setContentsMargins(0, 20, 0, 0)
-        self.vBoxLayout.addWidget(self.galleryLabel)
-        self.vBoxLayout.addLayout(linkCardLayout)
-        self.vBoxLayout.setAlignment(
-            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
-        )
-
         self.linkCardView.addCard(
             FluentIcon.GITHUB,
             self.tr("GitHub repo"),
             self.tr(""),
             CoreArgs._core_link_github,
         )
+
+        self.vBoxLayout.setAlignment(
+            Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+        )
+        self.vBoxLayout.setSpacing(0)
+        self.vBoxLayout.setContentsMargins(0, 20, 0, 36)
+        self.vBoxLayout.addWidget(self.galleryLabel)
+        self.vBoxLayout.addStretch(1)
+        self.vBoxLayout.addWidget(self.linkCardView)
+
         self._connectSignalToSlot()
 
     def _connectSignalToSlot(self) -> None:
