@@ -412,20 +412,20 @@ class RedBlackTreeMapping(RedBlackTree):
         ValueError
             Key is invalid.
         """
-        k, p, im = key, None, True
+        k, p, mode = key, None, "smart"
         if isinstance(key, (tuple)):
             try:
                 if len(key) == 2:
                     k, p = key
                 else:  # len(key) == 3
-                    k, p, im = key
+                    k, p, mode = key
             except ValueError as e:
                 e.add_note(
-                    f"tuple must contain 1-3 items (key, parent, immediate), where key is required. "
-                    + "Type: tuple[Hashable, Hashable, bool]"
+                    f"tuple must contain 1-3 items (key, parent, search_mode), where key is required. "
+                    + "Type: tuple[Hashable, Hashable, Literal['strict', 'smart', 'immediate', 'any']]"
                 )
                 raise e from None
-        return k, p, im
+        return k, p, mode
 
     def _check_value(self, v) -> bool:
         """Returns True if `v` is nesting child nodes and thus should be serialized as a dict."""
