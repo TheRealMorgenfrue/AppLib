@@ -1,9 +1,9 @@
-from abc import abstractmethod
 import asyncio
 import time
 import traceback
+from abc import abstractmethod
 
-from PyQt6.QtCore import pyqtSignal, QObject
+from PyQt6.QtCore import QObject, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import AppLibLogger
@@ -32,12 +32,6 @@ class ProcessBase(QObject):
 
     @abstractmethod
     async def _run(self) -> None: ...
-
-    def setProcessID(self, process_id: int) -> None:
-        self.process_id = process_id
-
-    def getProcessID(self) -> int:
-        return self.process_id
 
     def terminate(self, timeout: float = 2.0) -> None:
         try:
