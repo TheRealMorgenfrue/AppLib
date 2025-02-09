@@ -653,11 +653,13 @@ class RedBlackTreeMapping(RedBlackTree):
         position: Iterable[int],
         parents: Iterable[Hashable] = [],
         *args,
+        __normalize___=True,
         **kwargs,
     ) -> "RedBlackTreeMapping.TreeNode":
         self._modified = True
-        self._normalize_position(key, position, parents)
-        self._key_count += 1  # Update size
+        if __normalize___:
+            self._normalize_position(key, position, parents)
+            self._key_count += 1  # Update size
         tn = self._create_node(key, value, position, parents, *args, **kwargs)
         u = self._find_node(tn)  # type: RedBlackTreeMapping.TreeNode
         if u is None:  # Object is new
@@ -727,7 +729,7 @@ class RedBlackTreeMapping(RedBlackTree):
                     # parent <- child
                     tnp.values[tnp.index(tnp_ps)].append((tn, ps))
                     # child <- parent
-                    tn._parent_nodes[tn.index(ps)] = tnp
+                    tn._parent_nodes[tn.index(ps)] = tnp_tuple
 
     def add_tree(self, t: Self):
         """
@@ -868,6 +870,68 @@ class RedBlackTreeMapping(RedBlackTree):
             tn, i = self._find_index(key, parents, search_mode)
             tn.values[i] = value
         self._modified = True
+
+    def rename(
+        self,
+        new_key: Hashable,
+        key: Hashable,
+        parents: Union[Hashable, Iterable[Hashable]] = [],
+        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
+    ):
+        """
+        Rename `key` to `new_key` while preserving order.
+
+        Parameters
+        ----------
+        new_key : Hashable
+            The new name of `key`.
+
+        key : Hashable
+            The key to look for.
+
+        parents : Hashable | Iterable[Hashable], optional
+            The parent of `key`.
+            By default [].
+
+        search_mode : Literal["strict", "smart", "immediate", "any"], optional
+            How to search for `key`.
+            - "strict"
+                &ensp; Requires `parents` to match exactly.
+                I.e. ["a", "b"] == ["a", "b"]
+            - "smart"
+                &ensp; Tries to find the key using different heuristics.
+                Note that it can result in the wrong key under certain conditions.
+            - "immediate"
+                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
+                I.e. "b" == ["a", "b"]
+            - "any"
+                &ensp; Requires `parents` to be a Hashable that matches any parent.
+                I.e. "a" == ["a", "b"]
+
+            By default "smart".
+
+        Raises
+        ------
+        KeyError
+            If the combination of (`key`,`parents`) does not exist.
+
+        LookupError
+            If a key-value pair can not be uniquely identified from (`key`,`parents`).
+            Can happen if `parents` information is insufficient.
+        """
+        tn, i = self._find_index(key, parents, search_mode)
+        if len(tn) < 2:  # At most one key in node, remove node entirely
+            super().remove(tn)
+
+        pn_tuple = tn._parent_nodes[
+            i
+        ]  # type: tuple[RedBlackTreeMapping.TreeNode, list[Hashable]]
+        pn, pnps = pn_tuple
+        k, v, pos, ps = tn.remove(i)
+        new_tn = self._add(new_key, v, pos, ps, __normalize___=False)
+        new_tn._parent_nodes[new_tn.index(ps, "strict")] = pn  # Add parent to child
+        pn_value = pn.values[pn.index(pnps, "strict")]
+        pn_value[pn_value.index((tn, ps))] = new_tn  # Add child to parent
 
     def _tree_dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
         """Generate a dictionary representation of `items`"""
