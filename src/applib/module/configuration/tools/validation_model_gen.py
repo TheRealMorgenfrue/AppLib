@@ -69,19 +69,16 @@ class CoreValidationModelGenerator:
         field_tree: FieldTree,
         field_validators: dict[str, dict[str, field_validator]],
     ) -> type[BaseModel]:
-        if len(field_tree) > 1:
-            for setting, fields, position, parents in reversed(field_tree):
-                section_id = f"{parents}"
-                validators = (
-                    field_validators[section_id]
-                    if section_id in field_validators
-                    else None
-                )
-                model = create_model(
-                    section_id, __validators__=validators, **fields
-                ).model_construct()
-                field = {parents[-1]: (type(model), Field(default=model))}
-                field_tree.merge(setting, field, position, parents)
+        for setting, fields, position, parents in reversed(field_tree):
+            section_id = f"{parents}"
+            validators = (
+                field_validators[section_id] if section_id in field_validators else None
+            )
+            model = create_model(
+                section_id, __validators__=validators, **fields
+            ).model_construct()
+            field = {parents[-1]: (type(model), Field(default=model))}
+            field_tree.merge(setting, field, position, parents)
         return create_model(model_name, **field_tree.dump_fields())
 
     def get_generic_model(
