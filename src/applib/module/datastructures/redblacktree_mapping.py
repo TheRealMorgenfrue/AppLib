@@ -964,3 +964,15 @@ class RedBlackTreeMapping(RedBlackTree):
             self._dump_cache = self._tree_dump(self)
             self._modified = False
         return self._dump_cache
+
+    def keys(self) -> list[Hashable]:
+        """A list of this tree's keys, ordered by position."""
+        return [k for k, v, pos, ps in self]
+
+    def values(self) -> list[Any]:
+        """A list of this tree's values, ordered by position."""
+        return [v for k, v, pos, ps in self]
+
+    def items(self) -> list[tuple[Hashable, Any]]:
+        """A list of this tree's key-value pairs, ordered by position."""
+        return [(k, v) for k, v, pos, ps in self]
