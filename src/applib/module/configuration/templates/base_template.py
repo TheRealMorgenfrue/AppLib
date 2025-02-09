@@ -124,7 +124,7 @@ class BaseTemplate(MappingBase):
 
     @classmethod
     def new(
-        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict
+        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict | None
     ) -> Self:
         """Let singleton subclasses create a new instance of their class"""
         new = super().__new__(cls)
