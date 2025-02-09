@@ -27,7 +27,7 @@ class ConfigBase(MappingBase):
         self,
         name: str,
         template: AnyTemplate,
-        validation_model: Model,
+        validation_model: Model | None,
         file_path: StrPath,
         save_interval: Number = 1,
     ) -> None:
@@ -42,7 +42,7 @@ class ConfigBase(MappingBase):
         template : AnyTemplate
             The template used to create `validation_model`.
 
-        validation_model : Model
+        validation_model : Model | None
             The Pydantic model used to validate the config.
 
         file_path : StrPath
@@ -56,7 +56,9 @@ class ConfigBase(MappingBase):
         self._save_interval = save_interval  # Time between config saves in seconds
         self._last_save_time = time()  # Prevent excessive disk writing
         self.template = template
-        self.validation_model = validation_model.model_construct()
+        self.validation_model = (
+            validation_model.model_construct() if validation_model else validation_model
+        )
         self.name = name
         self.file_path = file_path
         self.failure = False  # The config failed to load
