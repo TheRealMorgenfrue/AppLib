@@ -430,11 +430,12 @@ class RedBlackTreeMapping(RedBlackTree):
     def _check_value(self, v) -> bool:
         """Returns True if `v` is nesting child nodes and thus should be serialized as a dict."""
         return (
-            isinstance(v, list)
-            and v
-            and isinstance(v[0], tuple)
-            and v[0]
-            and isinstance(v[0][0], RedBlackTreeMapping.TreeNode)
+            isinstance(v, RedBlackTree.Node)
+            # and isinstance(v.x, list)
+            # and v.x
+            # and isinstance(v.x[0], tuple)
+            # and v.x[0]
+            # and isinstance(v.x[0][0], RedBlackTreeMapping.TreeNode)
         )
 
     def _update_position(
@@ -508,9 +509,9 @@ class RedBlackTreeMapping(RedBlackTree):
         )  # type: deque[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
         while q:
             tn, ps = q.popleft()
-            v = tn.values[tn.index(ps)]
-            if self._check_value(v):
-                for cn, cps in v:
+            u = tn.values[tn.index(ps)]
+            if self._check_value(u):
+                for cn, cps in u.x:
                     q.append((cn, cps))
             subtree.append(tn.get(tn.index(ps, "strict")))
         return subtree
@@ -740,14 +741,14 @@ class RedBlackTreeMapping(RedBlackTree):
 
                 tn = self._add(key=k, value=v, position=c_pos, parents=ps)
                 if isinstance(v, Mapping):
-                    tn.values[tn.index(ps)] = []
+                    tn.values[tn.index(ps)] = RedBlackTree.Node([])
                     q.append((v, [*ps, k], [*c_pos, 0], (tn, ps)))
 
                 # Add reference to parent/child nodes
                 if tnp_tuple is not None:
                     tnp, tnp_ps = tnp_tuple
                     # parent <- child
-                    tnp.values[tnp.index(tnp_ps)].append((tn, ps))
+                    tnp.values[tnp.index(tnp_ps)].x.append((tn, ps))
                     # child <- parent
                     tn._parent_nodes[tn.index(ps)] = tnp_tuple
 
@@ -825,11 +826,10 @@ class RedBlackTreeMapping(RedBlackTree):
                 pass
 
         # Remove child nodes, if any
-        nodes = tn.values[
-            i
-        ]  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
+        nodes = tn.values[i]  # type: list[tuple[RedBlackTree.Node, Iterable[Hashable]]]
         if self._check_value(nodes):
-            for cn, cps in nodes:
+            for u, cps in nodes:
+                cn = u.x  # type: RedBlackTreeMapping.TreeNode
                 self.remove(cn.keys[cn.index(cps, "strict")], cps, "strict")
 
         # Adjust position counter

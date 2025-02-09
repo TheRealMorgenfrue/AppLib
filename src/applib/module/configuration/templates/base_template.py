@@ -71,10 +71,10 @@ class BaseTemplate(MappingBase):
                 is_setting = True
         elif self._check_value(value):
             # A setting tree node has a nesting level of exactly 1
-            v = value[
-                0
-            ]  # type: tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]
-            tn, ps = v
+            v = (
+                value.x
+            )  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
+            tn, ps = v[0]
             if not self._check_value(tn.values[tn.index(ps)]):
                 is_setting = True
         if is_setting:
@@ -111,7 +111,7 @@ class BaseTemplate(MappingBase):
                 dump = {key: {}}
                 if self._check_value(value):
                     v = (
-                        value
+                        value.x
                     )  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
                     for tn, tn_ps in v:
                         c_k, c_v, c_i, c_ps = tn.get(tn.index(tn_ps))
