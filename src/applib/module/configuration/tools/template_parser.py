@@ -16,6 +16,7 @@ from .template_options.validation_info import ValidationInfo
 class TemplateParser:
     _instance = None
     _logger = AppLibLogger().getLogger()
+    _current_template_name = ""
 
     # Remember templates already parsed
     _parsed_templates = set()  # type: set[str]
@@ -30,6 +31,9 @@ class TemplateParser:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    def _prefix_msg(self) -> str:
+        return f"Template '{self._current_template_name}':"
 
     def _group_is_included(self, options: dict[str, Any]) -> bool:
         # options["ui_flags"] is a list after parsing flags
@@ -49,7 +53,7 @@ class TemplateParser:
             for i, group_name in enumerate(groups):
                 if group_name == "":
                     self._logger.warning(
-                        f"Template '{template_name}': Missing group ID in setting '{setting}'"
+                        f"{self._prefix_msg()} Missing group ID in setting '{setting}'"
                     )
                     continue
 
@@ -65,7 +69,7 @@ class TemplateParser:
                     # Check if a parent is defined for this group
                     if self.group.getParentName():
                         self._logger.warning(
-                            f"Template '{template_name}': Unable to assign setting '{setting}' as group parent "
+                            f"{self._prefix_msg()} Unable to assign setting '{setting}' as group parent "
                             + f"for group '{self.group.getGroupName()}'. Setting '{self.group.getParentName()}' is already designated as parent. "
                             + f"Adding as child to existing group"
                         )
@@ -96,7 +100,7 @@ class TemplateParser:
         # This setting has wrong options; it is not in a group yet is still a group parent
         elif "ui_group_parent" in options:
             self._logger.warning(
-                f"Template '{template_name}': Group parent '{setting}' is not in a group. Skipping group assignment"
+                f"{self._prefix_msg()} Group parent '{setting}' is not in a group. Skipping group assignment"
             )
 
     def _add_parent(
@@ -115,7 +119,7 @@ class TemplateParser:
         for i, value in enumerate(options["ui_group_parent"]):
             if not value.name in UIGroups._member_names_:
                 self._logger.error(
-                    f"Template '{template_name}': Group parent setting '{setting}' has invalid value '{value}'. "
+                    f"{self._prefix_msg()} Group parent setting '{setting}' has invalid value '{value}'. "
                     + f"Expected one of '{iter_to_str(UIGroups._member_names_, separator=", ")}'. "
                     + f"Removing value"
                 )
@@ -153,7 +157,7 @@ class TemplateParser:
             for i, flag in enumerate(deepcopy(options["ui_flags"])):
                 if not flag.name in UIFlags._member_names_:
                     self._logger.error(
-                        f"Template '{template_name}': Setting '{setting}' has invalid flag '{flag}'. "
+                        f"{self._prefix_msg()} Setting '{setting}' has invalid flag '{flag}'. "
                         + f"Expected one of '{iter_to_str(UIFlags._member_names_, separator=", ")}'. "
                         + f"Removing value"
                     )
@@ -175,7 +179,7 @@ class TemplateParser:
                     self.actions.add_action(setting, action, parents, template_name)
                 else:
                     self._logger.error(
-                        f"Template '{template_name}': Setting '{setting}' has invalid action '{action}'. "
+                        f"{self._prefix_msg()} Setting '{setting}' has invalid action '{action}'. "
                         + f"An action must be callable. Removing value"
                     )
                     options["actions"].pop(i)
@@ -188,7 +192,7 @@ class TemplateParser:
         if self._orphan_groups[template_name]:
             for orphan_group in self._orphan_groups[template_name]:
                 self._logger.warning(
-                    f"Template '{template_name}': Group '{orphan_group}' does not have a group parent associated. Removing from group list"
+                    f"{self._prefix_msg()} Group '{orphan_group}' does not have a group parent associated. Removing from group list"
                 )
                 Group.removeGroup(template_name, orphan_group)
 
@@ -198,7 +202,7 @@ class TemplateParser:
             for group in groups:
                 if not group.getChildNames():
                     self._logger.warning(
-                        f"Template '{template_name}': Group '{group.getGroupName()}' is nesting children, but has no children assigned to it"
+                        f"{self._prefix_msg()} Group '{group.getGroupName()}' is nesting children, but has no children assigned to it"
                     )
 
     def _get_field_type(self, setting: str, options: dict) -> Any:
@@ -214,7 +218,7 @@ class TemplateParser:
             field_type = type(options["default"])
         else:
             self._logger.warning(
-                f"Could not determine object type for setting '{setting}'. This will cause validation issues"
+                f"{self._prefix_msg()} Could not determine object type for setting '{setting}'. This will cause validation issues"
             )
         return field_type
 
@@ -235,7 +239,9 @@ class TemplateParser:
         field_default = (
             options["default"]
             if "default" in options
-            else self._logger.warning(f"Missing default value for setting '{setting}'")
+            else self._logger.warning(
+                f"{self._prefix_msg()} Missing default value for setting '{setting}'"
+            )
         )
 
         # The minimum value should be the smallest value available for a given setting
@@ -272,7 +278,7 @@ class TemplateParser:
             Force parsing of the template instead of using the cached version.
             Defaults to False.
         """
-        template_name = template.name
+        self._current_template_name = template_name = template.name
         if not template_name in self._parsed_templates or force:
             self._orphan_groups[template_name] = []
             validation_info = ValidationInfo()
@@ -324,12 +330,13 @@ class TemplateParser:
         OrphanGroupWarning
             If any of the groups are orphans, and thus invalid.
         """
+        self._current_template_name = template_name
         group_list = f"{raw_ui_group}".replace(" ", "").split(",")
         if template_name in self._parsed_templates and group_list:
             for group in group_list:
                 if group in self._orphan_groups[template_name]:
                     raise OrphanGroupWarning(
-                        f"Template {template_name}: Group '{group}' is an orphan"
+                        f"{self._prefix_msg()} Group '{group}' is an orphan"
                     )
         return group_list
 
