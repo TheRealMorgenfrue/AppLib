@@ -1,17 +1,16 @@
 import traceback
 from typing import Hashable, Optional, Union
 
-from qfluentwidgets import ScrollArea, qrouter, PopUpAniStackedWidget, FluentIconBase
-from PyQt6.QtCore import Qt, QEasingCurve
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from PyQt6.QtCore import QEasingCurve, Qt
 from PyQt6.QtGui import QIcon
-
-from ..common.core_stylesheet import CoreStyleSheet
-from ..components.infobar_test import InfoBar, InfoBarPosition
-from ..components.sample_card import SampleCardView
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import FluentIconBase, PopUpAniStackedWidget, ScrollArea, qrouter
 
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.logging import AppLibLogger
+from ..common.core_stylesheet import CoreStyleSheet
+from ..components.infobar_test import InfoBar, InfoBarPosition
+from ..components.sample_card import SampleCardView
 
 
 class CoreSettingsInterface(ScrollArea):
@@ -88,7 +87,7 @@ class CoreSettingsInterface(ScrollArea):
             if widget_id in self._widgets:
                 err_msg = f"ID '{widget_id}' already exists"
                 raise ValueError(err_msg)
-            self._widgets |= {widget_id: widget}
+            self._widgets[widget_id] = widget
             self.stackedWidget.addWidget(widget)
         else:
             title += self.tr("\n❌Unavailable")

@@ -31,7 +31,7 @@ class Group:
             An instance (new or existing) of Group matching the template name and group name
         """
         if not template_name in cls._instances:
-            cls._instances |= {template_name: {}}
+            cls._instances[template_name] = {}
 
         if not group_name in cls._instances[template_name]:
             instance = super().__new__(cls)
@@ -49,7 +49,7 @@ class Group:
                 -1
             )  # How many parent groups want to nest this group. A nesting_level of -1 means it is unknown.
             instance._isNestingChildren = False
-            cls._instances[template_name] |= {group_name: instance}
+            cls._instances[template_name][group_name] = instance
         return cls._instances[template_name][group_name]
 
     @classmethod
@@ -155,13 +155,13 @@ class Group:
     def addChildCardGroup(
         self, child_name: str, card_group: AnyCardGroup | None
     ) -> None:
-        self._child_card_groups |= {child_name: card_group}
+        self._child_card_groups[child_name] = card_group
 
     def getChildCardGroup(self, child_name: str) -> AnyCardGroup | None:
         return self._child_card_groups.get(child_name, None)
 
     def setParentName(self, parent: str) -> None:
-        self._parent |= {parent: None}
+        self._parent[parent] = None
 
     def setParentCard(self, parent: AnyParentCard) -> None:
         self._parent[self.getParentName()] = parent
@@ -176,7 +176,7 @@ class Group:
         return self._parent[self.getParentName()]
 
     def addChildName(self, child: str) -> None:
-        self._children |= {child: None}
+        self._children[child] = None
 
     def addChildCard(self, child: AnyCard) -> None:
         card_name = child.getCardName()

@@ -309,7 +309,7 @@ class ThreadManager(QThread):
                 stop = start + threadDifference
                 for i in range(start, stop):
                     availableThreads.append((i, True))
-                    self._thread_pool |= {i: None}
+                    self._thread_pool[i] = None
                     self._process_pool.append(None)
                 self._logger.debug(
                     f"Added {threadDifference} {self._thread_grammar(threadDifference)} to the thread pool "

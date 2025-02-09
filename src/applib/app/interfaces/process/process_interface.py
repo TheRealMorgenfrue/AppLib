@@ -120,7 +120,7 @@ class CoreProcessInterface(ScrollArea):
         # Add *amount* new consoles (minus those re-added)
         for i in range(start, stop):
             console = ConsoleView(process_id=i, sizeHint=sizeHint, parent=self._view)
-            self.console_widgets |= {i: console}
+            self.console_widgets[i] = console
             self.flowConsoles.flowLayout.addWidget(console)
             ids.append(i)
         self.threadManager.consoleCountChanged.emit(ids)

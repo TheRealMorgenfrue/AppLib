@@ -965,9 +965,9 @@ class RedBlackTreeMapping(RedBlackTree):
                 stack = [dump]
                 for p in ps:
                     stack.append(stack[-1][p])
-                stack[-1] |= {k: v}
+                stack[-1][k] = v
             else:
-                dump |= {k: v}
+                dump[k] = v
         return dump
 
     def dump(self) -> dict[Hashable, Any]:

@@ -357,7 +357,7 @@ class GeneratorBase:
     ) -> None:
         card_group_name = f"{cardGroup}"
         if card_group_name not in self._card_sort_order:
-            self._card_sort_order |= {card_group_name: []}
+            self._card_sort_order[card_group_name] = []
         self._card_sort_order.get(card_group_name).append(card)
 
     def _addCardsBySortOrder(self) -> None:

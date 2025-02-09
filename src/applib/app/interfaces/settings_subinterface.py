@@ -71,7 +71,7 @@ class CoreSettingsSubInterface(ScrollArea):
             self._title = title
 
             if "parent" not in generator_kwargs:
-                generator_kwargs |= {"parent": self}
+                generator_kwargs["parent"] = self
             self._generator_kwargs = generator_kwargs
 
             self._view = QWidget(self)

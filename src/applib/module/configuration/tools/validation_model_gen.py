@@ -60,7 +60,7 @@ class CoreValidationModelGenerator:
                 mode=mode,
                 check_fields=check_fields,
             )(validator)
-            field_validators[section_id] |= {f"{validator}": fv}
+            field_validators[section_id][f"{validator}"] = fv
         return field_validators
 
     def _generate_model(
@@ -102,7 +102,7 @@ class CoreValidationModelGenerator:
             A validation model of the template.
         """
         if "generic" not in self._model_cache:
-            self._model_cache |= {"generic": {}}
+            self._model_cache["generic"] = {}
 
         if model_name not in self._model_cache["generic"]:
             self.template_parser = TemplateParser()
@@ -115,5 +115,5 @@ class CoreValidationModelGenerator:
                     validation_info=validation_info
                 ),
             )
-            self._model_cache["generic"] |= {model_name: model}
+            self._model_cache["generic"][model_name] = model
         return self._model_cache["generic"][model_name]

@@ -1,9 +1,9 @@
-from qfluentwidgets import IconWidget, FluentIconBase, FlowLayout, CardWidget
+from typing import Callable, Hashable, Optional, Union
+
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QGraphicsOpacityEffect
-
-from typing import Callable, Hashable, Optional, Union
+from PyQt6.QtWidgets import QGraphicsOpacityEffect, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import CardWidget, FlowLayout, FluentIconBase, IconWidget
 
 from ..common.core_stylesheet import CoreStyleSheet
 
@@ -140,7 +140,7 @@ class SampleCardView(QWidget):
             parent=self,
         )
         self.flowLayout.addWidget(card)
-        self._cards |= {widget_id: card}
+        self._cards[widget_id] = card
 
     def getSampleCard(self, widget_id: Hashable) -> SampleCard | None:
         return self._cards.get(widget_id)
