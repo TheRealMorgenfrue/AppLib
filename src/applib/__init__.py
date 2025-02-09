@@ -95,7 +95,10 @@ from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.ini_file_parser import IniFileParser
-from .module.configuration.tools.template_options.actions import change_theme
+from .module.configuration.tools.template_options.actions import (
+    change_theme,
+    change_theme_color,
+)
 from .module.configuration.tools.template_options.groups import Group
 from .module.configuration.tools.template_options.template_enums import (
     UIFlags,
@@ -241,6 +244,7 @@ __all__ = [
     "async_read_pipe",
     "core_signalbus",
     "change_theme",
+    "change_theme_color",
     "check_dict_nestingLevel",
     "create_logger",
     "dict_lookup",

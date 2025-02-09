@@ -1,12 +1,13 @@
 from test.modules.config.test_args import TestArgs
 from typing import Self, override
 
-from qfluentwidgets import setThemeColor
-
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
 from applib.module.configuration.templates.base_template import BaseTemplate
-from applib.module.configuration.tools.template_options.actions import change_theme
+from applib.module.configuration.tools.template_options.actions import (
+    change_theme,
+    change_theme_color,
+)
 from applib.module.configuration.tools.template_options.template_enums import (
     UIFlags,
     UIGroups,
@@ -63,7 +64,7 @@ class TestTemplate(BaseTemplate):
                     "ui_type": UITypes.COLOR_PICKER,
                     "ui_title": "Set application color",
                     "default": "#2abdc7",
-                    "actions": [lambda color: setThemeColor(color, lazy=True)],
+                    "actions": [change_theme_color],
                 },
                 "appBackground": {
                     "ui_type": UITypes.FILE_SELECTION,

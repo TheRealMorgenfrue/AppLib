@@ -1,6 +1,8 @@
 from typing import Any, Callable
 
-from qfluentwidgets import Theme, setTheme
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
+from qfluentwidgets import Theme, setTheme, setThemeColor
 
 from .....app.common.core_signalbus import core_signalbus
 
@@ -52,3 +54,7 @@ def change_theme(value: str):
     else:
         theme = Theme.AUTO
     setTheme(theme=theme, lazy=True)
+
+
+def change_theme_color(color: QColor | Qt.GlobalColor | str):
+    setThemeColor(color, lazy=True)
