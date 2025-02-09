@@ -355,7 +355,13 @@ class ConfigBase(MappingBase):
             self._logger.warning(err_msg)
             if do_write_config:
                 self._logger.info(f"{self._prefix_msg()} Repairing config")
-                repaired_config = self._repair_config(raw_config, model_dict)
+                try:
+                    repaired_config = self._repair_config(raw_config, model_dict)
+                except Exception:
+                    self._logger.debug(
+                        f"Config repair failed with error:\n"
+                        + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                    )
                 self.backup_config()
                 ConfigUtils.writeConfig(repaired_config, self.file_path)
         except (InvalidMasterKeyError, AssertionError) as err:
@@ -433,20 +439,21 @@ class ConfigBase(MappingBase):
         """
         repaired_config = {}
 
-        def repair(c: dict, md: dict) -> dict:
+        def repair(c: dict, md: dict):
             nonlocal repaired_config
             for template_key, value in md.items():
                 if isinstance(value, dict) and template_key in c:
                     # Search config/model_dict recursively, depth-first
-                    repaired_config |= {template_key: repair(c[template_key], value)}
+                    repaired_config[template_key] = repair(c[template_key], value)
                 elif template_key in c:
                     # Preserve value from config
-                    repaired_config |= {template_key: c[template_key]}
+                    repaired_config[template_key] = c[template_key]
                 else:
                     # Use value from model_dict
-                    repaired_config |= {template_key: value}
+                    repaired_config[template_key] = value
 
-        return repair(config, model_dict)
+        repair(config, model_dict)
+        return repaired_config
 
     @override
     def set_value(
