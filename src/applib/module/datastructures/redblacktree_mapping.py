@@ -801,6 +801,16 @@ class RedBlackTreeMapping(RedBlackTree):
                 tnp.values.remove((tn, ps))
             except (ValueError, AttributeError):
                 pass
+
+        # Remove child nodes, if any
+        nodes = tn.values[
+            i
+        ]  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
+        if self._check_value(nodes):
+            for cn, cps in nodes:
+                self.remove(cn.keys[cn.index(cps, "strict")], cps, "strict")
+
+        # Adjust position counter
         self._remove_position(tn.positions[i])
         return tn.remove(i)  # Remove key from the node's list
 
@@ -852,9 +862,12 @@ class RedBlackTreeMapping(RedBlackTree):
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """
+        if isinstance(value, (Mapping, RedBlackTreeMapping)):
+            self.add_all([value])
+        else:
+            tn, i = self._find_index(key, parents, search_mode)
+            tn.values[i] = value
         self._modified = True
-        tn, i = self._find_index(key, parents, search_mode)
-        tn.values[i] = value
 
     def _tree_dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
         """Generate a dictionary representation of `items`"""
