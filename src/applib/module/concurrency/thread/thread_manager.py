@@ -64,10 +64,10 @@ class ThreadManager(QThread):
     def _onAppShutdown(self) -> None:
         self._TerminateAllRequest(suicide=True)
 
-    def _threadGrammar(self, amount: int) -> str:
+    def _thread_grammar(self, amount: int) -> str:
         return "threads" if amount != 1 else "thread"
 
-    def _processGrammer(self, amount: int) -> str:
+    def _process_grammer(self, amount: int) -> str:
         return "processes" if amount != 1 else "process"
 
     def _TerminateAllRequest(self, suicide: bool) -> None:
@@ -124,7 +124,7 @@ class ThreadManager(QThread):
         isRunning = len(self._thread_pool)
 
         if not isRunning:
-            self._total_progress = self._process_gen.getTotalProgress()
+            self._total_progress = self._process_gen.get_total_progress()
             self._logger.info(
                 f"Initializing {self.name}. Processes to execute: {self._total_progress}"
             )
@@ -138,8 +138,8 @@ class ThreadManager(QThread):
         if not isRunning:
             threadPoolSize = len(self._thread_pool)
             self._logger.debug(
-                f"Scheduled {self._total_progress} {self._processGrammer(self._total_progress)} "
-                + f"in {threadPoolSize} {self._threadGrammar(threadPoolSize)}"
+                f"Scheduled {self._total_progress} {self._process_grammer(self._total_progress)} "
+                + f"in {threadPoolSize} {self._thread_grammar(threadPoolSize)}"
             )
         return new_processes
 
@@ -238,7 +238,7 @@ class ThreadManager(QThread):
                 self._logger.debug(f"Starting new thread with ID {threadID}")
                 self._process_pool[threadID] = process
                 self._thread_pool[threadID] = thread = QThread()
-                process.setProcessID(threadID)
+                process.set_pid(threadID)
                 process.moveToThread(thread)
                 process.finished.connect(self._onProcessFinished)
                 process.failed.connect(
@@ -312,7 +312,7 @@ class ThreadManager(QThread):
                     self._thread_pool |= {i: None}
                     self._process_pool.append(None)
                 self._logger.debug(
-                    f"Added {threadDifference} {self._threadGrammar(threadDifference)} to the thread pool "
+                    f"Added {threadDifference} {self._thread_grammar(threadDifference)} to the thread pool "
                     + f"(total size: {len(self._thread_pool)})"
                 )
 
@@ -336,7 +336,7 @@ class ThreadManager(QThread):
                 removedThreads = len(removedThreadIDs)
                 if removedThreads:
                     self._logger.debug(
-                        f"Removed {removedThreads} {self._threadGrammar(removedThreads)} from the thread pool "
+                        f"Removed {removedThreads} {self._thread_grammar(removedThreads)} from the thread pool "
                         + f"(total size: {len(self._thread_pool)})"
                     )
                     self.threadsRemoved.emit(removedThreadIDs)

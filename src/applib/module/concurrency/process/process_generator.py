@@ -18,7 +18,7 @@ class ProcessGenerator(ABC):
         ...
 
     @abstractmethod
-    def canStart(self) -> bool:
+    def can_start(self) -> bool:
         """Whether any processes can be created by the generator.
 
         Returns
@@ -29,7 +29,7 @@ class ProcessGenerator(ABC):
         ...
 
     @abstractmethod
-    def getTotalProgress(self) -> int:
+    def get_total_progress(self) -> int:
         """Calculates the total amount of processes that can be created by the generator.
 
         Returns
