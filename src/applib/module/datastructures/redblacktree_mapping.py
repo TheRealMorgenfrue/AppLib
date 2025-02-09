@@ -505,7 +505,7 @@ class RedBlackTreeMapping(RedBlackTree):
     ) -> list[_rbtm_item]:
         subtree = []
         q = deque(
-            (tn, ps)
+            [(tn, ps)]
         )  # type: deque[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
         while q:
             tn, ps = q.popleft()
@@ -728,10 +728,9 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         if not m:
             return
-        q = (
-            deque()
+        q = deque(
+            [(m, [], [None], None)]
         )  # type: deque[tuple[Mapping, list, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
-        q.append((m, [], [None], None))
         while q:
             d, ps, pos, tnp_tuple = q.popleft()
             for i, item in enumerate(d.items()):

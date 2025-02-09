@@ -1,15 +1,15 @@
-import os
-import tomlkit
-import tomlkit.exceptions
 import json
+import os
 import traceback
 from collections import deque
 from pathlib import Path
 
-from ..internal.core_args import CoreArgs
+import tomlkit
+import tomlkit.exceptions
 
 from ...logging import AppLibLogger
 from ...tools.types.general import Model, StrPath
+from ..internal.core_args import CoreArgs
 
 
 class ConfigUtils:
@@ -99,8 +99,7 @@ class ConfigUtils:
             Note: the file does not have to exist.
         """
         document = ""
-        q = deque()  # type: deque[dict]
-        q.append(config)
+        q = deque([config])  # type: deque[dict]
         parents = deque()  # type: deque[str]
 
         while q:
