@@ -1,10 +1,30 @@
+from numbers import Number
 from typing import Any, Callable
 
 from .template_enums import UIFlags, UIGroups, UITypes
 
 
 class Undefined:
+    """Denotes an argument as undefined. Is used to allow None as an Option argument"""
+
     pass
+
+
+class GUIMessage:
+    def __init__(self, title: str, description: str = ""):
+        """
+        A message informing the user of something.
+
+        Parameters
+        ----------
+        title : str
+            The title of the message.
+        description : str, optional
+            The description (or content) of the message.
+            By default "".
+        """
+        self.title = title
+        self.description = description
 
 
 class Option:
@@ -28,25 +48,19 @@ class Option:
         actions : Callable | list[Callable], optional
             Functions to call when this setting changes value.
             Each function must take one argument, which is the new value of this setting.
-            ##### Applicable settings: All
         max : int, optional
             The maximum value for this setting.
-            If max is Undefined, there is no limit (though upper limit is 999999 in the GUI).
-            ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
-            NOTE: Sliders do not support floats currently.
+            If None, there is no limit.
         min : int, optional
             The minimum value for this setting.
-            ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
-            NOTE: Sliders do not support floats currently.
+            If None, there is no limit.
         type : type, optional
             The Python type for the value of this setting. For instance, 3 has type 'int'.
-            ##### Applicable settings: All
             NOTE: Types are also inferred from other arguments.
         validators : Callable | list[Callable], optional
             Functions used to validate the value of this setting (in addition to default Pydantic validation).
             Each function must take one argument, which is the value of this setting.
             If the value is invalid, they must raise either ValueError or AssertionError.
-            ##### Applicable settings: All
         """
         self.default = default
         self.actions = actions
@@ -55,8 +69,17 @@ class Option:
         self.type = type
         self.validators = validators
 
-    def is_defined(self, attr) -> bool:
-        return type(attr) != Undefined
+    def __getattr__(self, name):
+        """
+        Called when the default attribute access fails with an AttributeError (either __getattribute__()
+        raises an AttributeError because `name` is not an instance attribute or an attribute in the class tree
+        for self; or __get__() of a `name` property raises AttributeError)
+        """
+        return Undefined
+
+    def defined(self, attr_value) -> bool:
+        """Whether the given attribute is defined. Returns True if it is."""
+        return type(attr_value) != type(Undefined)
 
 
 class GUIOption(Option):
@@ -64,25 +87,25 @@ class GUIOption(Option):
         self,
         default,
         actions: Callable | list[Callable] = Undefined,
-        max: int = Undefined,
-        min: int = Undefined,
+        max: Number = Undefined,
+        min: Number = Undefined,
         type: type = Undefined,
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
         ui_disable_self: Any = Undefined,
-        ui_desc: str = Undefined,
         ui_file_filter: str = Undefined,
         ui_flags: UIFlags | list[UIFlags] = Undefined,
         ui_group: Any | list[Any] = Undefined,
         ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_invalid_msg: tuple[str, str] = Undefined,
-        ui_title: str = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_invalid_input: GUIMessage = Undefined,
         ui_type: UITypes = Undefined,
         ui_unit: str = Undefined,
         validators: Callable | list[Callable] = Undefined,
         values: list | dict = Undefined,
     ):
-        """Create an option instance usable in a GUI environment.
+        """
+        Create an option instance usable in a GUI environment.
 
         An Option is the value of a setting, as defined in the template specification.
 
@@ -95,13 +118,14 @@ class GUIOption(Option):
             Functions to call when this setting changes value.
             Each function must take one argument, which is the new value of this setting.
             ##### Applicable settings: All
-        max : int, optional
+        max : Number, optional
             The maximum value for this setting.
-            If max is Undefined, there is no limit (though upper limit is 999999 in the GUI).
+            If None, there is no limit (though upper limit is 999999 in the GUI).
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
-        min : int, optional
+        min : Number, optional
             The minimum value for this setting.
+            If None, there is no limit (though lower limit is 999999 in the GUI).
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
         type : type, optional
@@ -126,9 +150,6 @@ class GUIOption(Option):
             Please ensure that the backend using this setting respects this value - otherwise it has no effect.
             In the GUI, a button for disabling this setting is provided.
             ##### Applicable settings: All
-        ui_desc : str, optional
-            The description of this setting in the GUI.
-            ##### Applicable settings: All
         ui_file_filter : str, optional
             The files considered valid for selection, e.g., "XML Files (*.xml)".
             ##### Applicable settings: File Selectors
@@ -146,19 +167,13 @@ class GUIOption(Option):
             Only one setting in each group can be designated parent.
             If more than one exist, the first found is used.
             ##### Applicable settings: All
-            NOTE: Full documentation is available at #LINK: src\applib\module\configuration\tools\template_options\template_docs.txt
-        ui_invalid_msg : tuple[str, str], optional
-            Message informing the user that they typed invalid data into this setting in the GUI.
-
-            This argument is a tuple where:
-            ```
-                tuple[0] == "title"
-                tuple[1] == "description"
-            ```
-            ##### Applicable settings: Any free-form input, e.g., a line edit.
-        ui_title : str, optional
-            The title of this setting in the GUI.
+            NOTE: Full documentation is available at #LINK: src\\applib\\module\\configuration\\tools\\template_options\\template_docs.txt
+        ui_info : GUIMessage, optional
+            The title and description of this setting in the GUI.
             ##### Applicable settings: All
+        ui_invalid_input : GUIMessage, optional
+            Message informing the user that they typed invalid data into this setting in the GUI.
+            ##### Applicable settings: Any free-form input, e.g., a line edit.
         ui_type : UITypes, optional
             The widget type to use for this setting.
             ##### Applicable settings: All
@@ -175,23 +190,162 @@ class GUIOption(Option):
             ##### Applicable settings: Combobox
         """
         super().__init__(
-            default,
-            actions,
-            max,
-            min,
-            type,
-            validators,
+            default=default,
+            actions=actions,
+            max=max,
+            min=min,
+            type=type,
+            validators=validators,
         )
         self.ui_disable_button = ui_disable_button
         self.ui_disable_other = ui_disable_other
         self.ui_disable_self = ui_disable_self
-        self.ui_desc = ui_desc
         self.ui_file_filter = ui_file_filter
         self.ui_flags = ui_flags
         self.ui_group = ui_group
         self.ui_group_parent = ui_group_parent
-        self.ui_invalid_msg = ui_invalid_msg
-        self.ui_title = ui_title
+        self.ui_info = ui_info
+        self.ui_invalid_input = ui_invalid_input
         self.ui_type = ui_type
         self.ui_unit = ui_unit
         self.values = values
+
+
+class FileSelectorOption(GUIOption):
+    def __init__(
+        self,
+        default: str,
+        ui_file_filter: str,
+        actions: Callable | list[Callable] = Undefined,
+        type: type = Undefined,
+        ui_disable_button: bool = Undefined,
+        ui_disable_other: Any = Undefined,
+        ui_disable_self: Any = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = Undefined,
+        ui_group: Any | list[Any] = Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_type: UITypes = UITypes.FILE_SELECTION,
+        validators: Callable | list[Callable] = Undefined,
+    ):
+        super().__init__(
+            default=default,
+            actions=actions,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_other=ui_disable_other,
+            ui_disable_self=ui_disable_self,
+            ui_file_filter=ui_file_filter,
+            ui_flags=ui_flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_type=ui_type,
+            validators=validators,
+        )
+
+
+class ComboBoxOption(GUIOption):
+    def __init__(
+        self,
+        default,
+        values: list | dict,
+        actions: Callable | list[Callable] = Undefined,
+        type: type = Undefined,
+        ui_disable_button: bool = Undefined,
+        ui_disable_other: Any = Undefined,
+        ui_disable_self: Any = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = Undefined,
+        ui_group: Any | list[Any] = Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_type: UITypes = UITypes.COMBOBOX,
+        validators: Callable | list[Callable] = Undefined,
+    ):
+        super().__init__(
+            default=default,
+            values=values,
+            actions=actions,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_other=ui_disable_other,
+            ui_disable_self=ui_disable_self,
+            ui_flags=ui_flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_type=ui_type,
+            validators=validators,
+        )
+
+
+class TextEditOption(GUIOption):
+    def __init__(
+        self,
+        default: str,
+        actions: Callable | list[Callable] = Undefined,
+        type: type = Undefined,
+        ui_disable_button: bool = Undefined,
+        ui_disable_other: Any = Undefined,
+        ui_disable_self: Any = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = Undefined,
+        ui_group: Any | list[Any] = Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_invalid_input: GUIMessage = Undefined,
+        ui_type: UITypes = UITypes.LINE_EDIT,
+        validators: Callable | list[Callable] = Undefined,
+    ):
+        super().__init__(
+            default=default,
+            actions=actions,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_other=ui_disable_other,
+            ui_disable_self=ui_disable_self,
+            ui_flags=ui_flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_invalid_input=ui_invalid_input,
+            ui_type=ui_type,
+            validators=validators,
+        )
+
+
+class NumberOption(GUIOption):
+    def __init__(
+        self,
+        default: Number,
+        actions: Callable | list[Callable] = Undefined,
+        min: Number = Undefined,
+        max: Number = Undefined,
+        type: type = Undefined,
+        ui_disable_button: bool = Undefined,
+        ui_disable_other: Any = Undefined,
+        ui_disable_self: Any = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = Undefined,
+        ui_group: Any | list[Any] = Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_type: UITypes = Undefined,
+        ui_unit: str = Undefined,
+        validators: Callable | list[Callable] = Undefined,
+    ):
+        super().__init__(
+            default=default,
+            actions=actions,
+            max=max,
+            min=min,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_other=ui_disable_other,
+            ui_disable_self=ui_disable_self,
+            ui_flags=ui_flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_type=ui_type,
+            ui_unit=ui_unit,
+            validators=validators,
+        )
