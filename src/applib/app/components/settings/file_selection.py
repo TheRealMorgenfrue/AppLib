@@ -18,8 +18,9 @@ class CoreFileSelect(BaseSetting):
         option: GUIOption,
         caption: str,
         directory: StrPath,
-        filter: str,
-        initial_filter: str,
+        show_dir_only: bool = False,
+        filter: Optional[str] = None,
+        selected_filter: Optional[str] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -34,9 +35,6 @@ class CoreFileSelect(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        config_name : str
-            The name of the config.
-
         option : GUIOption
             The options associated with `config_key`.
 
@@ -45,20 +43,37 @@ class CoreFileSelect(BaseSetting):
 
         directory : StrPath
             Open file dialog in this directory.
+            If a value for `config_key` exists, it overrides this directory parameter.
 
-        filter : str
-            File extension filter.
-            E.g. `Images (*.jpg *.jpeg *.png *.bmp)`.
+        show_dir_only : bool, optional
+            Only show directories. `filter` and `selected_filter` are ignored.
+            By default False.
 
-        initial_filter : str
-            Initial file extension filter.
-            E.g. `Images (*.jpg *.jpeg *.png *.bmp)`.
+        filter : str | None, optional
+            File extension filter. Only files matching this are shown.
+            If None, all files are shown.
+            If you want multiple filters, seperate them with ;;
 
-        parent_keys : list[str]
+            For instance:
+            ```
+            "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
+            ```
+
+        selected_filter : str | None, optional
+            The selected file extension filter.
+            If None, all files are shown.
+            If you want multiple filters, seperate them with ;;
+
+            For instance:
+            ```
+            "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
+            ```
+
+        parent_keys : list[str], optional
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
-            Parent of this class
+            Parent of this setting.
             By default None.
         """
         super().__init__(
@@ -72,18 +87,19 @@ class CoreFileSelect(BaseSetting):
             parent_keys=parent_keys,
             parent=parent,
         )
+        self.show_dir_only = show_dir_only
+        self.caption = caption
+        self.filter = None if show_dir_only else filter
+        self.selected_filter = None if show_dir_only else selected_filter
+        self.dialogParent = parent if parent else self
         try:
-            self.caption = caption
             self.directory = (
                 os.path.split(self.current_value)[0]
                 if self.current_value
                 else directory
             )
-            self.filter = filter
-            self.initial_filter = initial_filter
+            self.fileDialog = QFileDialog()
             self.setting = PushButton("Select")
-
-            # Add file selection to layout
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
         except Exception:
@@ -100,16 +116,24 @@ class CoreFileSelect(BaseSetting):
             self.notifyParent.emit(("content", self.current_value))
 
     def _onSelectClicked(self) -> None:
-        file = QFileDialog.getOpenFileName(
-            parent=self.parent() if self.parent() else self,
-            caption=self.caption,
-            directory=self.directory,
-            filter=self.filter,
-            initialFilter=self.initial_filter,
-        )
-        if file[0]:
-            self.set_config_value(file[0])
-            self.directory = os.path.split(file[0])[0]
+        if self.show_dir_only:
+            value = self.fileDialog.getExistingDirectory(
+                parent=self.dialogParent,
+                caption=self.caption,
+                directory=self.directory,
+                options=QFileDialog.Option.ShowDirsOnly,
+            )
+        else:
+            value = self.fileDialog.getOpenFileName(
+                parent=self.dialogParent,
+                caption=self.caption,
+                directory=self.directory,
+                filter=self.filter,
+                initialFilter=self.selected_filter,
+            )[0]
+        if value:
+            self.set_config_value(value)
+            self.directory = os.path.split(value)[0]
 
     def set_config_value(self, value: StrPath) -> None:
         if super().set_config_value(value):
