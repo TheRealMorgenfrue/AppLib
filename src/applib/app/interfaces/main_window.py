@@ -20,9 +20,8 @@ from qfluentwidgets import (
     NavigationItemPosition,
     SplashScreen,
     Theme,
+    isDarkTheme,
     setTheme,
-    theme,
-    toggleTheme,
 )
 
 from ...module.configuration.config.core_config import CoreConfig
@@ -160,7 +159,7 @@ class CoreMainWindow(MSFluentWindow):
         self.show()
         QApplication.processEvents()
 
-    def _connectSignalToSlot(self) -> None:
+    def _connectSignalToSlot(self):
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
         core_signalbus.configValidationError.connect(self._onConfigValidationFailed)
         core_signalbus.configStateChange.connect(self._onConfigStateChange)
@@ -172,7 +171,7 @@ class CoreMainWindow(MSFluentWindow):
         config_key: str,
         value_tuple: tuple[Any,],
         parent_keys: list[str],
-    ) -> None:
+    ):
         if names[0] == self.main_config.name:
             (value,) = value_tuple
             if config_key == "appBackground":
@@ -185,7 +184,7 @@ class CoreMainWindow(MSFluentWindow):
                 self.background_blur_radius = float(value)
                 self.update()
 
-    def _onGenericError(self, title: str, content: str) -> None:
+    def _onGenericError(self, title: str, content: str):
         InfoBar.error(
             title=self.tr(title),
             content=self.tr(content) if content else self._default_logmsg,
@@ -196,24 +195,18 @@ class CoreMainWindow(MSFluentWindow):
             parent=self,
         )
 
-    def _onConfigValidationFailed(
-        self, config_name: str, title: str, content: str
-    ) -> None:
-        if not title:
-            title = "Invalid value (no information given)"  # Placeholder message when no message is given
-            InfoBar.warning(
-                title=self.tr(title),
-                content=self.tr(content),
-                orient=(
-                    Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal
-                ),
-                isClosable=False,
-                duration=5000,
-                position=InfoBarPosition.TOP,
-                parent=self,
-            )
+    def _onConfigValidationFailed(self, config_name: str, title: str, content: str):
+        InfoBar.warning(
+            title=self.tr(title),
+            content=self.tr(content),
+            orient=(Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal),
+            isClosable=False,
+            duration=5000,
+            position=InfoBarPosition.TOP,
+            parent=self,
+        )
 
-    def _onConfigStateChange(self, state: bool, title: str, content: str) -> None:
+    def _onConfigStateChange(self, state: bool, title: str, content: str):
         if state:
             InfoBar.success(
                 title=self.tr(title),
@@ -239,7 +232,7 @@ class CoreMainWindow(MSFluentWindow):
                 parent=self,
             )
 
-    def _checkSoftErrors(self) -> None:
+    def _checkSoftErrors(self):
         if self.main_config.failure:
             InfoBar.warning(
                 title=self.tr("Using internal config"),
@@ -251,7 +244,7 @@ class CoreMainWindow(MSFluentWindow):
                 parent=self,
             )
 
-    def _displayErrors(self) -> None:
+    def _displayErrors(self):
         for error in self._error_log:
             self._logger.critical(
                 "Encountered a critical error during startup\n" + error
@@ -265,14 +258,14 @@ class CoreMainWindow(MSFluentWindow):
                 parent=self,
             )
 
-    def toggleTheme(self) -> None:
-        toggleTheme(lazy=True)
+    def toggleTheme(self):
+        theme = Theme.LIGHT if isDarkTheme() else Theme.DARK
         core_signalbus.updateConfigSettings.emit(
-            self.main_config.name, "appTheme", (theme().value,), []
+            self.main_config.name, "appTheme", (theme.value,), []
         )
         self.main_config.save_config()
 
-    def paintEvent(self, e: QPaintEvent) -> None:
+    def paintEvent(self, e: QPaintEvent):
         super().paintEvent(e)
         if self.background:
             # Only set scene once!
