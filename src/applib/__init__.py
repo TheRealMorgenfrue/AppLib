@@ -91,16 +91,25 @@ from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from .module.configuration.config.config_base import ConfigBase
 from .module.configuration.config.core_config import CoreConfig
 from .module.configuration.internal.core_args import CoreArgs
+from .module.configuration.runners.actions.theme_actions import (
+    change_theme,
+    change_theme_color,
+)
+from .module.configuration.runners.converters.color_converter import ColorConverter
+from .module.configuration.runners.converters.generic_converter import GenericConverter
+from .module.configuration.runners.validators.app_validator import (
+    validate_loglevel,
+    validate_theme,
+)
+from .module.configuration.runners.validators.generic_validator import validate_path
 from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.ini_file_parser import IniFileParser
-from .module.configuration.tools.template_options.actions import (
-    change_theme,
-    change_theme_color,
-)
-from .module.configuration.tools.template_options.groups import Group
-from .module.configuration.tools.template_options.options import (
+from .module.configuration.tools.template_parser import TemplateParser
+from .module.configuration.tools.template_utils.converter import Converter
+from .module.configuration.tools.template_utils.groups import Group
+from .module.configuration.tools.template_utils.options import (
     ComboBoxOption,
     FileSelectorOption,
     GUIMessage,
@@ -109,21 +118,15 @@ from .module.configuration.tools.template_options.options import (
     Option,
     TextEditOption,
 )
-from .module.configuration.tools.template_options.template_enums import (
+from .module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
     UITypes,
 )
-from .module.configuration.tools.template_options.validation_info import ValidationInfo
-from .module.configuration.tools.template_parser import TemplateParser
+from .module.configuration.tools.template_utils.validation_info import ValidationInfo
 from .module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
-from .module.configuration.validators.app_validator import (
-    validate_loglevel,
-    validate_theme,
-)
-from .module.configuration.validators.generic_validator import validate_path
 from .module.datastructures.pure.meldableheap import MeldableHeap
 from .module.datastructures.pure.redblacktree import RedBlackTree
 from .module.datastructures.pure.yfasttrie import YFastTrie
@@ -174,6 +177,8 @@ __all__ = [
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
+    "ColorConverter",
+    "Converter",
     "ComboBoxOption",
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
@@ -209,6 +214,7 @@ __all__ = [
     "FormSettingCard",
     "GeneratorBase",
     "GeneratorUtils",
+    "GenericConverter",
     "GenericSettingCard",
     "Group",
     "GUIMessage",
