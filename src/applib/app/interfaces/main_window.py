@@ -27,7 +27,10 @@ from qfluentwidgets import (
 
 from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.runners.actions.theme_actions import change_theme
+from ...module.configuration.runners.actions.theme_actions import (
+    change_theme,
+    change_theme_color,
+)
 from ...module.logging import AppLibLogger
 from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig
@@ -101,6 +104,7 @@ class CoreMainWindow(MSFluentWindow):
             self.main_config.get_value("backgroundBlur", default=0.0)
         )
         change_theme(self.main_config.get_value("appTheme"))
+        change_theme_color(self.main_config.get_value("appColor"))
 
     def _initNavigation(self):
         if self._subinterfaces:
