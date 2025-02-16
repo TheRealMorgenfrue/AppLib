@@ -1,5 +1,10 @@
 from numbers import Number
-from typing import Any, Callable, Hashable, Union
+from typing import Any, Callable, Hashable, Optional, Union
+
+from applib.module.configuration.runners.converters.color_converter import (
+    ColorConverter,
+)
+from applib.module.configuration.tools.template_utils.converter import Converter
 
 from .template_enums import UIFlags, UIGroups, UITypes
 
@@ -87,6 +92,7 @@ class GUIOption(Option):
         self,
         default,
         actions: Callable | list[Callable] = Undefined,
+        converter: Converter = Undefined,
         max: Number = Undefined,
         min: Number = Undefined,
         type: type = Undefined,
@@ -118,6 +124,9 @@ class GUIOption(Option):
         actions : Callable | list[Callable], optional
             Functions to call when this setting changes value.
             Each function must take one argument, which is the new value of this setting.
+            ##### Applicable settings: All
+        converter : Converter, optional
+            The value converter used to convert values between config and GUI representation.
             ##### Applicable settings: All
         max : Number, optional
             The maximum value for this setting.
@@ -217,6 +226,7 @@ class GUIOption(Option):
             type=type,
             validators=validators,
         )
+        self.converter = converter
         self.ui_disable_button = ui_disable_button
         self.ui_disable_other = ui_disable_other
         self.ui_disable_self = ui_disable_self
@@ -237,6 +247,7 @@ class FileSelectorOption(GUIOption):
         self,
         default: str,
         actions: Callable | list[Callable] = Undefined,
+        converter: Converter = Undefined,
         type: type = Undefined,
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
@@ -253,6 +264,7 @@ class FileSelectorOption(GUIOption):
         super().__init__(
             default=default,
             actions=actions,
+            converter=converter,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -268,12 +280,47 @@ class FileSelectorOption(GUIOption):
         )
 
 
+class ColorPickerOption(GUIOption):
+    def __init__(
+        self,
+        default: str,
+        actions: Callable | list[Callable] = Undefined,
+        converter: Converter = ColorConverter(),
+        type: type = Undefined,
+        ui_disable_button: bool = Undefined,
+        ui_disable_other: Any = Undefined,
+        ui_disable_self: Any = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = Undefined,
+        ui_group: Union[str, Hashable, list[Hashable]] = Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
+        ui_info: GUIMessage = Undefined,
+        ui_type: UITypes = UITypes.COLOR_PICKER,
+        validators: Callable | list[Callable] = Undefined,
+    ):
+        super().__init__(
+            default=default,
+            actions=actions,
+            converter=converter,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_other=ui_disable_other,
+            ui_disable_self=ui_disable_self,
+            ui_flags=ui_flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_type=ui_type,
+            validators=validators,
+        )
+
+
 class ComboBoxOption(GUIOption):
     def __init__(
         self,
         default,
         values: list | dict,
         actions: Callable | list[Callable] = Undefined,
+        converter: Converter = Undefined,
         type: type = Undefined,
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
@@ -289,6 +336,7 @@ class ComboBoxOption(GUIOption):
             default=default,
             values=values,
             actions=actions,
+            converter=converter,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -307,6 +355,7 @@ class TextEditOption(GUIOption):
         self,
         default: str,
         actions: Callable | list[Callable] = Undefined,
+        converter: Converter = Undefined,
         type: type = Undefined,
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
@@ -322,6 +371,7 @@ class TextEditOption(GUIOption):
         super().__init__(
             default=default,
             actions=actions,
+            converter=converter,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -341,6 +391,7 @@ class NumberOption(GUIOption):
         self,
         default: Number,
         actions: Callable | list[Callable] = Undefined,
+        converter: Converter = Undefined,
         min: Number = Undefined,
         max: Number = Undefined,
         type: type = Undefined,
@@ -358,6 +409,7 @@ class NumberOption(GUIOption):
         super().__init__(
             default=default,
             actions=actions,
+            converter=converter,
             max=max,
             min=min,
             type=type,

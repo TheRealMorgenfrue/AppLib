@@ -143,11 +143,13 @@ class GeneratorBase:
         AnySetting | None
             The setting widget object if created succesfully, else None.
         """
+        converter = option.converter if option.defined(option.converter) else None
         if card_type == UITypes.CHECKBOX:
             widget = CoreCheckBox(
                 config=self._config,
                 config_key=key,
                 option=option,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -156,6 +158,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=key,
                 option=option,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -165,6 +168,7 @@ class GeneratorBase:
                 config_key=key,
                 option=option,
                 texts=option.values,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -178,6 +182,7 @@ class GeneratorBase:
                 show_dir_only=option.ui_show_dir_only,
                 filter=option.ui_file_filter,
                 selected_filter=option.ui_file_filter,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -188,7 +193,7 @@ class GeneratorBase:
                 option=option,
                 is_tight=self._is_tight,
                 ui_invalid_input=option.ui_invalid_input,
-                tooltip=None,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -200,6 +205,7 @@ class GeneratorBase:
                 num_range=(option.min, option.max),
                 is_tight=self._is_tight,
                 baseunit=GeneratorUtils.parse_unit(key, option, self._config_name),
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -209,6 +215,7 @@ class GeneratorBase:
                 config_key=key,
                 option=option,
                 num_range=(option.min, option.max),
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -217,6 +224,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=key,
                 option=option,
+                converter=converter,
                 parent_keys=parent_keys,
                 parent=parent,
             )

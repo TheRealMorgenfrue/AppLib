@@ -4,6 +4,7 @@ from PyQt6.QtCore import pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import CheckBox
 
+from ....module.configuration.tools.template_utils.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
@@ -16,6 +17,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -33,6 +35,9 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         option : GUIOption
             The options associated with `config_key`.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
@@ -48,6 +53,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
