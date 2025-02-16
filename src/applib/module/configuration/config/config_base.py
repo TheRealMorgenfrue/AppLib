@@ -358,8 +358,8 @@ class ConfigBase(MappingBase):
                 try:
                     repaired_config = self._repair_config(raw_config, model_dict)
                 except Exception:
-                    self._logger.debug(
-                        f"Config repair failed with error:\n"
+                    self._logger.error(
+                        f"Config repair failed:\n"
                         + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
                 self.backup_config()
