@@ -143,7 +143,10 @@ class BinarySearchTree(BinaryTree, BaseSet):
         self._n -= 1
 
     def _find_node(self, x) -> Node | None:
-        w = self._r
+        try:
+            w = self._r
+        except AttributeError:
+            raise KeyError("Lookup in empty tree") from None
         z = self._nil
         while w != self._nil:
             if x < w.x:
