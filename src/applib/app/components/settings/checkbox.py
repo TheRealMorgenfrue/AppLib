@@ -37,7 +37,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
-            Parent of this class
+            Parent of this setting.
             By default None.
         """
         super().__init__(

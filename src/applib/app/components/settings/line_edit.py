@@ -55,7 +55,7 @@ class CoreLineEdit(BaseSetting):
             By default [].
 
         parent : QWidget, optional
-            Parent of this class
+            Parent of this setting.
             By default None.
         """
         super().__init__(

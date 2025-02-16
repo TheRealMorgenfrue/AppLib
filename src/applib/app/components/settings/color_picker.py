@@ -29,9 +29,6 @@ class CoreColorPicker(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        config_name : str
-            The name of the config.
-
         option : GUIOption
             The options associated with `config_key`.
 
@@ -42,7 +39,7 @@ class CoreColorPicker(BaseSetting):
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
-            Parent of this class
+            Parent of this setting.
             By default None.
         """
         super().__init__(
