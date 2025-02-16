@@ -100,6 +100,15 @@ from .module.configuration.tools.template_options.actions import (
     change_theme_color,
 )
 from .module.configuration.tools.template_options.groups import Group
+from .module.configuration.tools.template_options.options import (
+    ComboBoxOption,
+    FileSelectorOption,
+    GUIMessage,
+    GUIOption,
+    NumberOption,
+    Option,
+    TextEditOption,
+)
 from .module.configuration.tools.template_options.template_enums import (
     UIFlags,
     UIGroups,
@@ -165,6 +174,7 @@ __all__ = [
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
+    "ComboBoxOption",
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
     "ConfigBase",
@@ -191,6 +201,7 @@ __all__ = [
     "CoreValidationModelGenerator",
     "Dialog",
     "ExpandingSettingCard",
+    "FileSelectorOption",
     "FlowArea",
     "FlowSettingCard",
     "FluentLabel",
@@ -200,6 +211,8 @@ __all__ = [
     "GeneratorUtils",
     "GenericSettingCard",
     "Group",
+    "GUIMessage",
+    "GUIOption",
     "iconDict",
     "IndeterminateProgressBarCard",
     "IndeterminateProgressRingCard",
@@ -217,6 +230,8 @@ __all__ = [
     "MissingFieldError",
     "Model",
     "NestedSettingWidget",
+    "NumberOption",
+    "Option",
     "ParentCardBase",
     "PivotCardStack",
     "ProcessBase",
@@ -234,6 +249,7 @@ __all__ = [
     "SettingWidget",
     "StrPath",
     "TemplateParser",
+    "TextEditOption",
     "TextMessageBox",
     "ThreadManager",
     "ThreadUIStreamer",
