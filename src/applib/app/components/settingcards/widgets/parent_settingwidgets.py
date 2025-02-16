@@ -1,15 +1,12 @@
-from qfluentwidgets import CardWidget
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout
-from PyQt6.QtCore import Qt
-
 from typing import Any, Optional, override
 
-from ..card_base import DisableWrapper, ParentCardBase
-from .settingwidget import (
-    SettingWidget,
-    SettingWidgetBase,
-)
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+from qfluentwidgets import CardWidget
+
 from .....module.tools.types.gui_settings import AnySetting
+from ..card_base import DisableWrapper, ParentCardBase
+from .settingwidget import SettingWidget, SettingWidgetBase
 
 
 class WidgetFrame(CardWidget):
@@ -69,11 +66,11 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
             self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     @override
-    def getOption(self) -> AnySetting:
-        return self.widget.getOption()
+    def get_option(self) -> AnySetting:
+        return self.widget.get_option()
 
     @override
-    def addChild(self, child: QWidget) -> None:
+    def add_child(self, child: QWidget) -> None:
         self._widgetView.addChild(child)
 
 
@@ -110,12 +107,12 @@ class NestedSettingWidget(ParentSettingWidget):
             self.disableChildren.emit(wrapper)
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft,
     ) -> None:
-        self.widget.setOption(option, alignment)
+        self.widget.set_option(option, alignment)
 
 
 class ClusteredSettingWidget(ParentSettingWidget):
@@ -135,24 +132,24 @@ class ClusteredSettingWidget(ParentSettingWidget):
             parent=parent,
         )
         self.__connectSignalToSlot()
-        self.addChild(self.widget)
+        self.add_child(self.widget)
 
     def __connectSignalToSlot(self) -> None:
         self.notifyCard.connect(self.widget.notifyCard.emit)
 
     @override
-    def addChild(self, child: QWidget):
+    def add_child(self, child: QWidget):
         child.hBoxLayout.setSpacing(10)
-        super().addChild(child)
+        super().add_child(child)
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
         self.widget.setDisableAll(wrapper)
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,
     ) -> None:
-        self.widget.setOption(option, alignment)
+        self.widget.set_option(option, alignment)

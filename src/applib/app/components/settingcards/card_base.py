@@ -1,8 +1,8 @@
-from qfluentwidgets import ToolTipFilter, ToolTipPosition, TextWrap
-from PyQt6.QtCore import Qt, QObject, pyqtSignal, pyqtBoundSignal
-from PyQt6.QtWidgets import QWidget
-
 from abc import abstractmethod
+
+from PyQt6.QtCore import QObject, Qt, pyqtBoundSignal, pyqtSignal
+from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import TextWrap, ToolTipFilter, ToolTipPosition
 
 from ....module.tools.types.gui_settings import AnySetting
 
@@ -51,23 +51,23 @@ class CardBase:
         filter = self._tooltip_filters.pop(obj)
         filter.deleteLater()
 
-    def getCardName(self) -> str:
+    def get_card_name(self) -> str:
         return self._card_name
 
-    def getDisableSignal(self) -> pyqtBoundSignal:
+    def get_disablesignal(self) -> pyqtBoundSignal:
         return self.disableCard
 
-    def getDisableChildrenSignal(self) -> pyqtBoundSignal:
+    def get_disable_children_signal(self) -> pyqtBoundSignal:
         return self.disableChildren
 
     @abstractmethod
-    def getOption(self) -> AnySetting: ...
+    def get_option(self) -> AnySetting: ...
 
     @abstractmethod
     def setDisableAll(self, wrapper: DisableWrapper) -> None: ...
 
     @abstractmethod
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,
@@ -79,12 +79,12 @@ class ParentCardBase:
         super().__init__(**kwargs)
 
     @abstractmethod
-    def addChild(self, child: QWidget) -> None: ...
+    def add_child(self, child: QWidget) -> None: ...
 
 
 class ParentSettingCardBase(ParentCardBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def enableTightMode(self, is_tight: bool) -> tuple[int, int]:
-        return self.card.enableTightMode(is_tight)
+    def enable_tight_mode(self, is_tight: bool) -> tuple[int, int]:
+        return self.card.enable_tight_mode(is_tight)

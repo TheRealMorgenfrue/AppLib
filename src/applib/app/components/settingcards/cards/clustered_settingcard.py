@@ -1,22 +1,15 @@
-from qfluentwidgets import (
-    FluentIconBase,
-    isDarkTheme,
-)
-from PyQt6.QtGui import QIcon, QPainter, QColor, QResizeEvent, QPaintEvent
-from PyQt6.QtWidgets import QWidget, QFrame, QVBoxLayout
-from PyQt6.QtCore import Qt, QObject, QEvent
-
 from typing import Optional, Union, override
 
+from PyQt6.QtCore import QEvent, QObject, Qt
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
+from PyQt6.QtWidgets import QFrame, QVBoxLayout, QWidget
+from qfluentwidgets import FluentIconBase, isDarkTheme
+
+from .....module.tools.types.gui_settings import AnySetting
 from ....common.core_stylesheet import CoreStyleSheet
-from ..card_base import (
-    CardBase,
-    DisableWrapper,
-    ParentSettingCardBase,
-)
+from ..card_base import CardBase, DisableWrapper, ParentSettingCardBase
 from .expanding_settingcard import GroupSeparator
 from .settingcard import FluentSettingCard
-from .....module.tools.types.gui_settings import AnySetting
 
 
 class ClusterHeaderSettingCard(FluentSettingCard):
@@ -68,7 +61,7 @@ class ClusteredSettingCard(CardBase, ParentSettingCardBase, QFrame):
         )
         self.__setQss()
         self.__connectSignalToSlot()
-        self.addChild(self.card)
+        self.add_child(self.card)
 
     def __setQss(self) -> None:
         CoreStyleSheet.SETTING_CARD.apply(self)
@@ -94,24 +87,24 @@ class ClusteredSettingCard(CardBase, ParentSettingCardBase, QFrame):
         painter.drawRoundedRect(self.rect().adjusted(1, 1, -1, -1), 6, 6)
 
     @override
-    def addChild(self, child: QWidget) -> None:
+    def add_child(self, child: QWidget) -> None:
         # Add separator
         if self.viewLayout.count() >= 1:
             self.viewLayout.addWidget(GroupSeparator())
         self.viewLayout.addWidget(child)
 
     @override
-    def getOption(self) -> AnySetting:
-        return self.card.getOption()
+    def get_option(self) -> AnySetting:
+        return self.card.get_option()
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
         self.card.setDisableAll(wrapper)
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,
     ) -> None:
-        self.card.setOption(option, alignment)
+        self.card.set_option(option, alignment)

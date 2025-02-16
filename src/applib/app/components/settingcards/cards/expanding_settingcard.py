@@ -1,49 +1,41 @@
-from qfluentwidgets import (
-    FluentIconBase,
-    FluentStyleSheet,
-    isDarkTheme,
-)
-from qfluentwidgets.components.settings.expand_setting_card import (
-    ExpandButton,
-    ExpandBorderWidget,
-    SpaceWidget,
-)
-from PyQt6.QtGui import (
-    QIcon,
-    QPainter,
-    QColor,
-    QPainterPath,
-    QPaintEvent,
-    QWheelEvent,
-    QResizeEvent,
-)
-from PyQt6.QtWidgets import (
-    QWidget,
-    QLayout,
-    QScrollArea,
-    QFrame,
-    QVBoxLayout,
-    QApplication,
-)
-from PyQt6.QtCore import (
-    Qt,
-    QObject,
-    QPropertyAnimation,
-    QEasingCurve,
-    QEvent,
-    QRectF,
-    QSize,
-)
-
 from typing import Any, Optional, Union, override
 
-from ..card_base import (
-    CardBase,
-    DisableWrapper,
-    ParentSettingCardBase,
+from PyQt6.QtCore import (
+    QEasingCurve,
+    QEvent,
+    QObject,
+    QPropertyAnimation,
+    QRectF,
+    QSize,
+    Qt,
 )
-from .settingcard import FluentSettingCard
+from PyQt6.QtGui import (
+    QColor,
+    QIcon,
+    QPainter,
+    QPainterPath,
+    QPaintEvent,
+    QResizeEvent,
+    QWheelEvent,
+)
+from PyQt6.QtWidgets import (
+    QApplication,
+    QFrame,
+    QLayout,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
+from qfluentwidgets import FluentIconBase, FluentStyleSheet, isDarkTheme
+from qfluentwidgets.components.settings.expand_setting_card import (
+    ExpandBorderWidget,
+    ExpandButton,
+    SpaceWidget,
+)
+
 from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
+from ..card_base import CardBase, DisableWrapper, ParentSettingCardBase
+from .settingcard import FluentSettingCard
 
 
 class GroupSeparator(QWidget):
@@ -340,13 +332,13 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
             Card title.
 
         content : str, optional
-            Card description. By default `None`.
+            Card description. By default None.
 
         has_disable_button : bool
             Create a disable button for this card.
 
         parent : QWidget, optional
-            The parent of this card. Defaults to `None`.
+            The parent of this card. Defaults to None.
         """
         try:
             super().__init__(
@@ -374,12 +366,12 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
             self.disableChildren.emit(DisableWrapper(self.is_disabled))
 
     @override
-    def addChild(self, child: QWidget) -> None:
+    def add_child(self, child: QWidget) -> None:
         self.addGroupWidget(child)
 
     @override
-    def getOption(self) -> AnySetting:
-        return self.card.getOption()
+    def get_option(self) -> AnySetting:
+        return self.card.get_option()
 
     @override
     def setDisableAll(self, wrapper: DisableWrapper) -> None:
@@ -389,7 +381,7 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
             self.disableChildren.emit(wrapper)
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,
@@ -399,10 +391,10 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
             self.card.has_disable_button = True
             self.card.hide_option = False
             option.setHidden(True)
-        self.card.setOption(option, alignment)
+        self.card.set_option(option, alignment)
 
     @override
-    def enableTightMode(self, is_tight: bool) -> tuple[int, int]:
-        mw, mh = super().enableTightMode(is_tight)
+    def enable_tight_mode(self, is_tight: bool) -> tuple[int, int]:
+        mw, mh = super().enable_tight_mode(is_tight)
         self.viewLayout.setContentsMargins(mw, mh, mw, mh)
         return mw, mh

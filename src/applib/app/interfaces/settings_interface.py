@@ -14,7 +14,7 @@ from ..components.sample_card import SampleCardView
 
 
 class CoreSettingsInterface(ScrollArea):
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __init__(self, parent: Optional[QWidget] = None):
         """
@@ -24,7 +24,7 @@ class CoreSettingsInterface(ScrollArea):
         ----------
         parent : QWidget, optional
             The parent of the main settings page.
-            By default `None`.
+            By default None.
         """
         super().__init__(parent=parent)
         self._widgets = {}  # type: dict[Hashable, QWidget]

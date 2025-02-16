@@ -33,11 +33,11 @@ class CoreValidationModelGenerator:
 
         mode : Literal['before', 'after', 'plain'], optional
             Specify the order the field_validator is applied in relation to standard Pydantic validation.
-            By default `after`.
+            By default 'after'.
 
         check_fields : bool, optional
             Whether to check that the fields actually exist on the model.
-            By default `True`.
+            By default True.
 
         Returns
         -------

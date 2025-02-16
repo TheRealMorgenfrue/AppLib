@@ -46,7 +46,7 @@ def dict_lookup(input: dict, search_param: Any) -> Any:
 
         returns:
             Key if `search_param` == value (or vice versa).
-            `None` if `search_param` wasn't found in the input.
+            None if `search_param` wasn't found in the input.
 
     """
     if isinstance(input, dict):
@@ -75,7 +75,7 @@ def format_validation_error(
 
     include_input : bool, optional
         Include the user input which caused this error.
-        By default `True`.
+        By default True.
 
     Returns
     -------
@@ -200,7 +200,7 @@ def retrieve_dict_value(
 
     default : Any, optional
         The value to return if `key` was not found.
-        Defaults to `None`.
+        Defaults to None.
 
     get_parent_key : bool, optional
         Return the immediate parent of `key`.
@@ -213,7 +213,7 @@ def retrieve_dict_value(
 
     tuple[Any, str]
         [0]: The value mapped to the key, if it exists. Otherwise, default.
-        [1]: The immediate parent of the supplied key, if `get_parent_key` is `True`. Otherwise, `None`.
+        [1]: The immediate parent of the supplied key, if `get_parent_key` is True. Otherwise, None.
     """
     stack = [iter(d.items())]
     parent_keys = []
@@ -274,7 +274,7 @@ def insert_dict_value(
 
     parent_key : str, optional
         Limit the search scope to the children of this key.
-        By default `None`.
+        By default None.
 
     Returns
     -------

@@ -1,16 +1,14 @@
 from typing import Optional
-from qfluentwidgets import (
-    ScrollArea,
-)
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
 
-from ...common.core_stylesheet import CoreStyleSheet
-from ...components.progresscards.progress_ring_card import ProgressRingCard
-from ...generators.cardwidget_generator import CardWidgetGenerator
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import ScrollArea
 
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.templates import AnyTemplate
+from ...common.core_stylesheet import CoreStyleSheet
+from ...components.progresscards.progress_ring_card import ProgressRingCard
+from ...generators.cardwidget_generator import CardWidgetGenerator
 
 
 class CoreProcessSettings(ScrollArea):
@@ -30,7 +28,7 @@ class CoreProcessSettings(ScrollArea):
 
         parent : Optional[QWidget], optional
             The parent widget of the process settings panel.
-            By default `None`.
+            By default None.
         """
         super().__init__(parent)
         self._view = QWidget(self)
@@ -75,7 +73,7 @@ class CoreProcessStatus(ScrollArea):
         ----------
         parent : Optional[QWidget], optional
             The parent widget of the process status card.
-            By default `None`.
+            By default None.
         """
         super().__init__(parent)
         self._view = QWidget(self)
@@ -126,7 +124,7 @@ class ProcessSubinterface(QWidget):
 
         parent : Optional[QWidget], optional
             The parent widget of the process subinterface.
-            By default `None`.
+            By default None.
         """
         super().__init__(parent)
         self.vBoxLayout = QVBoxLayout(self)

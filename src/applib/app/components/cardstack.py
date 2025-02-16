@@ -1,20 +1,20 @@
 from abc import abstractmethod
+from typing import Optional, TypeAlias, Union, override
+
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QStackedWidget, QVBoxLayout, QWidget
+from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import (
-    Pivot,
-    SegmentedToolWidget,
-    SegmentedToolItem,
-    ScrollArea,
-    qrouter,
     FluentIconBase,
+    Pivot,
+    ScrollArea,
+    SegmentedToolItem,
+    SegmentedToolWidget,
     ToolTipFilter,
     ToolTipPosition,
+    qrouter,
 )
-from qfluentwidgets import FluentIcon as FIF
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout, QStackedWidget
-from PyQt6.QtGui import QIcon
-
-from typing import Optional, TypeAlias, Union, override
 
 from ...module.tools.types.gui_generators import AnyCardGenerator
 
@@ -143,11 +143,11 @@ class PivotCardStack(CardStackBase):
 
         labeltext : str, optional
             The title of the CardStack.
-            By default `None`.
+            By default None.
 
         parent : QWidget, optional
             The parent widget of the CardStack.
-            By default `None`.
+            By default None.
         """
         try:
             super().__init__(

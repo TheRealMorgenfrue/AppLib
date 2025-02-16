@@ -22,7 +22,7 @@ def create_logger(
 
     level : str, optional
         The initial log level.
-        By default `"DEBUG"`.
+        By default "DEBUG".
 
     format : str, optional
         The format of log messages.
@@ -64,23 +64,23 @@ def create_logger(
             - %(message)s
                 The result of record.getMessage(), computed just as the record is emitted.
 
-        By default `"%(message)s"`
+        By default "%(message)s"
 
 
     use_color : bool, optional
-        Use color for level name `"%(levelname)s"`.
-        Has no effect if level name is not used in `format`.
-        By default `True`.
+        Use color for levelname.
+        Has no effect if levelname is not used in `format`.
+        By default True.
 
     log_dir : Union[Path, str, None], optional
         The directory for writing log files.
-        If `None`, no log files will be created.
-        By default `None`.
+        If None, no log files will be created.
+        By default None.
 
     log_filename : str, optional
         The name of the log file.
-        Has no effect if `log_dir` is `None`.
-        By default `datetime.now().strftime("%Y-%m-%d")`.
+        Has no effect if `log_dir` is None.
+        By default datetime.now().strftime("%Y-%m-%d").
 
     Returns
     -------

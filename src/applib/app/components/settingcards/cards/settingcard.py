@@ -1,28 +1,29 @@
 from abc import abstractmethod
-from qfluentwidgets import (
-    FluentIconBase,
-    isDarkTheme,
-    PillPushButton,
-    PrimaryPushButton,
-    FlowLayout,
-)
-from qfluentwidgets.components.settings.setting_card import SettingIconWidget
-from PyQt6.QtCore import Qt, QSize, QObject, QEvent
-from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
-from PyQt6.QtWidgets import (
-    QFrame,
-    QHBoxLayout,
-    QVBoxLayout,
-    QWidget,
-    QFormLayout,
-    QLayout,
-)
 from typing import Any, Optional, Union, override
 
+from PyQt6.QtCore import QEvent, QObject, QSize, Qt
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
+from PyQt6.QtWidgets import (
+    QFormLayout,
+    QFrame,
+    QHBoxLayout,
+    QLayout,
+    QVBoxLayout,
+    QWidget,
+)
+from qfluentwidgets import (
+    FlowLayout,
+    FluentIconBase,
+    PillPushButton,
+    PrimaryPushButton,
+    isDarkTheme,
+)
+from qfluentwidgets.components.settings.setting_card import SettingIconWidget
+
+from .....module.tools.types.gui_settings import AnySetting
 from ....common.core_stylesheet import CoreStyleSheet
 from ...fluent_label import FluentLabel
 from ..card_base import CardBase, DisableWrapper
-from .....module.tools.types.gui_settings import AnySetting
 
 
 class SettingCardBase(CardBase, QFrame):
@@ -52,7 +53,7 @@ class SettingCardBase(CardBase, QFrame):
         self._setQss()
 
     def __initLayout(self) -> None:
-        self.enableTightMode(self.is_tight)  # Call to ensure a mode is set
+        self.enable_tight_mode(self.is_tight)  # Call to ensure a mode is set
         self.iconLabel.setFixedSize(16, 16)
         self.hBoxLayout.setSpacing(0)
         self.hBoxLayout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
@@ -97,7 +98,7 @@ class SettingCardBase(CardBase, QFrame):
                 self.contentLabel, self._tooltip_filters[self.contentLabel]
             )
 
-    def enableTightMode(self, is_tight: bool) -> tuple[int, int]:
+    def enable_tight_mode(self, is_tight: bool) -> tuple[int, int]:
         self.is_tight = is_tight
         has_content = bool(self.contentLabel.text())
         if is_tight:
@@ -230,11 +231,11 @@ class SettingCardMixin:
                 self.resetbutton.setDisabled(self.is_disabled)
 
     @override
-    def getOption(self) -> AnySetting:
+    def get_option(self) -> AnySetting:
         return self.option
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,

@@ -61,7 +61,7 @@ class FieldTree(RedBlackTreeMapping):
                 pass
             return k, v, pos, ps
 
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __init__(self, iterable=[], name=""):
         super().__init__(iterable, name)

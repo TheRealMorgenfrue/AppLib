@@ -13,7 +13,7 @@ from ...logging import AppLibLogger
 # as that will result in them being bound to the main thread
 # (a good idea would be to connect signals in the "start" method instead)
 class ProcessBase(QObject):
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
     finished = pyqtSignal(int)  # process_id
     failed = pyqtSignal(int)  # process_id
     consoleStream = pyqtSignal(str)  # Receives text (stdout+stderr) from subprocess

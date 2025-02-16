@@ -20,7 +20,7 @@ from .process_subinterface import ProcessSubinterface
 
 
 class CoreProcessInterface(ScrollArea):
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __init__(
         self,

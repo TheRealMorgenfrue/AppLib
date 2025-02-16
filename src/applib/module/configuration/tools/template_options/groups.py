@@ -9,7 +9,7 @@ from .template_enums import UIGroups
 
 class Group:
     _instances: dict[str, dict[str, Self]] = {}
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __new__(cls, template_name: str, group_name: str) -> Self:
         """Specifies a relationship between parent and child settings.
@@ -53,7 +53,7 @@ class Group:
         return cls._instances[template_name][group_name]
 
     @classmethod
-    def getGroup(cls, template_name: str, ui_group: str) -> Self | None:
+    def get_group(cls, template_name: str, ui_group: str) -> Self | None:
         """Get group instance matching the *ui_group* ID
 
         Parameters
@@ -78,23 +78,23 @@ class Group:
             raise
 
     @classmethod
-    def getAllGroups(cls, template_name: str) -> Iterable[Self] | None:
+    def get_all_groups(cls, template_name: str) -> Iterable[Self] | None:
         groups = cls._instances.get(template_name, None)
         if groups:
             groups = groups.values()
         return groups
 
     @classmethod
-    def removeGroup(cls, template_name: str, ui_group: str) -> None:
+    def remove_group(cls, template_name: str, ui_group: str) -> None:
         group = cls._instances[template_name].pop(ui_group)
         # Remove group from any parent groups as well
         for parent in group._parent_group_names:
-            parent_group = cls.getGroup(template_name, parent)
+            parent_group = cls.get_group(template_name, parent)
             if parent_group:
-                parent_group.removeChild(group.getParentName())
+                parent_group.remove_child(group.get_parent_name())
         group._parent_group_names.clear()
 
-    def enforceLogicalNesting(self) -> None:
+    def enforce_logical_nesting(self) -> None:
         """
         Check wether multiple parent groups want to nest this child group and resolve this issue.
         Only the first parent group detected is allowed to nest this group as their child.
@@ -105,7 +105,7 @@ class Group:
 
             # Ask all parent groups of this group if they want to nest this group
             for parent_group_name in self._parent_group_names:
-                if self.getGroup(
+                if self.get_group(
                     self._template_name, parent_group_name
                 ).getParentNestingPolicy():
                     self._nesting_level += 1
@@ -113,7 +113,7 @@ class Group:
             # A nesting_level above 1 indicates a problem; multiple parents want to nest this child.
             if self._nesting_level > 1:
                 self._logger.warning(
-                    f"Group '{self.getGroupName()}': Multiple parents want to nest this UI group. "
+                    f"Group '{self.get_group_name()}': Multiple parents want to nest this UI group. "
                     + f"Only the first parent in the list '{iter_to_str(self._parent_group_names, separator=", ")}' "
                     + f"will be allowed nesting."
                 )
@@ -121,73 +121,73 @@ class Group:
                 for parent_group_name in self._parent_group_names[
                     1 : len(self._parent_group_names)
                 ]:
-                    self.getGroup(self._template_name, parent_group_name).removeChild(
-                        self.getParentCard()
+                    self.get_group(self._template_name, parent_group_name).remove_child(
+                        self.get_parent_card()
                     )
                 self._nesting_level = 1
 
-    def setParentGroupNames(self, parent_groups: list[str]) -> None:
+    def set_parent_group_names(self, parent_groups: list[str]) -> None:
         self._parent_group_names = parent_groups
 
-    def getParentGroupNames(self) -> list[str]:
+    def get_parent_group_names(self) -> list[str]:
         return self._parent_group_names
 
-    def isNestedChild(self) -> bool:
+    def is_nested_child(self) -> bool:
         """The parent of this Group is a nested child of another Group"""
-        self.enforceLogicalNesting()
+        self.enforce_logical_nesting()
         return self._nesting_level > 0
 
     def getParentNestingPolicy(self) -> bool:
         return self._isNestingChildren
 
-    def getGroupName(self) -> str:
+    def get_group_name(self) -> str:
         return self._group_name
 
-    def getTemplateName(self) -> str:
+    def get_template_name(self) -> str:
         return self._template_name
 
-    def setParentCardGroup(self, card_group: AnyCardGroup | None) -> None:
+    def set_parent_card_group(self, card_group: AnyCardGroup | None) -> None:
         self._parent_card_group = card_group
 
-    def getParentCardGroup(self) -> AnyCardGroup | None:
+    def get_parent_card_group(self) -> AnyCardGroup | None:
         return self._parent_card_group
 
-    def addChildCardGroup(
+    def add_child_card_group(
         self, child_name: str, card_group: AnyCardGroup | None
     ) -> None:
         self._child_card_groups[child_name] = card_group
 
-    def getChildCardGroup(self, child_name: str) -> AnyCardGroup | None:
+    def get_child_card_group(self, child_name: str) -> AnyCardGroup | None:
         return self._child_card_groups.get(child_name, None)
 
-    def setParentName(self, parent: str) -> None:
+    def set_parent_name(self, parent: str) -> None:
         self._parent[parent] = None
 
-    def setParentCard(self, parent: AnyParentCard) -> None:
-        self._parent[self.getParentName()] = parent
+    def set_parent_card(self, parent: AnyParentCard) -> None:
+        self._parent[self.get_parent_name()] = parent
 
-    def getParentName(self) -> str | None:
+    def get_parent_name(self) -> str | None:
         try:
             return next(iter(self._parent.keys()))
         except StopIteration:
             return None
 
-    def getParentCard(self) -> AnyParentCard:
-        return self._parent[self.getParentName()]
+    def get_parent_card(self) -> AnyParentCard:
+        return self._parent[self.get_parent_name()]
 
-    def addChildName(self, child: str) -> None:
+    def add_child_name(self, child: str) -> None:
         self._children[child] = None
 
-    def addChildCard(self, child: AnyCard) -> None:
-        card_name = child.getCardName()
+    def add_child_card(self, child: AnyCard) -> None:
+        card_name = child.get_card_name()
         if card_name in self._children:
             self._children[card_name] = child
         else:
             self._logger.warning(
-                f"Group '{self.getGroupName()}': Cannot add card with non-existing name '{card_name}' to the child list"
+                f"Group '{self.get_group_name()}': Cannot add card with non-existing name '{card_name}' to the child list"
             )
 
-    def removeChild(self, child: Any) -> None:
+    def remove_child(self, child: Any) -> None:
         if isinstance(child, str):
             self._children.pop(child)
         else:
@@ -196,19 +196,19 @@ class Group:
                     self._children.pop(name)
                     break
 
-    def getChildNames(self) -> Iterable[str]:
+    def get_child_names(self) -> Iterable[str]:
         return self._children.keys()
 
-    def getChildCards(self) -> Iterable[AnyCard]:
+    def get_child_cards(self) -> Iterable[AnyCard]:
         return self._children.values()
 
-    def setUIGroupParent(self, ui_group_parent: list[UIGroups]):
+    def set_ui_group_parent(self, ui_group_parent: list[UIGroups]):
         self._ui_group_parent = ui_group_parent
         self._isNestingChildren = (
             UIGroups.NESTED_CHILDREN in ui_group_parent
             or UIGroups.CLUSTERED in ui_group_parent
         )
 
-    def getUIGroupParent(self) -> list[UIGroups] | None:
+    def get_ui_group_parent(self) -> list[UIGroups] | None:
         """Returns None if UI group parent has not been set - this indicates an error"""
         return self._ui_group_parent

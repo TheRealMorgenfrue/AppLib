@@ -51,11 +51,11 @@ class CoreSettingsSubInterface(ScrollArea):
         icons : dict[str, Union[str, QIcon, FluentIconBase]]
             The icons shown in the pivot for each GUI element section, if supported by the `CardStack`.
             Must be a dict mapping a GUI element section, as defined in `template`, to an icon.
-            By default `None`.
+            By default None.
 
         parent : QWidget, optional
             The parent widget of the subinterface.
-            By default `None`.
+            By default None.
 
         generator_kwargs : dict
             Additional keyword arguments supplied to `Generator`.

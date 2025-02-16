@@ -70,6 +70,6 @@ class AppLibLogger:
     def getAllLoggers(self) -> list[logging.Logger]:
         return self._loggers
 
-    def getLogger(self) -> logging.Logger:
+    def get_logger(self) -> logging.Logger:
         """The main logger"""
         return self.logger

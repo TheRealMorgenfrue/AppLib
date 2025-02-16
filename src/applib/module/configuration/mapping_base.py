@@ -1,12 +1,13 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Literal, Union
+from typing import Any, Hashable, Iterable, Literal, Union, override
 
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping
 from ..logging import AppLibLogger
+from .tools.template_options.options import Option
 
 
 class MappingBase(RedBlackTreeMapping):
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __init__(self, iterable=[], name=""):
         super().__init__(iterable, name)

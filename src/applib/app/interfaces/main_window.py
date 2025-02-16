@@ -55,7 +55,7 @@ class CoreMainWindow(MSFluentWindow):
         applogger = AppLibLogger()
         applogger.setLogDir(CoreArgs._core_log_dir)
         applogger.writeHeaderToLog()
-        self._logger = applogger.getLogger()
+        self._logger = applogger.get_logger()
 
         super().__init__()
         self._subinterfaces = subinterfaces

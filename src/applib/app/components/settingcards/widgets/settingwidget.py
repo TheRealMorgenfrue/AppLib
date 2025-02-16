@@ -1,14 +1,14 @@
-from qfluentwidgets import CheckBox
-from PyQt6.QtWidgets import QWidget, QHBoxLayout
-from PyQt6.QtGui import QResizeEvent
-from PyQt6.QtCore import Qt
-
 from typing import Any, Optional, override
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QResizeEvent
+from PyQt6.QtWidgets import QHBoxLayout, QWidget
+from qfluentwidgets import CheckBox
+
+from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 from ....common.core_stylesheet import CoreStyleSheet
 from ...fluent_label import FluentLabel
 from ..card_base import CardBase, DisableWrapper
-from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 
 
 class SettingWidgetBase(CardBase, QWidget):
@@ -114,11 +114,11 @@ class SettingWidget(SettingWidgetBase):
                 self.disableButton.setToolTip(self._getDisableMsg())
 
     @override
-    def getOption(self) -> AnySetting | None:
+    def get_option(self) -> AnySetting | None:
         return self.option
 
     @override
-    def setOption(
+    def set_option(
         self,
         option: AnySetting,
         alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignRight,

@@ -50,7 +50,7 @@ class ConfigBase(MappingBase):
 
         save_interval : Number, optional
             Time between config saves in seconds.
-            By default `1`.
+            By default 1.
         """
         self._is_modified = False  # A modified config needs to be written to disk
         self._save_interval = save_interval  # Time between config saves in seconds
@@ -295,17 +295,17 @@ class ConfigBase(MappingBase):
 
         model_dict : dict | None, optional
             A validated config created by the supplied validation model.
-            NOTE: Must be supplied if `do_write_config` is `True`.
-            By default `None`.
+            NOTE: Must be supplied if `do_write_config` is True.
+            By default None.
 
         do_write_config : bool, optional
             Manipulate with files on the file system to recover from soft errors.
-            By default `True`.
+            By default True.
 
         retries : int, optional
             Reload the config X times if soft errors occur.
             Note: This has no effect if `do_write_config` is False.
-            By default `1`.
+            By default 1.
 
         Returns
         -------

@@ -13,7 +13,7 @@ from ..internal.core_args import CoreArgs
 
 
 class ConfigUtils:
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     @classmethod
     def writeConfig(

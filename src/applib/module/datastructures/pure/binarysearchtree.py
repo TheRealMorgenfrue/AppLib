@@ -6,8 +6,8 @@ Courtesy of https://opendatastructures.org/
 
 from typing import Any, Iterable, Union
 
-from .binarytree import BinaryTree
 from .base import BaseSet
+from .binarytree import BinaryTree
 
 
 class BinarySearchTree(BinaryTree, BaseSet):
@@ -159,7 +159,7 @@ class BinarySearchTree(BinaryTree, BaseSet):
         """
         Find object in the tree.
 
-        Returns `None` if not found.
+        Returns None if not found.
         """
         u = self._find_node(x)
         return u.x if u else None

@@ -21,7 +21,7 @@ class ThreadManager(QThread):
     As such, all communication must be done using the signal/slot system.
     """
 
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     updateMaxThreads = pyqtSignal(int)
     threadsRemoved = pyqtSignal(list)  # list of threadIDs safe for removal
@@ -278,7 +278,7 @@ class ThreadManager(QThread):
         ----------
         finishedProcessID : Optional[int], optional
             The process_id of the most recently finished process.
-            By default `None`.
+            By default None.
 
         Returns
         -------
