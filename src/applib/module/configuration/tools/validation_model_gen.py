@@ -74,12 +74,22 @@ class CoreValidationModelGenerator:
             validators = (
                 field_validators[section_id] if section_id in field_validators else None
             )
+            if not parents:
+                # Do not merge root node of tree
+                # But we still want the validators for the root node
+                break
             model = create_model(
                 section_id, __validators__=validators, **fields
             ).model_construct()
             field = {parents[-1]: (type(model), Field(default=model))}
             field_tree.merge(setting, field, position, parents)
-        return create_model(model_name, **field_tree.dump_fields())
+        else:
+            # Clear any leftover validator values from for-loop
+            # (But only if break wasn't encountered)
+            validators = None
+        return create_model(
+            model_name, __validators__=validators, **field_tree.dump_fields()
+        )
 
     def get_generic_model(
         self, model_name: str, template: AnyTemplate
