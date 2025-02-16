@@ -3,8 +3,8 @@ from typing import Literal, Self
 from pydantic import BaseModel, Field, create_model, field_validator
 
 from ...tools.types.templates import AnyTemplate
-from .template_options.validation_info import FieldTree, ValidationInfo
 from .template_parser import TemplateParser
+from .template_utils.validation_info import FieldTree, ValidationInfo
 
 
 class CoreValidationModelGenerator:

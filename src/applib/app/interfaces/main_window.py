@@ -27,7 +27,7 @@ from qfluentwidgets import (
 
 from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.tools.template_options.actions import change_theme
+from ...module.configuration.runners.actions.theme_actions import change_theme
 from ...module.logging import AppLibLogger
 from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig

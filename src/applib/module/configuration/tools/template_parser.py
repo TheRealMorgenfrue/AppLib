@@ -7,11 +7,11 @@ from ...exceptions import OrphanGroupWarning
 from ...logging import AppLibLogger
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import iter_to_str
-from ..tools.template_options.actions import Actions
-from ..tools.template_options.options import GUIOption, Option
-from .template_options.groups import Group
-from .template_options.template_enums import UIFlags, UIGroups
-from .template_options.validation_info import ValidationInfo
+from ..tools.template_utils.options import GUIOption, Option
+from .template_utils.action_manager import Actions
+from .template_utils.groups import Group
+from .template_utils.template_enums import UIFlags, UIGroups
+from .template_utils.validation_info import ValidationInfo
 
 
 class TemplateParser:
@@ -37,7 +37,7 @@ class TemplateParser:
         return f"Template '{self._current_template_name}':"
 
     def _group_is_included(self, option: GUIOption) -> bool:
-        # options["ui_flags"] is a list after parsing flags
+        # option.ui_flags is a list after parsing flags
         return not (
             option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags
         )

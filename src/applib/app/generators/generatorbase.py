@@ -5,13 +5,10 @@ from typing import Optional
 from PyQt6.QtWidgets import QWidget
 
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.tools.template_options.groups import Group
-from ...module.configuration.tools.template_options.options import GUIOption
-from ...module.configuration.tools.template_options.template_enums import (
-    UIFlags,
-    UITypes,
-)
 from ...module.configuration.tools.template_parser import TemplateParser
+from ...module.configuration.tools.template_utils.groups import Group
+from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.template_enums import UIFlags, UITypes
 from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import AppLibLogger
 from ...module.tools.types.config import AnyConfig

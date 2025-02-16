@@ -3,12 +3,19 @@ from typing import Self, override
 
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
-from applib.module.configuration.templates.base_template import BaseTemplate
-from applib.module.configuration.tools.template_options.actions import (
+from applib.module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
-from applib.module.configuration.tools.template_options.options import (
+from applib.module.configuration.runners.validators.app_validator import (
+    validate_loglevel,
+    validate_theme,
+)
+from applib.module.configuration.runners.validators.generic_validator import (
+    validate_path,
+)
+from applib.module.configuration.templates.base_template import BaseTemplate
+from applib.module.configuration.tools.template_utils.options import (
     ComboBoxOption,
     FileSelectorOption,
     GUIMessage,
@@ -16,16 +23,11 @@ from applib.module.configuration.tools.template_options.options import (
     NumberOption,
     TextEditOption,
 )
-from applib.module.configuration.tools.template_options.template_enums import (
+from applib.module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
     UITypes,
 )
-from applib.module.configuration.validators.app_validator import (
-    validate_loglevel,
-    validate_theme,
-)
-from applib.module.configuration.validators.generic_validator import validate_path
 
 
 class TestTemplate(BaseTemplate):

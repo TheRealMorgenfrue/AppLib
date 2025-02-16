@@ -2,9 +2,9 @@ import traceback
 from typing import Iterable
 
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.configuration.tools.template_options.groups import Group
-from ...module.configuration.tools.template_options.options import GUIOption
-from ...module.configuration.tools.template_options.template_enums import (
+from ...module.configuration.tools.template_utils.groups import Group
+from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
 )
@@ -44,7 +44,7 @@ class GeneratorUtils:
         if isinstance(wrapper, DisableWrapper):
             child.get_disablesignal().emit(wrapper)
         else:
-            child.get_option().set_config_value(wrapper)
+            child.get_option().setConfigValue(wrapper)
 
     @classmethod
     def _desync_children(cls, wrapper: DisableWrapper | bool, child: AnyCard) -> None:
@@ -53,7 +53,7 @@ class GeneratorUtils:
             wrapper.is_disabled = not wrapper.is_disabled
             child.get_disablesignal().emit(wrapper)
         else:
-            child.get_option().set_config_value(not wrapper)
+            child.get_option().setConfigValue(not wrapper)
 
     @classmethod
     def _desync_true_children(

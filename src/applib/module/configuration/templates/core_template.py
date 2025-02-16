@@ -1,17 +1,17 @@
 from typing import Self, override
 
 from ..internal.core_args import CoreArgs
-from ..tools.template_options.actions import change_theme, change_theme_color
-from ..tools.template_options.options import (
+from ..runners.actions.theme_actions import change_theme, change_theme_color
+from ..runners.validators.app_validator import validate_loglevel, validate_theme
+from ..runners.validators.generic_validator import validate_path
+from ..tools.template_utils.options import (
     ComboBoxOption,
     FileSelectorOption,
     GUIMessage,
     GUIOption,
     NumberOption,
 )
-from ..tools.template_options.template_enums import UIGroups, UITypes
-from ..validators.app_validator import validate_loglevel, validate_theme
-from ..validators.generic_validator import validate_path
+from ..tools.template_utils.template_enums import UIGroups, UITypes
 from .base_template import BaseTemplate
 
 

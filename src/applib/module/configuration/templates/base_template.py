@@ -10,7 +10,7 @@ from ...datastructures.redblacktree_mapping import (
 )
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
-from ..tools.template_options.options import GUIOption, Option
+from ..tools.template_utils.options import GUIOption, Option
 
 
 class BaseTemplate(MappingBase):

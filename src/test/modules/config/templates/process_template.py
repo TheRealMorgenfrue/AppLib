@@ -2,7 +2,7 @@ from test.modules.config.test_args import TestArgs
 from typing import Self, override
 
 from applib import BaseTemplate, UIGroups, UITypes
-from applib.module.configuration.tools.template_options.options import (
+from applib.module.configuration.tools.template_utils.options import (
     GUIMessage,
     NumberOption,
 )

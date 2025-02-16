@@ -5,9 +5,9 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import FluentIconBase
 
-from ...module.configuration.tools.template_options.groups import Group
-from ...module.configuration.tools.template_options.options import GUIOption
-from ...module.configuration.tools.template_options.template_enums import (
+from ...module.configuration.tools.template_utils.groups import Group
+from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
 )
