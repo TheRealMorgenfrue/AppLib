@@ -78,6 +78,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         )
         self.baseunit = baseunit
         try:
+            self._defineRange(num_range)
             if baseunit:
                 self.unit = self._get_unit(baseunit)
             self.setting = Slider(Qt.Orientation.Horizontal, self)
@@ -87,7 +88,6 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             w = 268
             if is_tight:
                 w = int(w * 0.67) if self.max_value > 40 else w // 2
-            self._defineRange(num_range)
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
             self.setting.setRange(self.min_value, self.max_value)
