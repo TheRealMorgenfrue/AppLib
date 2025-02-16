@@ -429,14 +429,7 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def _check_value(self, v) -> bool:
         """Returns True if `v` is nesting child nodes and thus should be serialized as a dict."""
-        return (
-            isinstance(v, RedBlackTree.Node)
-            # and isinstance(v.x, list)
-            # and v.x
-            # and isinstance(v.x[0], tuple)
-            # and v.x[0]
-            # and isinstance(v.x[0][0], RedBlackTreeMapping.TreeNode)
-        )
+        return isinstance(v, RedBlackTree.Node)
 
     def _update_position(
         self,
@@ -682,11 +675,10 @@ class RedBlackTreeMapping(RedBlackTree):
             self._normalize_position(key, position, parents)
             self._key_count += 1  # Update size
         tn = self._create_node(key, value, position, parents, *args, **kwargs)
-        u = self._find_node(tn)  # type: RedBlackTreeMapping.TreeNode
-        if u is None:  # Object is new
-            super().add(tn)
+        if super().add(tn):  # Object is new
             return tn
         else:  # Append to existing node
+            u = self._find_node(tn)  # type: RedBlackTreeMapping.TreeNode
             u.add(key, value, position, parents)
             return u
 
