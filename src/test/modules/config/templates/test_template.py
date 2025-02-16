@@ -16,6 +16,7 @@ from applib.module.configuration.runners.validators.generic_validator import (
 )
 from applib.module.configuration.templates.base_template import BaseTemplate
 from applib.module.configuration.tools.template_utils.options import (
+    ColorPickerOption,
     ComboBoxOption,
     FileSelectorOption,
     GUIMessage,
@@ -26,7 +27,6 @@ from applib.module.configuration.tools.template_utils.options import (
 from applib.module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
-    UITypes,
 )
 
 
@@ -68,11 +68,10 @@ class TestTemplate(BaseTemplate):
                     validators=[validate_theme],
                     values=TestArgs.main_themes,
                 ),
-                "appColor": GUIOption(
+                "appColor": ColorPickerOption(
                     default="#2abdc7",
                     actions=[change_theme_color],
                     ui_info=GUIMessage("Set application color"),
-                    ui_type=UITypes.COLOR_PICKER,
                 ),
                 "appBackground": FileSelectorOption(
                     default="",
