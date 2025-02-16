@@ -1,3 +1,4 @@
+import os
 import traceback
 from typing import Any, Optional, Union
 
@@ -85,9 +86,14 @@ class CoreMainWindow(MSFluentWindow):
         self.splashScreen.finish()
         self._displayErrors()
 
+    def _validate_background(self, image_path):
+        return image_path and os.path.isfile(image_path)
+
     def _initBackgroundAndTheme(self):
-        val = self.main_config.get_value("appBackground")
-        self.background = QPixmap(val) if val else None  # type: QPixmap | None
+        image_path = self.main_config.get_value("appBackground")
+        self.background = (
+            QPixmap(image_path) if self._validate_background(image_path) else None
+        )  # type: QPixmap | None
         self.background_opacity = (
             self.main_config.get_value("backgroundOpacity", default=0.0) / 100
         )
@@ -175,7 +181,9 @@ class CoreMainWindow(MSFluentWindow):
         if names[0] == self.main_config.name:
             (value,) = value_tuple
             if config_key == "appBackground":
-                self.background = QPixmap(value) if value else None
+                self.background = (
+                    QPixmap(value) if self._validate_background(value) else None
+                )
                 self.update()
             elif config_key == "backgroundOpacity":
                 self.background_opacity = value / 100
