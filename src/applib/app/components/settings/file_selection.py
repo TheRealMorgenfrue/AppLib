@@ -119,7 +119,7 @@ class CoreFileSelect(BaseSetting):
     def _onParentNotification(self, values: tuple) -> None:
         type, value = values
         if type == "content":
-            self.notifyParent.emit(("content", self.current_value))
+            self.setWidgetValue(self.current_value)
 
     def _onSelectClicked(self) -> None:
         if self.show_dir_only:
@@ -143,4 +143,4 @@ class CoreFileSelect(BaseSetting):
 
     @override
     def _setWidgetValue(self, value: StrPath) -> None:
-        self.notifyParent.emit(("content", self.current_value))
+        self.notifyParent.emit(("content", value))
