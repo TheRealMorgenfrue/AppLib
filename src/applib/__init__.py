@@ -110,6 +110,7 @@ from .module.configuration.tools.template_parser import TemplateParser
 from .module.configuration.tools.template_utils.converter import Converter
 from .module.configuration.tools.template_utils.groups import Group
 from .module.configuration.tools.template_utils.options import (
+    ColorPickerOption,
     ComboBoxOption,
     FileSelectorOption,
     GUIMessage,
@@ -178,6 +179,7 @@ __all__ = [
     "CardGenerator",
     "CardWidgetGenerator",
     "ColorConverter",
+    "ColorPickerOption",
     "Converter",
     "ComboBoxOption",
     "ClusteredSettingCard",
