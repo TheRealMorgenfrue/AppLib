@@ -307,17 +307,19 @@ class TemplateParser:
             self._validation_infos[template_name] = validation_info
             self._parsed_templates.add(template_name)
 
-    def format_raw_group(self, template_name, raw_ui_group: str) -> list[str]:
+    def format_raw_group(
+        self, template_name: str, raw_ui_group: Union[str, Hashable, list[Hashable]]
+    ) -> list[str]:
         """
         Format a raw template Group string.
 
         Parameters
         ----------
-        template_name : _type_
+        template_name : str
             The template where `raw_ui_group` originates.
 
-        raw_ui_group : str
-            The raw ui_group string.
+        raw_ui_group : Union[str, Hashable, list[Hashable]]
+            The raw ui_group.
 
         Returns
         -------
@@ -330,7 +332,14 @@ class TemplateParser:
             If any of the groups are orphans, and thus invalid.
         """
         self._current_template_name = template_name
-        group_list = f"{raw_ui_group}".replace(" ", "").split(",")
+        if isinstance(raw_ui_group, str):
+            group_list = raw_ui_group.replace(" ", "").split(",")
+        elif isinstance(raw_ui_group, list):
+            group_list = raw_ui_group
+        elif isinstance(raw_ui_group, tuple):
+            group_list = list(raw_ui_group)
+        else:
+            group_list = [raw_ui_group]
         if template_name in self._parsed_templates and group_list:
             for group in group_list:
                 if group in self._orphan_groups[template_name]:
