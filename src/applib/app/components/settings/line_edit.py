@@ -18,7 +18,6 @@ class CoreLineEdit(BaseSetting):
         option: GUIOption,
         is_tight: bool = False,
         ui_invalid_input: Optional[GUIMessage] = None,
-        tooltip: Optional[str] = None,
         converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
@@ -45,9 +44,6 @@ class CoreLineEdit(BaseSetting):
             Message informing the user that they typed invalid data into this setting in the GUI.
             If None, no message is shown.
             By default None.
-
-        tooltip : str, optional
-            Tooltip for this setting, by default None.
 
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
@@ -78,8 +74,6 @@ class CoreLineEdit(BaseSetting):
         try:
             self.setting = LineEdit(self)
             self.setWidgetValue(self.current_value)
-            self.setting.setToolTip(tooltip)
-            self.setting.setToolTipDuration(4000)
             self._resizeTextBox()
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
