@@ -4,7 +4,9 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ColorPickerButton
 
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.runners.converters.color_converter import ColorConverter
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -15,11 +17,12 @@ class CoreColorPicker(BaseSetting):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
+        converter: Optional[Converter] = ColorConverter(),
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
-    ) -> None:
+    ):
         """
-        ColorPicker widget connected to a config key
+        ColorPicker widget connected to a config key.
 
         Parameters
         ----------
@@ -31,6 +34,9 @@ class CoreColorPicker(BaseSetting):
 
         option : GUIOption
             The options associated with `config_key`.
+
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
 
         title : str
             Widget title.
@@ -46,19 +52,20 @@ class CoreColorPicker(BaseSetting):
             config=config,
             config_key=config_key,
             option=option,
-            current_value=QColor(config.get_value(key=config_key, parents=parent_keys)),
-            default_value=QColor(
-                config.template.get_value(key=config_key, parents=parent_keys).default
-            ),
+            current_value=config.get_value(key=config_key, parents=parent_keys),
+            default_value=config.template.get_value(
+                key=config_key, parents=parent_keys
+            ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
         try:
-            # Lowercase string is intended
             self.setting = ColorPickerButton(
-                self.current_value, self.tr("application color"), self
+                self._convert_value(self.current_value, to_gui=True),
+                self.tr("application color"),  # Lowercase string is intended
+                self,
             )
-            # Add colorpicker to layout
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
         except Exception:
@@ -66,15 +73,8 @@ class CoreColorPicker(BaseSetting):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.colorChanged.connect(self.set_config_value)
-
-    def set_config_value(self, color: QColor | str) -> None:
-        if not isinstance(color, QColor):
-            color = QColor(color)
-
-        if super().set_config_value(color.name()):
-            self.setWidgetValue(color)
+        self.setting.colorChanged.connect(self.setConfigValue)
 
     @override
-    def setWidgetValue(self, color: QColor | str) -> None:
+    def _setWidgetValue(self, color: QColor) -> None:
         self.setting.setColor(color)

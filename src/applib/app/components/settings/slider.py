@@ -5,7 +5,8 @@ from PyQt6.QtWidgets import QLabel, QWidget
 from qfluentwidgets import Slider
 
 from ....module.configuration.internal.core_args import CoreArgs
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.utilities import dict_lookup
 from .base_setting import BaseSetting
@@ -21,6 +22,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         num_range: tuple[int, int],
         is_tight: bool = False,
         baseunit: Optional[str] = None,
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -52,6 +54,9 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             The unit of the setting, e.g. "day".
             By default None.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
@@ -67,6 +72,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -99,7 +105,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.set_config_value)
+        self.setting.valueChanged.connect(self.setConfigValue)
 
     def _get_unit(self, baseunit: str) -> str:
         unit = dict_lookup(CoreArgs._core_config_units, baseunit)
@@ -118,16 +124,12 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         else:
             self.valueLabel.setNum(value)
 
-    def set_config_value(self, value: int) -> None:
-        if super().set_config_value(value):
-            if self.notify_disabled:
-                self.notify_disabled = False
-                self.setWidgetValue(value)
-                self.notify_disabled = True
-
     @override
-    def setWidgetValue(self, value: str) -> None:
-        # Do not update GUI with disable values
-        gui_value = self._ensureValidGUIValue(value)
-        self.setting.setValue(gui_value)
-        self._setLabelText(gui_value)
+    def _setWidgetValue(self, value: str) -> None:
+        if self.notify_disabled:
+            self.notify_disabled = False
+            # Do not update GUI with disable values
+            gui_value = self._ensureValidGUIValue(value)
+            self.setting.setValue(gui_value)
+            self._setLabelText(gui_value)
+            self.notify_disabled = True

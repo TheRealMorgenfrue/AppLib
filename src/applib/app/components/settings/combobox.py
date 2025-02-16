@@ -3,7 +3,8 @@ from typing import Optional, Union, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
 
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -15,6 +16,7 @@ class CoreComboBox(BaseSetting):
         config_key: str,
         option: GUIOption,
         texts: Union[list[str], dict[str, str]],
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -35,6 +37,9 @@ class CoreComboBox(BaseSetting):
         texts : list | dict
             All possible values this option can have.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
@@ -50,6 +55,7 @@ class CoreComboBox(BaseSetting):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -62,7 +68,7 @@ class CoreComboBox(BaseSetting):
             else:
                 for text, value in zip(texts, texts):
                     self.setting.addItem(text, userData=value)
-            self.setting.setCurrentText(self.current_value)
+            self.setWidgetValue(self.current_value)
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
         except Exception:
@@ -71,13 +77,9 @@ class CoreComboBox(BaseSetting):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.currentIndexChanged.connect(
-            lambda index: self.set_config_value(self.setting.itemData(index))
+            lambda index: self.setConfigValue(self.setting.itemData(index))
         )
 
-    def set_config_value(self, value: str) -> None:
-        if super().set_config_value(value):
-            self.setWidgetValue(value)
-
     @override
-    def setWidgetValue(self, value: str) -> None:
+    def _setWidgetValue(self, value: str) -> None:
         self.setting.setCurrentIndex(self.setting.findData(value))

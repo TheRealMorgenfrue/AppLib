@@ -4,7 +4,7 @@ from PyQt6.QtCore import pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import CheckBox
 
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .bool_setting import BoolSettingMixin
@@ -44,18 +44,16 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             config=config,
             config_key=config_key,
             option=option,
-            current_value=self._convertBool(
-                config.get_value(key=config_key, parents=parent_keys)
-            ),
-            default_value=self._convertBool(
-                config.template.get_value(key=config_key, parents=parent_keys).default
-            ),
+            current_value=config.get_value(key=config_key, parents=parent_keys),
+            default_value=config.template.get_value(
+                key=config_key, parents=parent_keys
+            ).default,
             parent_keys=parent_keys,
             parent=parent,
         )
         try:
             self.setting = CheckBox()
-            self.setting.setChecked(self.current_value)  # Set value of switch
+            self.setWidgetValue(self.current_value)
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
         except Exception:
@@ -64,16 +62,13 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.stateChanged.connect(
-            lambda state: self.set_config_value(bool(state))
+            lambda state: self.setConfigValue(bool(state))
         )
 
-    def getCheckedSignal(self) -> pyqtBoundSignal:
-        return self.setting.stateChanged
-
-    def set_config_value(self, value: bool) -> None:
-        if super().set_config_value(value):
-            self.setWidgetValue(value)
+    @override
+    def _setWidgetValue(self, value: bool) -> None:
+        self.setting.setChecked(value)
 
     @override
-    def setWidgetValue(self, value: bool) -> None:
-        self.setting.setChecked(value)
+    def getCheckedSignal(self) -> pyqtBoundSignal:
+        return self.setting.stateChanged

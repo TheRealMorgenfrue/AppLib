@@ -5,8 +5,9 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QHideEvent
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
-from ....module.configuration.tools.template_options.options import GUIOption
-from ....module.configuration.tools.template_options.template_enums import UIFlags
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from ..infobar_test import InfoBar, InfoBarPosition
@@ -23,10 +24,11 @@ class BaseSetting(QWidget):
         option: GUIOption,
         current_value: Any,
         default_value: Any,
+        converter: Optional[Converter] = None,
         notify_disabled: bool = True,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
-    ) -> None:
+    ):
         """
         The base class for all GUI settings.
 
@@ -54,6 +56,9 @@ class BaseSetting(QWidget):
         default_value : Any
             The default value of the setting.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         notify_disabled : bool, optional
             Notify the associated Setting Card if this setting is disabled.
             By default True.
@@ -71,6 +76,7 @@ class BaseSetting(QWidget):
         self.current_value = current_value
         self.default_value = default_value
         self.backup_value = None
+        self.converter = converter
         self.is_disabled = False
         self.notify_disabled = notify_disabled
         self.parent_keys = parent_keys
@@ -94,16 +100,16 @@ class BaseSetting(QWidget):
         self.buttonlayout.setContentsMargins(0, 0, 0, 0)
         self.__connectSignalToSlot()
 
-    def hideEvent(self, e: QHideEvent | None) -> None:
+    def hideEvent(self, e: QHideEvent | None):
         super().hideEvent(e)
         self.config.save_config()
 
-    def __connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self):
         self.notify.connect(self._onParentNotification)
         core_signalbus.updateConfigSettings.connect(self._onUpdateConfigSettings)
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
-    def _validate_key(self, name: str, key: str, parent_keys: list[str]) -> bool:
+    def _validateKey(self, name: str, key: str, parent_keys: list[str]) -> bool:
         if self.config.name == name and self.config_key == key:
             if self.parent_keys == parent_keys:
                 return True
@@ -114,14 +120,19 @@ class BaseSetting(QWidget):
                 except Exception:
                     return False
 
+    def _convert_value(self, value, to_gui: bool = False) -> Any:
+        if self.converter:
+            return self.converter.convert(value, to_gui)
+        return value
+
     def _onConfigUpdated(
         self,
         names: tuple[str, str],
         key: str,
         value_tuple: tuple[Any,],
         parent_keys: list[str],
-    ) -> None:
-        if self._validate_key(names[0], key, parent_keys):
+    ):
+        if self._validateKey(names[0], key, parent_keys):
             self.setWidgetValue(value_tuple[0])
 
     def _onUpdateConfigSettings(
@@ -130,11 +141,11 @@ class BaseSetting(QWidget):
         key: str,
         value_tuple: tuple[Any,],
         parent_keys: list[str],
-    ) -> None:
-        if self._validate_key(name, key, parent_keys):
-            self.set_config_value(value_tuple[0])
+    ):
+        if self._validateKey(name, key, parent_keys):
+            self.setConfigValue(value_tuple[0])
 
-    def _onParentNotification(self, values: tuple) -> None:
+    def _onParentNotification(self, values: tuple):
         type, value = values
         if type == "disable":
             self.notify_disabled = False
@@ -143,7 +154,7 @@ class BaseSetting(QWidget):
         elif type == "updateState":
             self.updateDisabledStatus()
 
-    def _onReloadRequired(self) -> None:
+    def _onReloadRequired(self):
         title = "Change requires reload to take effect"
         content = ""
         InfoBar.info(
@@ -171,7 +182,10 @@ class BaseSetting(QWidget):
             # No ancestor found
             return self
 
-    def _setDisableWidget(self, is_disabled: bool, save: bool) -> None:
+    @abstractmethod
+    def _setWidgetValue(self, value: Any): ...
+
+    def _setDisableWidget(self, is_disabled: bool, save: bool):
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
             self.setting.setDisabled(self.is_disabled)
@@ -183,7 +197,7 @@ class BaseSetting(QWidget):
                 value = self.backup_value
 
             if self._canGetDisabled() and save:
-                self.set_config_value(value)
+                self.setConfigValue(value)
 
     def _canGetDisabled(self) -> bool:
         return self.disable_self_value is not None
@@ -191,10 +205,10 @@ class BaseSetting(QWidget):
     def _canDisableOther(self) -> bool:
         return self.disable_other_value is not None
 
-    def updateDisabledStatus(self) -> None:
+    def updateDisabledStatus(self):
         self.maybeDisableParent(self.current_value, save=False)
 
-    def maybeDisableParent(self, value: Any, save: bool = True) -> None:
+    def maybeDisableParent(self, value: Any, save: bool = True):
         if self.notify_disabled:
             if self._canGetDisabled():
                 self.notifyParent.emit(
@@ -205,21 +219,25 @@ class BaseSetting(QWidget):
                     ("disable_other", (self.disable_other_value == value, save))
                 )
 
-    def set_config_value(self, value: Any) -> bool:
+    def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
-            error = self.config.set_value(self.config_key, value, self.parent_keys)
+            error = self.config.set_value(
+                self.config_key, self._convert_value(value), self.parent_keys
+            )
             success = not error
-            if success:
-                self.current_value = value
-                self.maybeDisableParent(value)
         else:
             success = True  # The value is already present in the config
-        if success and self.reload_required:
-            self._onReloadRequired()
+
+        if success:
+            self.current_value = value
+            self.setWidgetValue(value)
+            self.maybeDisableParent(value)
+            if self.reload_required:
+                self._onReloadRequired()
         return success
 
-    def resetValue(self) -> None:
-        self.set_config_value(self.default_value)
+    def resetValue(self):
+        self.setConfigValue(self.default_value)
 
-    @abstractmethod
-    def setWidgetValue(self, value: Any) -> None: ...
+    def setWidgetValue(self, value: Any):
+        self._setWidgetValue(self._convert_value(value, to_gui=True))

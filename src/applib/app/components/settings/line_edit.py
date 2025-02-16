@@ -3,10 +3,8 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
 
-from ....module.configuration.tools.template_options.options import (
-    GUIMessage,
-    GUIOption,
-)
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIMessage, GUIOption
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
@@ -21,6 +19,7 @@ class CoreLineEdit(BaseSetting):
         is_tight: bool = False,
         ui_invalid_input: Optional[GUIMessage] = None,
         tooltip: Optional[str] = None,
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -50,6 +49,9 @@ class CoreLineEdit(BaseSetting):
         tooltip : str, optional
             Tooltip for this setting, by default None.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str], optional
             The parents of `key`. Used for lookup in the config.
             By default [].
@@ -66,6 +68,7 @@ class CoreLineEdit(BaseSetting):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -74,14 +77,10 @@ class CoreLineEdit(BaseSetting):
         self.ui_invalid_input = ui_invalid_input
         try:
             self.setting = LineEdit(self)
-
-            # Configure LineEdit
-            self.setting.setText(self.current_value)
+            self.setWidgetValue(self.current_value)
             self.setting.setToolTip(tooltip)
             self.setting.setToolTipDuration(4000)
             self._resizeTextBox()
-
-            # Add LineEdit to layout
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
         except Exception:
@@ -90,7 +89,7 @@ class CoreLineEdit(BaseSetting):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.editingFinished.connect(
-            lambda: self.set_config_value(self.setting.text())
+            lambda: self.setConfigValue(self.setting.text())
         )
         self.setting.textChanged.connect(self._resizeTextBox)
 
@@ -110,9 +109,13 @@ class CoreLineEdit(BaseSetting):
     def setMinWidth(self, width: int) -> None:
         self.minWidth = width if 0 < width < self.maxWidth else 0
 
-    def set_config_value(self, value: str) -> None:
-        success = super().set_config_value(value)
-        if success:
+    @override
+    def _setWidgetValue(self, value: str) -> None:
+        self.setting.setText(value)
+
+    @override
+    def setConfigValue(self, value: str) -> None:
+        if super().setConfigValue(value):
             if not self.is_disabled:
                 self.setWidgetValue(value)
         else:
@@ -120,7 +123,3 @@ class CoreLineEdit(BaseSetting):
                 self.config.name, self.ui_invalid_input[0], self.ui_invalid_input[1]
             )
             self.setWidgetValue(value)
-
-    @override
-    def setWidgetValue(self, value: str) -> None:
-        self.setting.setText(value)

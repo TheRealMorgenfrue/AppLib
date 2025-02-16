@@ -4,7 +4,8 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import PushButton
 
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.general import StrPath
 from .base_setting import BaseSetting
@@ -21,6 +22,7 @@ class CoreFileSelect(BaseSetting):
         show_dir_only: bool = False,
         filter: Optional[str] = None,
         selected_filter: Optional[str] = None,
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -69,6 +71,9 @@ class CoreFileSelect(BaseSetting):
             "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
             ```
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str], optional
             The parents of `key`. Used for lookup in the config.
 
@@ -84,6 +89,7 @@ class CoreFileSelect(BaseSetting):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -132,15 +138,9 @@ class CoreFileSelect(BaseSetting):
                 initialFilter=self.selected_filter,
             )[0]
         if value:
-            self.set_config_value(value)
+            self.setConfigValue(value)
             self.directory = os.path.split(value)[0]
 
-    def set_config_value(self, value: StrPath) -> None:
-        if super().set_config_value(value):
-            self.notifyParent.emit(("content", self.current_value))
-
     @override
-    def setWidgetValue(self, value: StrPath) -> None:
-        # Not used as the "file" setting is just a push button
-        # File changes are handled by `notifyParent` signal
-        pass
+    def _setWidgetValue(self, value: StrPath) -> None:
+        self.notifyParent.emit(("content", self.current_value))

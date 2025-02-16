@@ -4,7 +4,8 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import DoubleSpinBox, SpinBox
 
-from ....module.configuration.tools.template_options.options import GUIOption
+from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
@@ -17,6 +18,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         config_key: str,
         option: GUIOption,
         num_range: tuple[Number | None, Number | None],
+        converter: Optional[Converter] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -40,6 +42,9 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             If min is None, it defaults to 0.
             If max is None, it defaults to 999999.
 
+        converter : Converter | None, optional
+            The value converter used to convert values between config and GUI representation.
+
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
@@ -55,6 +60,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             default_value=config.template.get_value(
                 key=config_key, parents=parent_keys
             ).default,
+            converter=converter,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -83,16 +89,12 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.set_config_value)
-
-    def set_config_value(self, value: int) -> None:
-        if super().set_config_value(value):
-            if self.notify_disabled:
-                self.notify_disabled = False
-                self.setWidgetValue(value)
-                self.notify_disabled = True
+        self.setting.valueChanged.connect(self.setConfigValue)
 
     @override
-    def setWidgetValue(self, value: Number) -> None:
-        # Do not update GUI with disable values
-        self.setting.setValue(self._ensureValidGUIValue(value))
+    def _setWidgetValue(self, value: Number) -> None:
+        if self.notify_disabled:
+            self.notify_disabled = False
+            # Do not update GUI with disable values
+            self.setting.setValue(self._ensureValidGUIValue(value))
+            self.notify_disabled = True
