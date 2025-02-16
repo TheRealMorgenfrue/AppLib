@@ -93,12 +93,13 @@ class GUIOption(Option):
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
         ui_disable_self: Any = Undefined,
-        ui_file_filter: str = Undefined,
+        ui_file_filter: str | None = Undefined,
         ui_flags: UIFlags | list[UIFlags] = Undefined,
         ui_group: Union[str, Hashable, list[Hashable]] = Undefined,
         ui_group_parent: UIGroups | list[UIGroups] = Undefined,
         ui_info: GUIMessage = Undefined,
         ui_invalid_input: GUIMessage = Undefined,
+        ui_show_dir_only: bool = Undefined,
         ui_type: UITypes = Undefined,
         ui_unit: str = Undefined,
         validators: Callable | list[Callable] = Undefined,
@@ -151,7 +152,14 @@ class GUIOption(Option):
             In the GUI, a button for disabling this setting is provided.
             ##### Applicable settings: All
         ui_file_filter : str, optional
-            The files considered valid for selection, e.g., "XML Files (*.xml)".
+            Only files matching this filter are shown.
+            If None, all files are shown.
+            If you want multiple filters, seperate them with ;;
+
+            For instance:
+            ```
+            "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
+            ```
             ##### Applicable settings: File Selectors
         ui_flags : UIFlags | list[UIFlags], optional
             Special flags that apply to this setting.
@@ -183,6 +191,9 @@ class GUIOption(Option):
         ui_invalid_input : GUIMessage, optional
             Message informing the user that they typed invalid data into this setting in the GUI.
             ##### Applicable settings: Any free-form input, e.g., a line edit.
+        ui_show_dir_only : bool, optional
+            Only show directories. `ui_file_filter` is ignored.
+            ##### Applicable settings: File Selectors
         ui_type : UITypes, optional
             The widget type to use for this setting.
             ##### Applicable settings: All
@@ -215,6 +226,7 @@ class GUIOption(Option):
         self.ui_group_parent = ui_group_parent
         self.ui_info = ui_info
         self.ui_invalid_input = ui_invalid_input
+        self.ui_show_dir_only = ui_show_dir_only
         self.ui_type = ui_type
         self.ui_unit = ui_unit
         self.values = values
@@ -224,16 +236,17 @@ class FileSelectorOption(GUIOption):
     def __init__(
         self,
         default: str,
-        ui_file_filter: str,
         actions: Callable | list[Callable] = Undefined,
         type: type = Undefined,
         ui_disable_button: bool = Undefined,
         ui_disable_other: Any = Undefined,
         ui_disable_self: Any = Undefined,
+        ui_file_filter: str | None = None,
         ui_flags: UIFlags | list[UIFlags] = Undefined,
         ui_group: Any | list[Any] = Undefined,
         ui_group_parent: UIGroups | list[UIGroups] = Undefined,
         ui_info: GUIMessage = Undefined,
+        ui_show_dir_only: bool = False,
         ui_type: UITypes = UITypes.FILE_SELECTION,
         validators: Callable | list[Callable] = Undefined,
     ):
@@ -249,6 +262,7 @@ class FileSelectorOption(GUIOption):
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,
+            ui_show_dir_only=ui_show_dir_only,
             ui_type=ui_type,
             validators=validators,
         )
