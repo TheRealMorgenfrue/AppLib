@@ -123,10 +123,10 @@ class TestTemplate(BaseTemplate):
                         "Use full compatibility mode",
                         AutoTextWrap.text_format(
                             f"""
-                        <b>Not recommended</b><br>Use only if partial compatibility is insufficient and you know what you're doing.
-                        Enabling full compatibility disables ALL safety measures against illegal or invalid values.
-                        NAMES's config file will be used and displayed as-is.
-                        """
+                            <b>Not recommended</b><br>Use only if partial compatibility is insufficient and you know what you're doing.
+                            Enabling full compatibility disables ALL safety measures against illegal or invalid values.
+                            NAMES's config file will be used and displayed as-is.
+                            """
                         ),
                     ),
                 ),
