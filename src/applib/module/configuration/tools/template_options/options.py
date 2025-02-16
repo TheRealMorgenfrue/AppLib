@@ -1,5 +1,5 @@
 from numbers import Number
-from typing import Any, Callable
+from typing import Any, Callable, Hashable, Union
 
 from .template_enums import UIFlags, UIGroups, UITypes
 
@@ -95,7 +95,7 @@ class GUIOption(Option):
         ui_disable_self: Any = Undefined,
         ui_file_filter: str = Undefined,
         ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Any | list[Any] = Undefined,
+        ui_group: Union[str, Hashable, list[Hashable]] = Undefined,
         ui_group_parent: UIGroups | list[UIGroups] = Undefined,
         ui_info: GUIMessage = Undefined,
         ui_invalid_input: GUIMessage = Undefined,
@@ -156,15 +156,24 @@ class GUIOption(Option):
         ui_flags : UIFlags | list[UIFlags], optional
             Special flags that apply to this setting.
             ##### Applicable settings: All
-        ui_group : Any | list[Any], optional
+        ui_group : str | Hashable | list[Hashable], optional
             Designate a group ID (GID) which all options with this GID belongs to.
             This makes various actions possible for settings, e.g., they can be visually grouped in the GUI.
 
-            A setting in a ui_group can have the ui_group_parent option present, which makes this setting act as the parent of the group.
+            A valid GID can be either:
+            - str: "id_1, id_2 ,..., id_n"
+            - Hashable: Any hashable object, e.g. 0
+            - list[Hashable]: A list of hashable objects that follows the ordering of a str GID
+
+            The ordering of a str GID is as follows:
+            - This setting belongs to the group at id_1.
+            - Any subsequent GIDs are children of this setting's group.
+
             ##### Applicable settings: All
         ui_group_parent : UIGroups | list[UIGroups], optional
             Designate the parent setting of a group.
-            Only one setting in each group can be designated parent.
+
+            All groups must have a parent and only one setting in each group can be designated parent.
             If more than one exist, the first found is used.
             ##### Applicable settings: All
             NOTE: Full documentation is available at #LINK: src\\applib\\module\\configuration\\tools\\template_options\\template_docs.txt
