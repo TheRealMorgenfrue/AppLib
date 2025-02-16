@@ -1,5 +1,5 @@
-from ...tools.utilities import iter_to_str
-from ..internal.core_args import CoreArgs
+from ....tools.utilities import iter_to_str
+from ...internal.core_args import CoreArgs
 
 
 def validate_loglevel(loglevel: str) -> str:
