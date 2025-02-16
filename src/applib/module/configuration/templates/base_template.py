@@ -66,10 +66,9 @@ class BaseTemplate(MappingBase):
     def _prefix_msg(self) -> str:
         return f"Template '{self.name}':"
 
-    @override
-    def _check_value(self, v) -> bool:
+    def _check_setting(self, v) -> bool:
         try:
-            return super()._check_value(v) and isinstance(v.x[0][0], Option)
+            return isinstance(v, Option) or isinstance(v.x[0][0], Option)
         except Exception:
             return False
 
@@ -83,7 +82,7 @@ class BaseTemplate(MappingBase):
         *args,
         **kwargs,
     ):
-        if isinstance(value, Option) or self._check_value(value):
+        if self._check_setting(value):
             self._settings.append((key, value, position, parents))
         return super()._add(key, value, position, parents, *args, **kwargs)
 
