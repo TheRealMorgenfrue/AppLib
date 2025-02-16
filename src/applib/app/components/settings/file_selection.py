@@ -4,6 +4,7 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import PushButton
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.general import StrPath
 from .base_setting import BaseSetting
@@ -14,7 +15,7 @@ class CoreFileSelect(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         caption: str,
         directory: StrPath,
         filter: str,
@@ -36,7 +37,7 @@ class CoreFileSelect(BaseSetting):
         config_name : str
             The name of the config.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
         caption : str
@@ -58,16 +59,16 @@ class CoreFileSelect(BaseSetting):
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=config.get_value(key=config_key, parents=parent_keys),
             default_value=config.template.get_value(
-                key="default", parents=[*parent_keys, config_key]
-            ),
+                key=config_key, parents=parent_keys
+            ).default,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -107,11 +108,11 @@ class CoreFileSelect(BaseSetting):
             initialFilter=self.initial_filter,
         )
         if file[0]:
-            self.setConfigValue(file[0])
+            self.set_config_value(file[0])
             self.directory = os.path.split(file[0])[0]
 
-    def setConfigValue(self, value: StrPath) -> None:
-        if super().setConfigValue(value):
+    def set_config_value(self, value: StrPath) -> None:
+        if super().set_config_value(value):
             self.notifyParent.emit(("content", self.current_value))
 
     @override

@@ -1,6 +1,14 @@
 from typing import Self, override
 
 from ..internal.core_args import CoreArgs
+from ..tools.template_options.actions import change_theme, change_theme_color
+from ..tools.template_options.options import (
+    ComboBoxOption,
+    FileSelectorOption,
+    GUIMessage,
+    GUIOption,
+    NumberOption,
+)
 from ..tools.template_options.template_enums import UIGroups, UITypes
 from ..validators.app_validator import validate_loglevel, validate_theme
 from ..validators.generic_validator import validate_path
@@ -29,67 +37,74 @@ class CoreTemplate(BaseTemplate):
     def _create_template(self) -> dict:
         return {
             "General": {
-                "loglevel": {
-                    "ui_type": UITypes.COMBOBOX,
-                    "ui_title": f"Set log level for {CoreArgs._core_app_name}",
-                    "default": "INFO" if CoreArgs._core_is_release else "DEBUG",
-                    "values": CoreArgs._core_template_loglevels,
-                    "validators": [validate_loglevel],
-                }
+                "loglevel": ComboBoxOption(
+                    default="INFO" if CoreArgs._core_is_release else "DEBUG",
+                    actions=[self._logger.setLevel],
+                    ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
+                    validators=[validate_loglevel],
+                    values=CoreArgs._core_template_loglevels,
+                )
             },
             "Appearance": {
-                "appTheme": {
-                    "ui_type": UITypes.COMBOBOX,
-                    "ui_title": "Set application theme",
-                    "default": "System",
-                    "values": CoreArgs._core_template_themes,
-                    "validators": [validate_theme],
-                },
-                "appColor": {
-                    "ui_type": UITypes.COLOR_PICKER,
-                    "ui_title": "Set application color",
-                    "default": "#2abdc7",
-                },
-                "appBackground": {
-                    "ui_type": UITypes.FILE_SELECTION,
-                    "ui_title": "Select background image",
-                    "ui_file_filter": "Images (*.jpg *.jpeg *.png *.bmp)",
-                    "default": "",
-                    "validators": [validate_path],
-                },
-                "backgroundOpacity": {
-                    "ui_title": "Set background opacity",
-                    "ui_desc": "A greater opacity yields a brighter background",
-                    "default": 50,
-                    "min": 0,
-                    "max": 100,
-                },
-                "backgroundBlur": {
-                    "ui_title": "Set background blur radius",
-                    "ui_desc": "A greater radius increases the blur effect",
-                    "default": 0,
-                    "min": 0,
-                    "max": 30,
-                },
+                "appTheme": ComboBoxOption(
+                    default="System",
+                    actions=[change_theme],
+                    ui_info=GUIMessage("Set application theme"),
+                    validators=[validate_theme],
+                    values=CoreArgs._core_template_themes,
+                ),
+                "appColor": GUIOption(
+                    default="#2abdc7",
+                    actions=[change_theme_color],
+                    ui_info=GUIMessage("Set application color"),
+                    ui_type=UITypes.COLOR_PICKER,
+                ),
+                "appBackground": FileSelectorOption(
+                    default="",
+                    ui_file_filter="Images (*.jpg *.jpeg *.png *.bmp)",
+                    ui_info=GUIMessage("Select background image"),
+                    validators=[validate_path],
+                ),
+                "backgroundOpacity": NumberOption(
+                    default=50,
+                    min=0,
+                    max=100,
+                    ui_info=GUIMessage(
+                        "Set background opacity",
+                        "A greater opacity yields a brighter background",
+                    ),
+                ),
+                "backgroundBlur": NumberOption(
+                    default=0,
+                    min=0,
+                    max=30,
+                    ui_info=GUIMessage(
+                        "Set background blur radius",
+                        "A greater radius increases the blur effect",
+                    ),
+                ),
             },
             "Process": {
-                "maxThreads": {
-                    "ui_title": f"Maxmimum number of threads to run concurrently",
-                    "ui_desc": "Going beyond CPU core count will hurt performance for CPU-bound tasks",
-                    "default": 1,
-                    "min": 1,
-                    "max": None,
-                    "ui_group_parent": UIGroups.CLUSTERED,
-                    "ui_group": "pu_threads",
-                },
-                "terminalSize": {
-                    "ui_title": "Terminal size",
-                    "ui_desc": "Set the size of the terminal in pixels",
-                    "default": 600,
-                    "min": 400,
-                    "max": None,
-                    "ui_type": UITypes.SPINBOX,
-                    "ui_group": "pu_threads",
-                },
+                "maxThreads": NumberOption(
+                    default=1,
+                    min=1,
+                    max=None,
+                    ui_group_parent=UIGroups.CLUSTERED,
+                    ui_group="pu_threads",
+                    ui_info=GUIMessage(
+                        f"Maxmimum number of threads to run concurrently",
+                        "Going beyond CPU core count will decrease performance for CPU-bound tasks",
+                    ),
+                ),
+                "terminalSize": NumberOption(
+                    default=600,
+                    min=400,
+                    max=None,
+                    ui_group="pu_threads",
+                    ui_info=GUIMessage(
+                        "Terminal size", "Set the size of the terminal in pixels"
+                    ),
+                    ui_type=UITypes.SPINBOX,
+                ),
             },
         }

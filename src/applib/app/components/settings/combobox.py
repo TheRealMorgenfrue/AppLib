@@ -3,6 +3,7 @@ from typing import Optional, Union, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -12,7 +13,7 @@ class CoreComboBox(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         texts: Union[list[str], dict[str, str]],
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
@@ -28,7 +29,7 @@ class CoreComboBox(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
         texts : list | dict
@@ -39,16 +40,16 @@ class CoreComboBox(BaseSetting):
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=config.get_value(key=config_key, parents=parent_keys),
             default_value=config.template.get_value(
-                key="default", parents=[*parent_keys, config_key]
-            ),
+                key=config_key, parents=parent_keys
+            ).default,
             parent_keys=parent_keys,
             parent=parent,
         )
@@ -59,8 +60,8 @@ class CoreComboBox(BaseSetting):
                 for k, v in texts.items():
                     self.setting.addItem(k, userData=v)
             else:
-                for text, option in zip(texts, texts):
-                    self.setting.addItem(text, userData=option)
+                for text, value in zip(texts, texts):
+                    self.setting.addItem(text, userData=value)
             self.setting.setCurrentText(self.current_value)
             self.buttonlayout.addWidget(self.setting)
             self._connectSignalToSlot()
@@ -70,11 +71,11 @@ class CoreComboBox(BaseSetting):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.currentIndexChanged.connect(
-            lambda index: self.setConfigValue(self.setting.itemData(index))
+            lambda index: self.set_config_value(self.setting.itemData(index))
         )
 
-    def setConfigValue(self, value: str) -> None:
-        if super().setConfigValue(value):
+    def set_config_value(self, value: str) -> None:
+        if super().set_config_value(value):
             self.setWidgetValue(value)
 
     @override

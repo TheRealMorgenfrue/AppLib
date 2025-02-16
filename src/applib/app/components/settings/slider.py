@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import QLabel, QWidget
 from qfluentwidgets import Slider
 
 from ....module.configuration.internal.core_args import CoreArgs
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.utilities import dict_lookup
 from .base_setting import BaseSetting
@@ -16,9 +17,9 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         num_range: tuple[int, int],
-        is_tight: bool,
+        is_tight: bool = False,
         baseunit: Optional[str] = None,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
@@ -34,43 +35,45 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
-        num_range : tuple[int, int]
+        num_range : tuple[Number | None, Number | None]
             - num_range[0] == min
             - num_range[1] == max
+            If min is None, it defaults to 0.
+            If max is None, it defaults to 999999.
 
         is_tight : bool, optional
             Use a smaller version of the slider.
+            By default False.
 
         baseunit : str, optional
             The unit of the setting, e.g. "day".
-            By default `None`.
+            By default None.
 
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=config.get_value(key=config_key, parents=parent_keys),
             default_value=config.template.get_value(
-                key="default", parents=[*parent_keys, config_key]
-            ),
+                key=config_key, parents=parent_keys
+            ).default,
             parent_keys=parent_keys,
             parent=parent,
         )
+        self.baseunit = baseunit
         try:
-            self.baseunit = baseunit
             if baseunit:
                 self.unit = self._get_unit(baseunit)
-            self.min_value, self.max_value = num_range
             self.setting = Slider(Qt.Orientation.Horizontal, self)
             self.valueLabel = QLabel(self)
 
@@ -78,6 +81,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             w = 268
             if is_tight:
                 w = int(w * 0.67) if self.max_value > 40 else w // 2
+            self._defineRange(num_range)
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
             self.setting.setRange(self.min_value, self.max_value)
@@ -95,7 +99,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.setConfigValue)
+        self.setting.valueChanged.connect(self.set_config_value)
 
     def _get_unit(self, baseunit: str) -> str:
         unit = dict_lookup(CoreArgs._core_config_units, baseunit)
@@ -114,8 +118,8 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         else:
             self.valueLabel.setNum(value)
 
-    def setConfigValue(self, value: int) -> None:
-        if super().setConfigValue(value):
+    def set_config_value(self, value: int) -> None:
+        if super().set_config_value(value):
             if self.notify_disabled:
                 self.notify_disabled = False
                 self.setWidgetValue(value)

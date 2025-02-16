@@ -1,11 +1,12 @@
 import traceback
 from abc import abstractmethod
-from typing import Any, Optional
+from typing import Optional
 
 from PyQt6.QtWidgets import QWidget
 
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.options import GUIOption
 from ...module.configuration.tools.template_options.template_enums import (
     UIFlags,
     UITypes,
@@ -32,7 +33,7 @@ from .generator_tools import GeneratorUtils
 
 
 class GeneratorBase:
-    _logger = AppLibLogger().getLogger()
+    _logger = AppLibLogger().get_logger()
 
     def __init__(
         self,
@@ -65,13 +66,12 @@ class GeneratorBase:
         return f"Config '{self._config_name}':"
 
     @abstractmethod
-    def _createCard(
+    def _create_card(
         self,
         card_type: UITypes,
         setting: str,
-        options: dict[str, Any],
+        option: GUIOption,
         parent_keys: list[str],
-        content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
     ) -> AnyCard | None:
@@ -87,7 +87,7 @@ class GeneratorBase:
             The setting this card represent.
             That is, a key in the template (and by extension, the config).
 
-        options : dict[str, Any]
+        option : GUIOption
             Options detailing how the card should look and behave.
             That is, the value of `setting` in the template.
 
@@ -103,7 +103,7 @@ class GeneratorBase:
 
         parent : Optional[QWidget], optional
             The parent of the card.
-            By default `None`.
+            By default None.
 
         Returns
         -------
@@ -112,11 +112,11 @@ class GeneratorBase:
         """
         ...
 
-    def _createSetting(
+    def _create_setting(
         self,
         card_type: UITypes,
         key: str,
-        options: dict,
+        option: GUIOption,
         parent_keys: list[str],
         parent: Optional[QWidget] = None,
     ) -> AnySetting | None:
@@ -131,7 +131,7 @@ class GeneratorBase:
         key : str
             The setting's key in the config.
 
-        options : dict
+        option : GUIOption
             The options available for this setting, e.g., its default value.
 
         parent_keys : list[str]
@@ -139,18 +139,18 @@ class GeneratorBase:
 
         parent : QWidget, optional
             The parent widget of this setting.
-            By default `None`.
+            By default None.
 
         Returns
         -------
         AnySetting | None
-            The setting widget object if created succesfully, else `None`.
+            The setting widget object if created succesfully, else None.
         """
         if card_type == UITypes.CHECKBOX:
             widget = CoreCheckBox(
                 config=self._config,
                 config_key=key,
-                options=options,
+                option=option,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -158,7 +158,7 @@ class GeneratorBase:
             widget = CoreColorPicker(
                 config=self._config,
                 config_key=key,
-                options=options,
+                option=option,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -166,8 +166,8 @@ class GeneratorBase:
             widget = CoreComboBox(
                 config=self._config,
                 config_key=key,
-                options=options,
-                texts=options["values"],
+                option=option,
+                texts=option.values,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -175,11 +175,11 @@ class GeneratorBase:
             widget = CoreFileSelect(
                 config=self._config,
                 config_key=key,
-                options=options,
-                caption=options["ui_title"],
+                option=option,
+                caption=option.ui_info.title,
                 directory=f"{CoreArgs._core_app_dir}",  # Starting directory
-                filter=options["ui_file_filter"],
-                initial_filter=options["ui_file_filter"],
+                filter=option.ui_file_filter,
+                initial_filter=option.ui_file_filter,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -187,11 +187,9 @@ class GeneratorBase:
             widget = CoreLineEdit(
                 config=self._config,
                 config_key=key,
-                options=options,
+                option=option,
                 is_tight=self._is_tight,
-                ui_invalidmsg=(
-                    options["ui_invalidmsg"] if "ui_invalidmsg" in options else ""
-                ),
+                ui_invalid_input=option.ui_invalid_input,
                 tooltip=None,
                 parent_keys=parent_keys,
                 parent=parent,
@@ -200,10 +198,10 @@ class GeneratorBase:
             widget = CoreSlider(
                 config=self._config,
                 config_key=key,
-                options=options,
-                num_range=[options["min"], options["max"]],
+                option=option,
+                num_range=(option.min, option.max),
                 is_tight=self._is_tight,
-                baseunit=GeneratorUtils.parseUnit(key, options, self._config_name),
+                baseunit=GeneratorUtils.parse_unit(key, option, self._config_name),
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -211,8 +209,8 @@ class GeneratorBase:
             widget = CoreSpinBox(
                 config=self._config,
                 config_key=key,
-                options=options,
-                min_value=options["min"],
+                option=option,
+                num_range=(option.min, option.max),
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -220,7 +218,7 @@ class GeneratorBase:
             widget = CoreSwitch(
                 config=self._config,
                 config_key=key,
-                options=options,
+                option=option,
                 parent_keys=parent_keys,
                 parent=parent,
             )
@@ -232,26 +230,28 @@ class GeneratorBase:
             raise TypeError(err_msg)
         return widget
 
-    def _excludeSetting(self, setting: str, options: dict) -> bool:
-        exclude = "ui_flags" in options and UIFlags.EXCLUDE in options["ui_flags"]
+    def _exclude_setting(self, setting: str, option: GUIOption) -> bool:
+        exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags
         if exclude:
             self._logger.debug(
                 f"{self._prefix_msg()} Excluding setting '{setting}' from GUI"
             )
         return exclude
 
-    def _generateCards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
+    def _generate_cards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
         template_parser = TemplateParser()
         template_parser.parse(self._template)
         failed_cards = 0
 
         card_groups = {}  # type: dict[str, AnyCardGroup]
         for k, v, pos, ps in self._template.get_settings():
-            setting, options = next(iter(v.items()))
+            item = next(iter(v.items()))  # type: tuple[str, GUIOption]
+            setting, option = item
 
-            if self._excludeSetting(setting, options):
+            if self._exclude_setting(setting, option):
                 continue
 
+            # Create a card group a tie it to a section name if it does not exist already
             section_name = ps[-1]
             try:
                 card_group = card_groups[section_name]
@@ -262,7 +262,9 @@ class GeneratorBase:
                 card_groups[section_name] = card_group
 
             # Get the raw ui_group
-            raw_group = f"{options["ui_group"]}" if "ui_group" in options else None
+            raw_group = (
+                f"{option.ui_group}" if option.defined(option.ui_group) else None
+            )
             try:
                 # Split the ui_groups associated with this setting
                 formatted_groups = (
@@ -277,20 +279,19 @@ class GeneratorBase:
                 continue
             # If multiple groups are defined for a setting, the first is considered the main group
             main_group = (
-                Group.getGroup(self._template.name, formatted_groups[0])
+                Group.get_group(self._template.name, formatted_groups[0])
                 if formatted_groups
                 else None
             )
 
             try:
-                card = self._createCard(
-                    card_type=GeneratorUtils.inferType(
-                        setting, options, self._config_name
+                card = self._create_card(
+                    card_type=GeneratorUtils.infer_type(
+                        setting, option, self._config_name
                     ),
                     setting=setting,
-                    options=options,
+                    option=option,
                     parent_keys=ps,
-                    content=options["ui_desc"] if "ui_desc" in options else "",
                     group=main_group,
                     parent=card_group,
                 )
@@ -305,12 +306,12 @@ class GeneratorBase:
                 all_groups = []
                 if formatted_groups:
                     for format_group in formatted_groups:
-                        group = Group.getGroup(self._template.name, format_group)
+                        group = Group.get_group(self._template.name, format_group)
                         if group:
                             all_groups.append(group)
                 if not all_groups:
                     all_groups = None
-                if GeneratorUtils.updateCardGrouping(
+                if GeneratorUtils.update_card_grouping(
                     setting=setting,
                     card_group=card_group,
                     card=card,
@@ -321,11 +322,11 @@ class GeneratorBase:
                 if main_group:
                     try:
                         # Remove the failed card from its group
-                        main_group.removeChild(setting)
+                        main_group.remove_child(setting)
                     except KeyError:
                         # This card is a parent card
-                        main_group.removeGroup(
-                            self._template.name, main_group.getGroupName()
+                        main_group.remove_group(
+                            self._template.name, main_group.get_group_name()
                         )
                 failed_cards += 1
 
@@ -339,9 +340,9 @@ class GeneratorBase:
                     self._default_group = card_group
             self._card_list.append(card_group)
 
-        final_all_groups = Group.getAllGroups(self._template.name)
+        final_all_groups = Group.get_all_groups(self._template.name)
         if final_all_groups:
-            GeneratorUtils.connectUIGroups(final_all_groups)
+            GeneratorUtils.connect_ui_groups(final_all_groups)
         self._addCardsBySortOrder()
 
         if failed_cards:

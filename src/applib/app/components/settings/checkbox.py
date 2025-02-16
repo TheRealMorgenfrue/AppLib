@@ -4,6 +4,7 @@ from PyQt6.QtCore import pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import CheckBox
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .bool_setting import BoolSettingMixin
@@ -14,7 +15,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -29,7 +30,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
         parent_keys : list[str]
@@ -37,19 +38,17 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=self._convertBool(
                 config.get_value(key=config_key, parents=parent_keys)
             ),
             default_value=self._convertBool(
-                config.template.get_value(
-                    key="default", parents=[*parent_keys, config_key]
-                )
+                config.template.get_value(key=config_key, parents=parent_keys).default
             ),
             parent_keys=parent_keys,
             parent=parent,
@@ -65,14 +64,14 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
 
     def _connectSignalToSlot(self) -> None:
         self.setting.stateChanged.connect(
-            lambda state: self.setConfigValue(bool(state))
+            lambda state: self.set_config_value(bool(state))
         )
 
     def getCheckedSignal(self) -> pyqtBoundSignal:
         return self.setting.stateChanged
 
-    def setConfigValue(self, value: bool) -> None:
-        if super().setConfigValue(value):
+    def set_config_value(self, value: bool) -> None:
+        if super().set_config_value(value):
             self.setWidgetValue(value)
 
     @override

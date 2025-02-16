@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, override
+from typing import Optional, Union, override
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget
@@ -6,6 +6,7 @@ from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import FluentIconBase
 
 from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.options import GUIOption
 from ...module.configuration.tools.template_options.template_enums import (
     UIGroups,
     UITypes,
@@ -62,23 +63,24 @@ class CardGenerator(GeneratorBase):
 
         default_group : str, optional
             The name of the section card group which is displayed on application start.
-            By default `None`.
+            By default None.
 
         hide_group_label : bool, optional
             Hide the name of the card group.
             Usually, some other GUI element takes care of displaying this.
-            By default `True`.
+            By default True.
 
         is_tight : bool, optional
             Use a smaller version of the setting widgets, if available.
+            By default False.
 
         icons : list[str | QIcon | FluentIconBase], optional
             Add an icon to each card generated.
-            By default `None`.
+            By default None.
 
         parent : QWidget, optional
             The parent of all card groups generated.
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
@@ -89,16 +91,15 @@ class CardGenerator(GeneratorBase):
             parent=parent,
         )
         self._icons = icons if icons else FIF.LEAF
-        self._cards = self._generateCards(ScrollSettingCardGroup)
+        self._cards = self._generate_cards(ScrollSettingCardGroup)
 
     @override
-    def _createCard(
+    def _create_card(
         self,
         card_type: UITypes,
         setting: str,
-        options: dict[str, Any],
+        option: GUIOption,
         parent_keys: list[str],
-        content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
     ) -> AnySettingCard | None:
@@ -109,40 +110,41 @@ class CardGenerator(GeneratorBase):
             else:
                 icon = self._icons
 
-            isNestingGroup = (
-                group and UIGroups.NESTED_CHILDREN in group.getUIGroupParent()
+            is_nesting_group = (
+                group and UIGroups.NESTED_CHILDREN in group.get_ui_group_parent()
             )
-            isClusteredGroup = group and UIGroups.CLUSTERED in group.getUIGroupParent()
+            is_clustered_group = (
+                group and UIGroups.CLUSTERED in group.get_ui_group_parent()
+            )
 
-            title = options["ui_title"]
-            has_disable_button = "ui_disable_self" in options
-            if "disable_button" in options:
-                has_disable_button = options["disable_button"]  # type: bool
+            has_disable_button = option.defined(option.ui_disable_self)
+            if option.defined(option.ui_disable_button):
+                has_disable_button = option.ui_disable_button
 
             # Create Setting
-            widget = self._createSetting(
+            widget = self._create_setting(
                 card_type=card_type,
                 key=setting,
-                options=options,
+                option=option,
                 parent_keys=parent_keys,
                 parent=parent,
             )
             # Create Setting Card
-            if isNestingGroup and setting == group.getParentName():
+            if is_nesting_group and setting == group.get_parent_name():
                 card = ExpandingSettingCard(
                     card_name=setting,
                     icon=icon,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
-            elif isClusteredGroup and setting == group.getParentName():
+            elif is_clustered_group and setting == group.get_parent_name():
                 card = ClusteredSettingCard(
                     card_name=setting,
                     icon=icon,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
@@ -150,14 +152,14 @@ class CardGenerator(GeneratorBase):
                 card = FluentSettingCard(
                     card_name=setting,
                     icon=icon,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
-                    is_frameless=isNestingGroup,
+                    is_frameless=is_nesting_group,
                     parent=parent,
                 )
-            card.enableTightMode(self._is_tight)
-            card.setOption(widget)
+            card.enable_tight_mode(self._is_tight)
+            card.set_option(widget)
             return card
         except Exception:
             if widget:

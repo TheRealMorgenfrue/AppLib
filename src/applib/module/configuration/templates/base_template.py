@@ -10,6 +10,7 @@ from ...datastructures.redblacktree_mapping import (
 )
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
+from ..tools.template_options.options import GUIOption, Option
 
 
 class BaseTemplate(MappingBase):
@@ -50,9 +51,27 @@ class BaseTemplate(MappingBase):
             return NotImplemented
         return self.new(f"{self.name}-union", [other, self], None)
 
+    @classmethod
+    def new(
+        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict | None
+    ) -> Self:
+        """Let singleton subclasses create a new instance of their class"""
+        new = super().__new__(cls)
+        # This is called in a direct subclass. Thus, super() is actually calling this class
+        super(type(new), new).__init__(name, [], icons)
+        new.add_all(iterable)
+        return new
+
     @override
     def _prefix_msg(self) -> str:
         return f"Template '{self.name}':"
+
+    @override
+    def _check_value(self, v) -> bool:
+        try:
+            return super()._check_value(v) and isinstance(v.x[0][0], Option)
+        except Exception:
+            return False
 
     @override
     def _add(
@@ -64,20 +83,7 @@ class BaseTemplate(MappingBase):
         *args,
         **kwargs,
     ):
-        is_setting = False
-        if isinstance(value, Mapping):
-            # A setting mapping must have specific keys
-            if "default" in value or "ui_title" in value:
-                is_setting = True
-        elif self._check_value(value):
-            # A setting tree node has a nesting level of exactly 1
-            v = (
-                value.x
-            )  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
-            tn, ps = v[0]
-            if not self._check_value(tn.values[tn.index(ps)]):
-                is_setting = True
-        if is_setting:
+        if isinstance(value, Option) or self._check_value(value):
             self._settings.append((key, value, position, parents))
         return super()._add(key, value, position, parents, *args, **kwargs)
 
@@ -90,6 +96,12 @@ class BaseTemplate(MappingBase):
             except ValueError:
                 pass
         return super().remove(key, parent, immediate)
+
+    @override
+    def get_value(
+        self, key, parents=[], default=None, search_mode="smart", errors="ignore"
+    ) -> Option | GUIOption:
+        return super().get_value(key, parents, default, search_mode, errors)
 
     def get_settings(self) -> list[_rbtm_item]:
         """
@@ -121,17 +133,6 @@ class BaseTemplate(MappingBase):
                 d_settings.append((key, dump, pos, ps))
             self._settings_cache = d_settings
         return self._settings_cache
-
-    @classmethod
-    def new(
-        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict | None
-    ) -> Self:
-        """Let singleton subclasses create a new instance of their class"""
-        new = super().__new__(cls)
-        # This is called in a direct subclass. Thus, super() is actually calling this class
-        super(type(new), new).__init__(name, [], icons)
-        new.add_all(iterable)
-        return new
 
     @abstractmethod
     def _create_template(self) -> dict: ...

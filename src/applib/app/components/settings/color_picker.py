@@ -4,6 +4,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ColorPickerButton
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -13,7 +14,7 @@ class CoreColorPicker(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -31,7 +32,7 @@ class CoreColorPicker(BaseSetting):
         config_name : str
             The name of the config.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
         title : str
@@ -42,17 +43,15 @@ class CoreColorPicker(BaseSetting):
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=QColor(config.get_value(key=config_key, parents=parent_keys)),
             default_value=QColor(
-                config.template.get_value(
-                    key="default", parents=[*parent_keys, config_key]
-                )
+                config.template.get_value(key=config_key, parents=parent_keys).default
             ),
             parent_keys=parent_keys,
             parent=parent,
@@ -70,13 +69,13 @@ class CoreColorPicker(BaseSetting):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.colorChanged.connect(self.setConfigValue)
+        self.setting.colorChanged.connect(self.set_config_value)
 
-    def setConfigValue(self, color: QColor | str) -> None:
+    def set_config_value(self, color: QColor | str) -> None:
         if not isinstance(color, QColor):
             color = QColor(color)
 
-        if super().setConfigValue(color.name()):
+        if super().set_config_value(color.name()):
             self.setWidgetValue(color)
 
     @override

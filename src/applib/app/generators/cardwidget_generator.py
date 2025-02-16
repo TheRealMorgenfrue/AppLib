@@ -1,8 +1,9 @@
-from typing import Any, Optional, override
+from typing import Optional, override
 
 from PyQt6.QtWidgets import QWidget
 
 from ...module.configuration.tools.template_options.groups import Group
+from ...module.configuration.tools.template_options.options import GUIOption
 from ...module.configuration.tools.template_options.template_enums import (
     UIGroups,
     UITypes,
@@ -44,7 +45,7 @@ class CardWidgetGenerator(GeneratorBase):
         Generate a Setting Card Widget for each setting in the supplied template.
         The type of the Setting Card Widget depends on various factors, including a setting's relation to other settings.
 
-        The CardWidget generator is very useful for templates consisting only of any `UIGroups` nested parent/child relationships.
+        The CardWidget generator is very useful for templates consisting only of nested UIGroups.
 
         Parameters
         ----------
@@ -57,19 +58,20 @@ class CardWidgetGenerator(GeneratorBase):
 
         default_group : str, optional
             The name of the section card group which is displayed on application start.
-            By default `None`.
+            By default None.
 
         hide_group_label : bool, optional
             Hide the name of the card group.
             Usually, some other GUI element takes care of displaying this.
-            By default `True`.
+            By default True.
 
         is_tight : bool, optional
             Use a smaller version of the setting widgets, if available.
+            By default False.
 
         parent : QWidget, optional
             The parent of all card groups generated.
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
@@ -79,73 +81,71 @@ class CardWidgetGenerator(GeneratorBase):
             is_tight=is_tight,
             parent=parent,
         )
-        self._cards = self._generateCards(CardWidgetGroup)
+        self._cards = self._generate_cards(CardWidgetGroup)
 
     @override
-    def _createCard(
+    def _create_card(
         self,
         card_type: UITypes,
         setting: str,
-        options: dict[str, Any],
+        option: GUIOption,
         parent_keys: list[str],
-        content: str,
         group: Group | None,
         parent: Optional[QWidget] = None,
     ) -> AnySettingWidget | None:
         widget = None
         try:
-            isNestingGroup = (
+            is_nesting_group = (
                 group
-                and setting == group.getParentName()
-                and UIGroups.NESTED_CHILDREN in group.getUIGroupParent()
+                and setting == group.get_parent_name()
+                and UIGroups.NESTED_CHILDREN in group.get_ui_group_parent()
             )
-            isClusteredGroup = (
+            is_clustered_group = (
                 group
-                and setting == group.getParentName()
-                and UIGroups.CLUSTERED in group.getUIGroupParent()
+                and setting == group.get_parent_name()
+                and UIGroups.CLUSTERED in group.get_ui_group_parent()
             )
-            if isNestingGroup and card_type == UITypes.SWITCH:
+            if is_nesting_group and card_type == UITypes.SWITCH:
                 card_type = UITypes.CHECKBOX
 
-            title = options["ui_title"]
-            has_disable_button = "ui_disable_self" in options
-            if "disable_button" in options:
-                has_disable_button = options["disable_button"]  # type: bool
+            has_disable_button = option.defined(option.ui_disable_self)
+            if option.defined(option.ui_disable_button):
+                has_disable_button = option.ui_disable_button
 
             # Create Setting
-            widget = self._createSetting(
+            widget = self._create_setting(
                 card_type=card_type,
                 key=setting,
-                options=options,
+                option=option,
                 parent_keys=parent_keys,
                 parent=parent,
             )
             # Create Setting Card Widget
-            if isNestingGroup:
+            if is_nesting_group:
                 card = NestedSettingWidget(
                     card_name=setting,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
-            elif isClusteredGroup:
+            elif is_clustered_group:
                 card = ClusteredSettingWidget(
                     card_name=setting,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
             else:
                 card = SettingWidget(
                     card_name=setting,
-                    title=title,
-                    content=content,
+                    title=option.ui_info.title,
+                    content=option.ui_info.description,
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
-            card.setOption(widget)
+            card.set_option(widget)
             return card
         except Exception:
             if widget:

@@ -5,6 +5,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QHideEvent
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.configuration.tools.template_options.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
@@ -19,7 +20,7 @@ class BaseSetting(QWidget):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
+        option: GUIOption,
         current_value: Any,
         default_value: Any,
         notify_disabled: bool = True,
@@ -44,7 +45,7 @@ class BaseSetting(QWidget):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
         current_value : Any
@@ -55,14 +56,14 @@ class BaseSetting(QWidget):
 
         notify_disabled : bool, optional
             Notify the associated Setting Card if this setting is disabled.
-            By default `True`.
+            By default True.
 
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class.
-            By default `None`.
+            By default None.
         """
         super().__init__(parent=parent)
         self.config = config
@@ -76,16 +77,17 @@ class BaseSetting(QWidget):
 
         # The value which disables this setting.
         self.disable_self_value = (
-            options["ui_disable_self"] if "ui_disable_self" in options else None
+            option.ui_disable_self if option.defined(option.ui_disable_self) else None
         )
         # The value which disables children of this setting
         self.disable_other_value = (
-            options["ui_disable_other"] if "ui_disable_other" in options else None
+            option.ui_disable_other if option.defined(option.ui_disable_other) else None
         )
 
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
-            "ui_flags" in options and UIFlags.REQUIRES_RELOAD in options["ui_flags"]
+            option.defined(option.ui_flags)
+            and UIFlags.REQUIRES_RELOAD in option.ui_flags
         )
 
         self.buttonlayout = QHBoxLayout(self)
@@ -130,7 +132,7 @@ class BaseSetting(QWidget):
         parent_keys: list[str],
     ) -> None:
         if self._validate_key(name, key, parent_keys):
-            self.setConfigValue(value_tuple[0])
+            self.set_config_value(value_tuple[0])
 
     def _onParentNotification(self, values: tuple) -> None:
         type, value = values
@@ -181,7 +183,7 @@ class BaseSetting(QWidget):
                 value = self.backup_value
 
             if self._canGetDisabled() and save:
-                self.setConfigValue(value)
+                self.set_config_value(value)
 
     def _canGetDisabled(self) -> bool:
         return self.disable_self_value is not None
@@ -203,7 +205,7 @@ class BaseSetting(QWidget):
                     ("disable_other", (self.disable_other_value == value, save))
                 )
 
-    def setConfigValue(self, value: Any) -> bool:
+    def set_config_value(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
             error = self.config.set_value(self.config_key, value, self.parent_keys)
             success = not error
@@ -217,7 +219,7 @@ class BaseSetting(QWidget):
         return success
 
     def resetValue(self) -> None:
-        self.setConfigValue(self.default_value)
+        self.set_config_value(self.default_value)
 
     @abstractmethod
     def setWidgetValue(self, value: Any) -> None: ...

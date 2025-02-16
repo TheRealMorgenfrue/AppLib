@@ -1,8 +1,10 @@
+from numbers import Number
 from typing import Optional, override
 
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import DoubleSpinBox, SpinBox
 
+from ....module.configuration.tools.template_options.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
@@ -13,8 +15,8 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         self,
         config: AnyConfig,
         config_key: str,
-        options: dict,
-        min_value: int,
+        option: GUIOption,
+        num_range: tuple[Number | None, Number | None],
         parent_keys: list[str] = [],
         parent: Optional[QWidget] = None,
     ) -> None:
@@ -29,43 +31,46 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         config_key : str
             The key in the config which should be associated with this setting.
 
-        options : dict
+        option : GUIOption
             The options associated with `config_key`.
 
-        min : int
-            The minimum value this setting will accept.
+        num_range : tuple[Number | None, Number | None]
+            - num_range[0] == min
+            - num_range[1] == max
+            If min is None, it defaults to 0.
+            If max is None, it defaults to 999999.
 
         parent_keys : list[str]
             The parents of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class
-            By default `None`.
+            By default None.
         """
         super().__init__(
             config=config,
             config_key=config_key,
-            options=options,
+            option=option,
             current_value=config.get_value(key=config_key, parents=parent_keys),
             default_value=config.template.get_value(
-                key="default", parents=[*parent_keys, config_key]
-            ),
+                key=config_key, parents=parent_keys
+            ).default,
             parent_keys=parent_keys,
             parent=parent,
         )
+        self._defineRange(num_range)
         try:
-            self.min_value = min_value
             if type(self.current_value) == int:
                 self.setting = SpinBox(self)
-                self.maxValue = 999999
             else:
                 self.setting = DoubleSpinBox(self)
-                self.maxValue = 999999.0
+                self.min_value = float(self.min_value)
+                self.max_value = float(self.max_value)
 
             # Configure spinbox
             self.setting.setAccelerated(True)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.min_value, self.maxValue)
+            self.setting.setRange(self.min_value, self.max_value)
 
             # Ensure value cannot be invalid in the GUI
             self.setWidgetValue(self.current_value)
@@ -78,16 +83,16 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             raise
 
     def _connectSignalToSlot(self) -> None:
-        self.setting.valueChanged.connect(self.setConfigValue)
+        self.setting.valueChanged.connect(self.set_config_value)
 
-    def setConfigValue(self, value: int) -> None:
-        if super().setConfigValue(value):
+    def set_config_value(self, value: int) -> None:
+        if super().set_config_value(value):
             if self.notify_disabled:
                 self.notify_disabled = False
                 self.setWidgetValue(value)
                 self.notify_disabled = True
 
     @override
-    def setWidgetValue(self, value: str) -> None:
+    def setWidgetValue(self, value: Number) -> None:
         # Do not update GUI with disable values
         self.setting.setValue(self._ensureValidGUIValue(value))
