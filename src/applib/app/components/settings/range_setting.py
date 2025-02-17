@@ -8,7 +8,7 @@ class RangeSettingMixin:
 
     def _defineRange(self, num_range: tuple[Number | None, Number | None]):
         min, max = num_range
-        self.min_value = min if min is not None else 0
+        self.min_value = min if min is not None else -999999
         self.max_value = max if max is not None else 999999
 
     def _ensureValidGUIValue(self, value: int | float) -> int | float:

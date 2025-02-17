@@ -135,7 +135,7 @@ class GUIOption(Option):
             NOTE: Sliders do not support floats currently.
         min : Number, optional
             The minimum value for this setting.
-            If None, there is no limit (though lower limit is 999999 in the GUI).
+            If None, there is no limit (though lower limit is -999999 in the GUI).
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
         type : type, optional
