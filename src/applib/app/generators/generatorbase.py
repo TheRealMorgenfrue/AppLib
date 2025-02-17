@@ -387,5 +387,5 @@ class GeneratorBase:
     def getCards(self) -> list[AnyCardGroup]:
         return self._cards
 
-    def getDefaultGroup(self) -> AnyCardGroup:
+    def getDefaultGroup(self) -> AnyCardGroup | None:
         return self._default_group
