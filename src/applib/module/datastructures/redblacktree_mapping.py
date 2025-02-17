@@ -493,12 +493,10 @@ class RedBlackTreeMapping(RedBlackTree):
         except (KeyError, IndexError):
             pass
 
-    def _create_subtree(
-        self, tn: "RedBlackTreeMapping.TreeNode", ps: Iterable[Hashable]
-    ) -> list[_rbtm_item]:
+    def _create_subtree(self, node: RedBlackTree.Node) -> list[_rbtm_item]:
         subtree = []
         q = deque(
-            [(tn, ps)]
+            node.x
         )  # type: deque[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
         while q:
             tn, ps = q.popleft()
@@ -620,11 +618,7 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         tn, i = self._find_index(key, parents, search_mode)
         v = tn.values[i]
-        return (
-            self._tree_dump(self._create_subtree(tn, tn.parents[i]))
-            if self._check_value(v)
-            else v
-        )
+        return self._tree_dump(self._create_subtree(v)) if self._check_value(v) else v
 
     def add_all(self, iterable: Iterable[_supports_rbtm_iter]):
         """
