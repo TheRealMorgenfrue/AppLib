@@ -104,15 +104,16 @@ class CardStackBase(ScrollArea):
         self.vGeneralLayout.addWidget(self.stackedWidget)
         self.vGeneralLayout.setContentsMargins(0, 0, 0, 0)
 
-        self.stackedWidget.setCurrentWidget(
-            self._defaultGroup
-        )  # Set Group shown on application start
-        self.pivot.setCurrentItem(
-            self._defaultGroup.objectName()
-        )  # Set Group marked as selected on application start
-        qrouter.setDefaultRouteKey(
-            self.stackedWidget, self._defaultGroup.objectName()
-        )  # Set navigation history to default Group
+        if self._defaultGroup:
+            self.stackedWidget.setCurrentWidget(
+                self._defaultGroup
+            )  # Set Group shown on application start
+            self.pivot.setCurrentItem(
+                self._defaultGroup.objectName()
+            )  # Set Group marked as selected on application start
+            qrouter.setDefaultRouteKey(
+                self.stackedWidget, self._defaultGroup.objectName()
+            )  # Set navigation history to default Group
 
     def _connectSignalToSlot(self) -> None:
         self.stackedWidget.currentChanged.connect(self._onCurrentIndexChanged)
