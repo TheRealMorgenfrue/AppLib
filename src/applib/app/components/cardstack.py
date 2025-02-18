@@ -16,6 +16,8 @@ from qfluentwidgets import (
     qrouter,
 )
 
+from applib.module.logging import AppLibLogger
+
 from ...module.tools.types.gui_generators import AnyCardGenerator
 
 # InQuad                   // Straight
@@ -28,6 +30,8 @@ AnyPivot: TypeAlias = Pivot | SegmentedToolWidget
 
 
 class CardStackBase(ScrollArea):
+    _logger = AppLibLogger().get_logger()
+
     def __init__(
         self,
         generator: AnyCardGenerator,
@@ -39,7 +43,7 @@ class CardStackBase(ScrollArea):
         try:
             super().__init__(parent)
             self._cards = generator.getCards()
-            self._defaultGroup = generator.getDefaultGroup()
+            self._generatorDefaultGroup = generator.getDefaultGroup()
             self._view = QWidget(self)
 
             self.titleLabel = QLabel(self.tr(labeltext)) if labeltext else None
@@ -104,16 +108,27 @@ class CardStackBase(ScrollArea):
         self.vGeneralLayout.addWidget(self.stackedWidget)
         self.vGeneralLayout.setContentsMargins(0, 0, 0, 0)
 
-        if self._defaultGroup:
-            self.stackedWidget.setCurrentWidget(
-                self._defaultGroup
-            )  # Set Group shown on application start
-            self.pivot.setCurrentItem(
-                self._defaultGroup.objectName()
-            )  # Set Group marked as selected on application start
-            qrouter.setDefaultRouteKey(
-                self.stackedWidget, self._defaultGroup.objectName()
-            )  # Set navigation history to default Group
+        if self._generatorDefaultGroup:
+            defaultGroup = self._generatorDefaultGroup
+        else:
+            self._logger.warning(
+                f"No official default group defined for '{self.titleLabel.text() if self.titleLabel else None}'. Looking for a substitute"
+            )
+            if self._cards:
+                defaultGroup = self._cards[0]
+                self._logger.info("Found a valid card group substitute")
+            else:
+                self._logger.error(
+                    "List has no card groups defined. Substitution impossible"
+                )
+
+        if defaultGroup:
+            # Set Group shown on application start
+            self.stackedWidget.setCurrentWidget(defaultGroup)
+            # Set Group marked as selected on application start
+            self.pivot.setCurrentItem(defaultGroup.objectName())
+            # Set navigation history to default Group
+            qrouter.setDefaultRouteKey(self.stackedWidget, defaultGroup.objectName())
 
     def _connectSignalToSlot(self) -> None:
         self.stackedWidget.currentChanged.connect(self._onCurrentIndexChanged)
