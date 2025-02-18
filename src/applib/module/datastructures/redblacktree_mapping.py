@@ -811,10 +811,9 @@ class RedBlackTreeMapping(RedBlackTree):
                 pass
 
         # Remove child nodes, if any
-        nodes = tn.values[i]  # type: list[tuple[RedBlackTree.Node, Iterable[Hashable]]]
-        if self._check_value(nodes):
-            for u, cps in nodes:
-                cn = u.x  # type: RedBlackTreeMapping.TreeNode
+        node = tn.values[i]
+        if self._check_value(node):
+            for cn, cps in node.x:
                 self.remove(cn.keys[cn.index(cps, "strict")], cps, "strict")
 
         # Adjust position counter
