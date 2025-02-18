@@ -16,8 +16,7 @@ from qfluentwidgets import (
     qrouter,
 )
 
-from applib.module.logging import AppLibLogger
-
+from ...module.logging import AppLibLogger
 from ...module.tools.types.gui_generators import AnyCardGenerator
 
 # InQuad                   // Straight

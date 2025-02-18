@@ -11,10 +11,6 @@ import tomlkit
 import tomlkit.exceptions
 from pydantic import ValidationError
 
-from applib.module.configuration.tools.config_utils.config_enums import (
-    ConfigLoadOptions,
-)
-
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
@@ -23,6 +19,7 @@ from ...tools.utilities import format_validation_error
 from ..internal.core_args import CoreArgs
 from ..mapping_base import MappingBase
 from ..tools.config_tools import ConfigUtils
+from ..tools.config_utils.config_enums import ConfigLoadOptions
 from ..tools.ini_file_parser import IniFileParser
 
 
