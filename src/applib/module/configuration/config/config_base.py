@@ -11,6 +11,10 @@ import tomlkit
 import tomlkit.exceptions
 from pydantic import ValidationError
 
+from applib.module.configuration.tools.config_utils.config_enums import (
+    ConfigLoadOptions,
+)
+
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
@@ -281,7 +285,9 @@ class ConfigBase(MappingBase):
         self,
         validator: Optional[Callable[[Mapping], dict]] = None,
         model_dict: Optional[dict] = None,
-        do_write_config: bool = True,
+        load_options: (
+            ConfigLoadOptions | list[ConfigLoadOptions]
+        ) = ConfigLoadOptions.WRITE_CONFIG,
         retries: int = 1,
     ) -> tuple[dict | None, bool]:
         """
@@ -295,16 +301,16 @@ class ConfigBase(MappingBase):
 
         model_dict : dict | None, optional
             A validated config created by the supplied validation model.
-            NOTE: Must be supplied if `do_write_config` is True.
+            NOTE: Must be supplied if `load_options` contains ConfigLoadOptions.WRITE_CONFIG.
             By default None.
 
-        do_write_config : bool, optional
+        load_options : ConfigLoadOptions | list[ConfigLoadOptions], optional
             Manipulate with files on the file system to recover from soft errors.
-            By default True.
+            By default ConfigLoadOptions.WRITE_CONFIG.
 
         retries : int, optional
             Reload the config X times if soft errors occur.
-            Note: This has no effect if `do_write_config` is False.
+            Note: This has no effect if `load_options` does not contain ConfigLoadOptions.WRITE_CONFIG.
             By default 1.
 
         Returns
@@ -319,10 +325,14 @@ class ConfigBase(MappingBase):
         NotImplementedError
             The file at the config path is not a supported format.
         """
+        if not isinstance(load_options, list):
+            load_options = [load_options]
+
         is_error, failure = False, False
         config = None
         filename = os.path.split(self.file_path)[1]
         extension = os.path.splitext(filename)[1].strip(".")
+        write_config = ConfigLoadOptions.WRITE_CONFIG in load_options
         try:
             with open(self.file_path, "rb") as file:
                 if extension.lower() == "toml":
@@ -335,14 +345,18 @@ class ConfigBase(MappingBase):
                     err_msg = f"{self._prefix_msg()} Cannot load unsupported file '{self.file_path}'"
                     raise NotImplementedError(err_msg)
 
-            config = validator(raw_config) if validator else raw_config
+            if ConfigLoadOptions.IGNORE_VALIDATION_ERROR in load_options:
+                config = raw_config
+
+            if validator:
+                config = validator(raw_config)
         except ValidationError as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
                 f"{self._prefix_msg()} Could not validate '{filename}'"
             )
             self._logger.debug(format_validation_error(err))
-            if do_write_config:
+            if write_config:
                 self.backup_config()
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         except MissingFieldError as err:
@@ -353,7 +367,7 @@ class ConfigBase(MappingBase):
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
             self._logger.warning(err_msg)
-            if do_write_config:
+            if write_config:
                 self._logger.info(f"{self._prefix_msg()} Repairing config")
                 try:
                     repaired_config = self._repair_config(raw_config, model_dict)
@@ -367,7 +381,7 @@ class ConfigBase(MappingBase):
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(f"{self._prefix_msg()} {err.args[0]}")
-            if do_write_config:
+            if write_config:
                 self.backup_config()
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         # TODO: Add separate except with JSONDecodeError
@@ -376,13 +390,13 @@ class ConfigBase(MappingBase):
             self._logger.warning(
                 f"{self._prefix_msg()} Failed to parse '{filename}':\n  {err.args[0]}\n"
             )
-            if do_write_config:
+            if write_config:
                 self.backup_config()
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
             self._logger.info(f"{self._prefix_msg()} Creating '{filename}'")
-            if do_write_config:
+            if write_config:
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         except Exception:
             is_error, is_recoverable = True, False
@@ -398,7 +412,7 @@ class ConfigBase(MappingBase):
                     config, failure = self._load_config(
                         validator=validator,
                         model_dict=model_dict,
-                        do_write_config=do_write_config,
+                        load_options=load_options,
                         retries=retries - 1,
                     )
                 else:
