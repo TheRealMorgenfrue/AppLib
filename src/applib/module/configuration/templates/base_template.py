@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Mapping, Optional, Self, override
+from typing import Any, Hashable, Iterable, Mapping, Optional, Self, Union, override
 
 from ...datastructures.pure.meldableheap import MeldableHeap
 from ...datastructures.pure.skiplist import Skiplist
@@ -99,7 +99,7 @@ class BaseTemplate(MappingBase):
     @override
     def get_value(
         self, key, parents=[], default=None, search_mode="smart", errors="ignore"
-    ) -> Option | GUIOption:
+    ) -> Union[Option, GUIOption, dict]:
         return super().get_value(key, parents, default, search_mode, errors)
 
     def get_settings(self) -> list[_rbtm_item]:
