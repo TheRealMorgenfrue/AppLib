@@ -577,6 +577,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key: Hashable,
         parents: Union[Hashable, Iterable[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
+        get_rbtm_item: bool = False,
     ) -> Any:
         """
         Return the value for `key`.
@@ -607,6 +608,11 @@ class RedBlackTreeMapping(RedBlackTree):
 
             By default "smart".
 
+        get_rbtm_item : bool, optional
+            Get the full definition of `key`.
+            Useful to e.g. construct other trees from.
+            By default False.
+
         Raises
         ------
         KeyError
@@ -618,6 +624,8 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         tn, i = self._find_index(key, parents, search_mode)
         v = tn.values[i]
+        if get_rbtm_item:
+            return tn.get(i)
         return self._tree_dump(self._create_subtree(v)) if self._check_value(v) else v
 
     def add_all(self, iterable: Iterable[_supports_rbtm_iter]):
