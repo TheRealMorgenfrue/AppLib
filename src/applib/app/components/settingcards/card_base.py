@@ -23,7 +23,7 @@ class CardBase:
 
     def __init__(self, card_name: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._card_name = card_name
+        self.card_name = card_name
         self._tooltip_filters = {}  # type: dict[QWidget, ToolTipFilter]
 
     def _createToolTip(
@@ -50,9 +50,6 @@ class CardBase:
         obj.removeEventFilter(tooltip)
         filter = self._tooltip_filters.pop(obj)
         filter.deleteLater()
-
-    def get_card_name(self) -> str:
-        return self._card_name
 
     def get_disablesignal(self) -> pyqtBoundSignal:
         return self.disableCard

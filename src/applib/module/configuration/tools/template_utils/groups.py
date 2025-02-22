@@ -179,7 +179,7 @@ class Group:
         self._children[child] = None
 
     def add_child_card(self, child: AnyCard) -> None:
-        card_name = child.get_card_name()
+        card_name = child.card_name
         if card_name in self._children:
             self._children[card_name] = child
         else:

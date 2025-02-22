@@ -20,7 +20,7 @@ class GeneratorUtils:
     _logger = AppLibLogger().get_logger()
 
     @classmethod
-    def _ensure_bool_child(cls, parent: AnyParentCard, child: AnyCard, group: Group):
+    def _check_bool_child(cls, parent: AnyParentCard, child: AnyCard, group: Group):
         """Used for all sync/desync Groups"""
         parent_option = parent.get_option()
         child_option = child.get_option()
@@ -33,8 +33,8 @@ class GeneratorUtils:
             cls._logger.warning(
                 f"UI Group '{group.get_group_name()}': "
                 + f"The option of both parent and child must be a strictly boolean setting (e.g. switch). "
-                + f"Parent '{parent.get_card_name()}' has option of type '{type(parent_option).__name__}', "
-                + f"child '{child.get_card_name()}' has option of type '{type(child_option).__name__}'"
+                + f"Parent '{parent.card_name}' has option of type '{type(parent_option).__name__}', "
+                + f"child '{child.card_name}' has option of type '{type(child_option).__name__}'"
             )
             return False
 
@@ -136,7 +136,7 @@ class GeneratorUtils:
                 if not is_disabled:
                     if UIGroups.SYNC_CHILDREN in ui_group_parent:
                         for child in group.get_child_cards():
-                            if cls._ensure_bool_child(parent, child, group):
+                            if cls._check_bool_child(parent, child, group):
                                 parent_option.getCheckedSignal().connect(
                                     lambda checked, child=child: cls._sync_children(
                                         checked, child
@@ -145,7 +145,7 @@ class GeneratorUtils:
 
                     if UIGroups.DESYNC_CHILDREN in ui_group_parent:
                         for child in group.get_child_cards():
-                            if cls._ensure_bool_child(parent, child, group):
+                            if cls._check_bool_child(parent, child, group):
                                 parent_option.getCheckedSignal().connect(
                                     lambda checked, child=child: cls._desync_children(
                                         checked, child
@@ -154,7 +154,7 @@ class GeneratorUtils:
 
                     if UIGroups.DESYNC_TRUE_CHILDREN in ui_group_parent:
                         for child in group.get_child_cards():
-                            if cls._ensure_bool_child(parent, child, group):
+                            if cls._check_bool_child(parent, child, group):
                                 parent_option.getCheckedSignal().connect(
                                     lambda checked, child=child: cls._desync_true_children(
                                         checked, child
@@ -163,7 +163,7 @@ class GeneratorUtils:
 
                     if UIGroups.DESYNC_FALSE_CHILDREN in ui_group_parent:
                         for child in group.get_child_cards():
-                            if cls._ensure_bool_child(parent, child, group):
+                            if cls._check_bool_child(parent, child, group):
                                 parent_option.getCheckedSignal().connect(
                                     lambda checked, child=child: cls._desync_false_children(
                                         checked, child
@@ -175,7 +175,7 @@ class GeneratorUtils:
                     parent.notifyCard.emit(("updateState", None))
             except Exception:
                 cls._logger.error(
-                    f"Template '{group.get_template_name()}': An unknown error occurred while connecting cards in UI group '{group.get_group_name()}'\n"
+                    f"Template '{group.get_template_name()}': An error occurred while connecting cards in UI group '{group.get_group_name()}'\n"
                     + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                 )
 
