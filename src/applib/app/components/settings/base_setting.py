@@ -10,7 +10,7 @@ from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.configuration.tools.template_utils.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
-from ..infobar_test import InfoBar, InfoBarPosition
+from ..infobar import InfoBar, InfoBarPosition
 
 
 class BaseSetting(QWidget):

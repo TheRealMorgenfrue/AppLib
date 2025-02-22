@@ -15,7 +15,7 @@ from ...common.core_signalbus import core_signalbus
 from ...common.core_stylesheet import CoreStyleSheet
 from ...components.console_view import ConsoleView
 from ...components.flow_area import FlowArea
-from ...components.infobar_test import InfoBar, InfoBarPosition
+from ...components.infobar import InfoBar, InfoBarPosition
 from .process_subinterface import ProcessSubinterface
 
 

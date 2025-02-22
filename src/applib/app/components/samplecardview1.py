@@ -1,15 +1,15 @@
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QGraphicsOpacityEffect, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import (
-    IconWidget,
-    FlowLayout,
     CardWidget,
+    FlowLayout,
+    IconWidget,
     TeachingTip,
     TeachingTipTailPosition,
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout, QGraphicsOpacityEffect
 
 from ..common.core_stylesheet import CoreStyleSheet
-from .infobar_test import InfoBarIcon
+from .infobar import InfoBarIcon
 
 
 class SampleCard(CardWidget):

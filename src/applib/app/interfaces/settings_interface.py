@@ -9,7 +9,7 @@ from qfluentwidgets import FluentIconBase, PopUpAniStackedWidget, ScrollArea, qr
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.logging import AppLibLogger
 from ..common.core_stylesheet import CoreStyleSheet
-from ..components.infobar_test import InfoBar, InfoBarPosition
+from ..components.infobar import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
 
 

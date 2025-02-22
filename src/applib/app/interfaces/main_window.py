@@ -36,7 +36,7 @@ from ...module.tools.decorators import makeSetupArgs
 from ...module.tools.types.config import AnyConfig
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
-from ..components.infobar_test import InfoBar, InfoBarPosition
+from ..components.infobar import InfoBar, InfoBarPosition
 
 
 class CoreMainWindow(MSFluentWindow):

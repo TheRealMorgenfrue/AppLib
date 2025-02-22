@@ -29,7 +29,7 @@ from .app.components.dialogs.messagebox import TextMessageBox
 from .app.components.dialogs.messagebox_base import Dialog, MessageBoxBase
 from .app.components.flow_area import FlowArea
 from .app.components.fluent_label import FluentLabel
-from .app.components.infobar_test import InfoBar, InfoBarPosition
+from .app.components.infobar import InfoBar, InfoBarPosition
 from .app.components.input_view import InputView
 from .app.components.link_card import LinkCard, LinkCardView
 from .app.components.menu_list_view import MenuListView
