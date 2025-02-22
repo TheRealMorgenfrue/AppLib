@@ -1,42 +1,46 @@
-# This is a temporary fix for the stack overflow mentioned in
-# https://github.com/zhiyiYo/PyQt-Fluent-Widgets/issues/929
+"""
+Modified version of QFluentWidget's InfoBars.
+
+Changes include infobar lifetime tracking to prevent duplicate infobars from appearing concurrently.
+"""
+
+import weakref
 from enum import Enum
 from typing import Optional, Self, Type, Union
-import weakref
 
 from PyQt6.QtCore import (
-    Qt,
-    QEvent,
-    QSize,
-    QRectF,
-    QObject,
-    QPropertyAnimation,
     QEasingCurve,
-    QTimer,
-    pyqtSignal,
+    QEvent,
+    QObject,
     QParallelAnimationGroup,
     QPoint,
+    QPropertyAnimation,
+    QRectF,
+    QSize,
+    Qt,
+    QTimer,
+    pyqtSignal,
 )
-from PyQt6.QtGui import QPainter, QIcon, QColor
+from PyQt6.QtGui import QColor, QIcon, QPainter
 from PyQt6.QtWidgets import (
-    QWidget,
     QFrame,
-    QLabel,
-    QHBoxLayout,
-    QVBoxLayout,
     QGraphicsOpacityEffect,
-)
-from qfluentwidgets import (
-    TextWrap,
-    FluentStyleSheet,
-    themeColor,
-    FluentIconBase,
-    Theme,
-    isDarkTheme,
-    drawIcon,
-    TransparentToolButton,
+    QHBoxLayout,
+    QLabel,
+    QVBoxLayout,
+    QWidget,
 )
 from qfluentwidgets import FluentIcon as FIF
+from qfluentwidgets import (
+    FluentIconBase,
+    FluentStyleSheet,
+    TextWrap,
+    Theme,
+    TransparentToolButton,
+    drawIcon,
+    isDarkTheme,
+    themeColor,
+)
 
 
 class InfoBarIcon(FluentIconBase, Enum):
@@ -103,6 +107,7 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
     ):
         """
@@ -127,16 +132,24 @@ class InfoBar(QFrame):
             the time for info bar to display in milliseconds. If duration is less than zero,
             info bar will never disappear.
 
+        position : InfoBarPosition
+            The position of the infobar on the screen.
+
+        showIfDuplicate : bool
+            Whether to show the infobar if an identical one already exists.
+
         parent: QWidget
             parent widget
         """
         super().__init__(parent=parent)
+        self.id = None
         self.title = title
         self.content = content
         self.orient = orient
         self.icon = icon
         self.duration = duration
         self.isClosable = isClosable
+        self.showDuplicate = showIfDuplicate
         self.position = position
 
         self.titleLabel = QLabel(self)
@@ -277,16 +290,15 @@ class InfoBar(QFrame):
         self.deleteLater()
 
     def showEvent(self, e):
+        if self.position != InfoBarPosition.NONE:
+            manager = InfoBarManager.make(self.position)
+            manager.add(self)
+
         self._adjustText()
         super().showEvent(e)
 
         if self.duration >= 0:
             QTimer.singleShot(self.duration, self._fadeOut)
-
-        if self.position != InfoBarPosition.NONE:
-            manager = InfoBarManager.make(self.position)
-            manager.add(self)
-
         if self.parent():
             self.parent().installEventFilter(self)
 
@@ -317,13 +329,30 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
-    ):
-        w = InfoBar(
-            icon, title, content, orient, isClosable, duration, position, parent
-        )
-        w.show()
-        return w
+    ) -> Self | None:
+        barID = f"{icon}{title}{content}{orient}{duration}{parent}"
+        if InfoBarManager.check(
+            infobarID=barID,
+            position=position,
+            parent=parent,
+            showDuplicate=showIfDuplicate,
+        ):
+            w = InfoBar(
+                icon,
+                title,
+                content,
+                orient,
+                isClosable,
+                duration,
+                position,
+                showIfDuplicate,
+                parent,
+            )
+            w.id = barID
+            w.show()
+            return w
 
     @classmethod
     def info(
@@ -334,8 +363,9 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
-    ):
+    ) -> Self | None:
         return cls.new(
             InfoBarIcon.INFORMATION,
             title,
@@ -344,6 +374,7 @@ class InfoBar(QFrame):
             isClosable,
             duration,
             position,
+            showIfDuplicate,
             parent,
         )
 
@@ -356,8 +387,9 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
-    ):
+    ) -> Self | None:
         return cls.new(
             InfoBarIcon.SUCCESS,
             title,
@@ -366,6 +398,7 @@ class InfoBar(QFrame):
             isClosable,
             duration,
             position,
+            showIfDuplicate,
             parent,
         )
 
@@ -378,8 +411,9 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
-    ):
+    ) -> Self | None:
         return cls.new(
             InfoBarIcon.WARNING,
             title,
@@ -388,6 +422,7 @@ class InfoBar(QFrame):
             isClosable,
             duration,
             position,
+            showIfDuplicate,
             parent,
         )
 
@@ -400,8 +435,9 @@ class InfoBar(QFrame):
         isClosable=True,
         duration=1000,
         position=InfoBarPosition.TOP_RIGHT,
+        showIfDuplicate=False,
         parent=None,
-    ):
+    ) -> Self | None:
         return cls.new(
             InfoBarIcon.ERROR,
             title,
@@ -410,6 +446,7 @@ class InfoBar(QFrame):
             isClosable,
             duration,
             position,
+            showIfDuplicate,
             parent,
         )
 
@@ -425,12 +462,29 @@ class InfoBarManager(QObject):
         self.margin = 24
         self.infoBars = (
             weakref.WeakKeyDictionary()
-        )  # type: weakref.WeakKeyDictionary[QWidget, list[InfoBar]]
+        )  # type: weakref.WeakKeyDictionary[QWidget, dict[str, list[InfoBar]]]
         self.aniGroups = (
             weakref.WeakKeyDictionary()
         )  # type: weakref.WeakKeyDictionary[QWidget, QParallelAnimationGroup]
         self.slideAnis = []  # type: list[QPropertyAnimation]
         self.dropAnis = []  # type: list[QPropertyAnimation]
+
+    @classmethod
+    def check(
+        cls,
+        infobarID: str,
+        position: InfoBarPosition,
+        parent: QWidget | None,
+        showDuplicate: bool,
+    ) -> bool:
+        """Check existence of info bar before instantiating"""
+        if parent:
+            try:
+                exists = infobarID in cls.make(position).infoBars[parent]
+            except KeyError:
+                exists = False
+            return not exists or exists and showDuplicate
+        return False
 
     def add(self, infoBar: InfoBar):
         """add info bar"""
@@ -440,10 +494,10 @@ class InfoBarManager(QObject):
 
         if p not in self.infoBars:
             p.installEventFilter(self)
-            self.infoBars[p] = []
+            self.infoBars[p] = {}
             self.aniGroups[p] = QParallelAnimationGroup(self)
 
-        if infoBar in self.infoBars[p]:
+        if infoBar.id in self.infoBars[p] and not infoBar.showDuplicate:
             return
 
         # add drop animation
@@ -457,7 +511,8 @@ class InfoBarManager(QObject):
             infoBar.setProperty("dropAni", dropAni)
 
         # add slide animation
-        self.infoBars[p].append(infoBar)
+        self.infoBars[p][infoBar.id] = []
+        self.infoBars[p][infoBar.id].append(infoBar)
         slideAni = self._createSlideAni(infoBar)
         self.slideAnis.append(slideAni)
 
@@ -472,10 +527,12 @@ class InfoBarManager(QObject):
         if p not in self.infoBars:
             return
 
-        if infoBar not in self.infoBars[p]:
+        if infoBar.id not in self.infoBars[p]:
             return
 
-        self.infoBars[p].remove(infoBar)
+        self.infoBars[p][infoBar.id].remove(infoBar)
+        if not self.infoBars[p][infoBar.id]:
+            self.infoBars[p].pop(infoBar.id)
 
         # remove drop animation
         dropAni = infoBar.property("dropAni")  # type: QPropertyAnimation | None
@@ -503,10 +560,11 @@ class InfoBarManager(QObject):
         return slideAni
 
     def _updateDropAni(self, parent: QWidget):
-        for bar in self.infoBars[parent]:
-            ani = bar.property("dropAni")  # type: QPropertyAnimation | None
-            if not ani:
-                continue
+        for bars in self.infoBars[parent].values():
+            for bar in bars:
+                ani = bar.property("dropAni")  # type: QPropertyAnimation | None
+                if not ani:
+                    continue
 
             ani.setStartValue(bar.pos())
             ani.setEndValue(self._pos(bar))
@@ -525,8 +583,9 @@ class InfoBarManager(QObject):
 
         if e.type() in [QEvent.Type.Resize, QEvent.Type.WindowStateChange]:
             size = e.size() if e.type() == QEvent.Type.Resize else None
-            for bar in self.infoBars[obj]:
-                bar.move(self._pos(bar, size))
+            for bars in self.infoBars[obj].values():
+                for bar in bars:
+                    bar.move(self._pos(bar, size))
 
         return super().eventFilter(obj, e)
 
@@ -567,9 +626,16 @@ class TopInfoBarManager(InfoBarManager):
 
         x = (infoBar.parent().width() - infoBar.width()) // 2
         y = self.margin
-        index = self.infoBars[p].index(infoBar)
-        for bar in self.infoBars[p][0:index]:
-            y += bar.height() + self.spacing
+
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y += bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y += bar.height() + self.spacing
 
         return QPoint(x, y)
 
@@ -588,9 +654,16 @@ class TopRightInfoBarManager(InfoBarManager):
 
         x = parentSize.width() - infoBar.width() - self.margin
         y = self.margin
-        index = self.infoBars[p].index(infoBar)
-        for bar in self.infoBars[p][0:index]:
-            y += bar.height() + self.spacing
+
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y += bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y += bar.height() + self.spacing
 
         return QPoint(x, y)
 
@@ -609,9 +682,15 @@ class BottomRightInfoBarManager(InfoBarManager):
         x = parentSize.width() - infoBar.width() - self.margin
         y = parentSize.height() - infoBar.height() - self.margin
 
-        index = self.infoBars[p].index(infoBar)
-        for bar in self.infoBars[p][0:index]:
-            y -= bar.height() + self.spacing
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y -= bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y -= bar.height() + self.spacing
 
         return QPoint(x, y)
 
@@ -628,10 +707,16 @@ class TopLeftInfoBarManager(InfoBarManager):
         parentSize = parentSize or p.size()
 
         y = self.margin
-        index = self.infoBars[p].index(infoBar)
 
-        for bar in self.infoBars[p][0:index]:
-            y += bar.height() + self.spacing
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y += bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y += bar.height() + self.spacing
 
         return QPoint(self.margin, y)
 
@@ -648,10 +733,16 @@ class BottomLeftInfoBarManager(InfoBarManager):
         parentSize = parentSize or p.size()
 
         y = parentSize.height() - infoBar.height() - self.margin
-        index = self.infoBars[p].index(infoBar)
 
-        for bar in self.infoBars[p][0:index]:
-            y -= bar.height() + self.spacing
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y -= bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y -= bar.height() + self.spacing
 
         return QPoint(self.margin, y)
 
@@ -669,10 +760,16 @@ class BottomInfoBarManager(InfoBarManager):
 
         x = (parentSize.width() - infoBar.width()) // 2
         y = parentSize.height() - infoBar.height() - self.margin
-        index = self.infoBars[p].index(infoBar)
 
-        for bar in self.infoBars[p][0:index]:
-            y -= bar.height() + self.spacing
+        for bar_id, bars in self.infoBars[p].items():
+            if infoBar.id == bar_id:
+                break
+            for bar in bars:
+                y -= bar.height() + self.spacing
+
+        # index = self.infoBars[p].index(infoBar)
+        # for bar in self.infoBars[p][0:index]:
+        #     y -= bar.height() + self.spacing
 
         return QPoint(x, y)
 
