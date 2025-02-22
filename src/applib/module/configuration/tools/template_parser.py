@@ -246,7 +246,7 @@ class TemplateParser:
 
         # The minimum value should be the smallest value available for a given setting
         min_values = []
-        if option.defined(option.min):
+        if option.defined(option.min) and option.min is not None:
             min_values.append(option.min)
             if option.defined(option.ui_disable_self):
                 min_values.append(option.ui_disable_self)
