@@ -96,12 +96,6 @@ class BaseTemplate(MappingBase):
                 pass
         return super().remove(key, parent, immediate)
 
-    @override
-    def get_value(
-        self, key, parents=[], default=None, search_mode="smart", errors="ignore"
-    ) -> Union[Option, GUIOption, dict]:
-        return super().get_value(key, parents, default, search_mode, errors)
-
     def get_settings(self) -> list[_rbtm_item]:
         """
         Get settings with corresponding options as specified in the template documentation.
