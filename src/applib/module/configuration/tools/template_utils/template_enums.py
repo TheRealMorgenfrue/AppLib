@@ -2,77 +2,143 @@ from enum import Enum
 
 
 class UIGroups(Enum):
-    """Enums for ui_group_parent features"""
+    """Enums for template system's ui_group_parent features"""
 
-    # This setting and its children will be clustered together.
-    # Essentially a 'flat' NESTED_CHILDREN, i.e. they're all nested on the same level.
-    # CLUSTERED and NESTED_CHILDREN are mutually exclusive!
-    CLUSTERED = 0  # (Applies to: All)
+    CLUSTERED = 0
+    """
+    This setting and its children will be clustered together.
 
-    # This setting's children will be nested under it.
-    # However, the specifics of the nesting depend on the GUI Generator used.
-    # NESTED_CHILDREN and CLUSTERED are mutually exclusive!
-    NESTED_CHILDREN = 1  # (Applies to: All)
+    Essentially a 'flat' NESTED_CHILDREN, i.e. they're all nested on the same level.
 
-    # This setting disables all child settings in its group when it changes state.
-    DISABLE_CHILDREN = 4  # (Applies to: All)
+    NOTE: CLUSTERED and NESTED_CHILDREN are mutually exclusive!
+    #### Applies to: All
+    """
 
-    # This setting's children will change their value according to their parent.
-    SYNC_CHILDREN = 6  # (Applies to: Switch, CheckBox)
+    NESTED_CHILDREN = 1
+    """
+    This setting's children will be nested under it.
 
-    # This setting's children will change their value opposite of their parent.
-    DESYNC_CHILDREN = 7  # (Applies to: Switch, CheckBox)
+    However, the specifics of the nesting depend on the GUI Generator used.
 
-    # This setting's children will change their value according to the value of the parent.
-    # If Parent is True, then Child is True.
-    # Example:
-    #   Parent = True --> Child = True
-    #   Parent = False --> Child = <current_value>
-    DESYNC_TRUE_CHILDREN = 8  # (Applies to: Switch, CheckBox)
+    NOTE: NESTED_CHILDREN and CLUSTERED are mutually exclusive!
+    #### Applies to: All
+    """
 
-    # This setting's children will change their value according to the value of the parent.
-    # If Parent is True, then Child is False
-    # Example:
-    #   Parent = True --> Child = False
-    #   Parent = False --> Child = <current_value>
-    DESYNC_FALSE_CHILDREN = 9  # (Applies to: Switch, CheckBox)
+    DISABLE_CHILDREN = 4
+    """
+    This setting disables all child settings in its group when it changes state.
+
+    #### Applies to: All
+    """
+
+    SYNC_CHILDREN = 6
+    """
+    This setting's children will change their value according to their parent.
+
+    ##### Applies to: Booleans (e.g. Switch, CheckBox)
+    """
+
+    DESYNC_CHILDREN = 7
+    """
+    This setting's children will change their value opposite of their parent.
+
+    #### Applies to: Booleans (e.g. Switch, CheckBox)
+    """
+
+    DESYNC_TRUE_CHILDREN = 8
+    """
+    This setting's children will change their value according to the value of the parent.
+
+    If Parent is True, then Child is True.
+
+    Example:
+    ```
+    if parent:
+        child = True
+    else:
+        child = child
+    ```
+
+    #### Applies to: Booleans (e.g. Switch, CheckBox)
+    """
+
+    DESYNC_FALSE_CHILDREN = 9
+    """
+    This setting's children will change their value according to the value of the parent.
+
+    If Parent is True, then Child is False
+
+    Example:
+    ```
+    if parent:
+        child = False
+    else:
+        child = child
+    ```
+
+    #### Applies to: Booleans (e.g. Switch, CheckBox)
+    """
 
 
 class UITypes(Enum):
     """Enums for specifying GUI widget types"""
 
-    # True/False
     CHECKBOX = 0
+    """
+    Select a boolean value (True/False).
+    """
 
-    # Select color from color space
     COLOR_PICKER = 3
+    """
+    Select color from RGB color space.
+    """
 
-    # Drop-down select one of X possible values
     COMBOBOX = 6
+    """
+    Drop-down select one of X possible values.
+    """
 
-    # Select file
     FILE_SELECTION = 9
+    """
+    Select a file or folder on the file system.
 
-    # One-line text field
+    NOTE: Selection of multiple files not yet supported.
+    """
+
     LINE_EDIT = 12
+    """
+    One-line editable text field.
+    """
 
-    # Sliding integer range
     SLIDER = 15
+    """
+    Sliding integer range.
+    """
 
-    # Integer/float input in an allowed range
     SPINBOX = 18
+    """
+    Integer/float input in an allowed range.
+    """
 
-    # True/False
     SWITCH = 21
+    """
+    Select a boolean value (True/False).
+    """
 
 
 class UIFlags(Enum):
     """Special GUI flags that apply to individual settings"""
 
-    # Setting requires a full reload of the app to take effect
-    # The user is informed of this in the GUI
     REQUIRES_RELOAD = 0
+    """
+    Setting requires a full reload of the app to take effect.
 
-    # Exclude this setting from the GUI.
-    # No GUI element will be created for this setting.
+    The user is informed of this in the GUI.
+    """
+
     EXCLUDE = 1
+    """
+    Exclude this setting from the GUI.
+
+    No GUI element will be created for this setting.
+    """
