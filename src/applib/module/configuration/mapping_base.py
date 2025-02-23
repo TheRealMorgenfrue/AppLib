@@ -21,11 +21,8 @@ class MappingBase(RedBlackTreeMapping):
         """Prefix log messages with this string. Should include self.name."""
         ...
 
-    def _check_setting(self, v) -> bool:
-        try:
-            return isinstance(v, Option) or isinstance(v.x[0][0], Option)
-        except Exception:
-            return False
+    @abstractmethod
+    def _check_setting(self, v) -> bool: ...
 
     @override
     def _add(

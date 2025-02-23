@@ -76,6 +76,16 @@ class ConfigBase(MappingBase):
             self.name = new_name
 
     @override
+    def _check_setting(self, v) -> bool:
+        check = False
+        try:
+            check = not isinstance(v, dict)
+            check = check or not isinstance(v.x[0][0], dict)
+        except Exception:
+            pass
+        return check
+
+    @override
     def _prefix_msg(self) -> str:
         return f"Config '{self.name}':"
 

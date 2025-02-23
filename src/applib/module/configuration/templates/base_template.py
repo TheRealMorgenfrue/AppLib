@@ -7,6 +7,7 @@ from ...datastructures.redblacktree_mapping import (
 )
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
+from ..tools.template_utils.options import Option
 
 
 class BaseTemplate(MappingBase):
@@ -32,7 +33,7 @@ class BaseTemplate(MappingBase):
             A mapping of icons to keys in `template`.
             By default None.
         """
-        self.icons = icons
+        self.icons = icons  # TODO: Add full icon support to templates in AppLib
         super().__init__([template], name)
 
     def __or__(self, other):
@@ -55,6 +56,16 @@ class BaseTemplate(MappingBase):
         super(type(new), new).__init__(name, [], icons)
         new.add_all(iterable)
         return new
+
+    @override
+    def _check_setting(self, v) -> bool:
+        check = False
+        try:
+            check = isinstance(v, Option)
+            check = check or isinstance(v.x[0][0], Option)
+        except Exception:
+            pass
+        return check
 
     @override
     def _prefix_msg(self) -> str:
