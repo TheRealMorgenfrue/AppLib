@@ -714,16 +714,26 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         self._add(key, value, position, parents, *args, **kwargs)
 
-    def add_mapping(self, m: Mapping):
+    def add_mapping(self, m: Mapping, parents: Iterable[Hashable] = []):
         """
         Add all key-value pairs in `m` to this tree.
 
         Overwrites existing keys in this tree with keys from `m`.
+
+        Parameters
+        ----------
+        m : Mapping
+            The map to add.
+
+        parents : Iterable[Hashable], optional
+            Add map starting from this parent path.
+            The last element in the iterable denotes the "root" key this map is appended to,
+            which overwrites the previous value of "root" key.
         """
         if not m:
             return
         q = deque(
-            [(m, [], [None], None)]
+            [(m, parents, [None], None)]
         )  # type: deque[tuple[Mapping, list, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
         while q:
             d, ps, pos, tnp_tuple = q.popleft()
@@ -745,14 +755,28 @@ class RedBlackTreeMapping(RedBlackTree):
                     # child <- parent
                     tn._parent_nodes[tn.index(ps)] = tnp_tuple
 
-    def add_tree(self, t: Self):
+    def add_tree(self, t: Self, parents: Iterable[Hashable] = []):
         """
         Add all key-value pairs in `t` to this tree.
 
         Overwrites existing keys in this tree with keys from `t`.
+
+        Parameters
+        ----------
+        t : Self
+            The tree to add.
+
+        parents : Iterable[Hashable], optional
+            Add tree starting from this parent path.
+            The last element in the iterable denotes the "root" key this tree is appended to,
+            which overwrites the previous value of "root" key.
         """
         for node in t:
-            self.add(*node)
+            if parents:
+                k, v, pos, ps = node
+                self.add(k, v, pos, [*parents, *ps])
+            else:
+                self.add(*node)
 
     def remove(
         self,
@@ -833,7 +857,6 @@ class RedBlackTreeMapping(RedBlackTree):
         key: Hashable,
         value: Any,
         parents: Union[Hashable, Iterable[Hashable]] = [],
-        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ):
         """
         Update value of `key` with `value`.
@@ -849,38 +872,14 @@ class RedBlackTreeMapping(RedBlackTree):
         parents : Hashable | Iterable[Hashable], optional
             The parent of `key`.
             By default [].
-
-        search_mode : Literal["strict", "smart", "immediate", "any"], optional
-            How to search for `key`.
-            - "strict"
-                &ensp; Requires `parents` to match exactly.
-                I.e. ["a", "b"] == ["a", "b"]
-            - "smart"
-                &ensp; Tries to find the key using different heuristics.
-                Note that it can result in the wrong key under certain conditions.
-            - "immediate"
-                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
-                I.e. "b" == ["a", "b"]
-            - "any"
-                &ensp; Requires `parents` to be a Hashable that matches any parent.
-                I.e. "a" == ["a", "b"]
-
-            By default "smart".
-
-        Raises
-        ------
-        KeyError
-            If the combination of (`key`,`parents`) does not exist.
-
-        LookupError
-            If a key-value pair can not be uniquely identified from (`key`,`parents`).
-            Can happen if `parents` information is insufficient.
         """
-        if isinstance(value, (Mapping, RedBlackTreeMapping)):
-            self.add_all([value])
-        else:
-            tn, i = self._find_index(key, parents, search_mode)
-            tn.values[i] = value
+        if isinstance(parents, Hashable):
+            parents = [parents]
+
+        if isinstance(value, Mapping):
+            self.add_mapping(value, [*parents, key])
+        elif isinstance(value, RedBlackTreeMapping):
+            self.add_tree(value, [*parents, key])
         self._modified = True
 
     def rename(
