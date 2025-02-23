@@ -111,17 +111,17 @@ class CardStackBase(ScrollArea):
             defaultGroup = self._generatorDefaultGroup
         else:
             self._logger.warning(
-                f"No official default group defined for '{self.titleLabel.text() if self.titleLabel else None}'. Looking for a substitute"
+                f"No official default group defined for '{self.titleLabel.text() if self.titleLabel else None}'"
             )
             if self._cards:
                 defaultGroup = self._cards[0]
-                self._logger.info("Found a valid card group substitute")
             else:
                 self._logger.error(
-                    "List has no card groups defined. Substitution impossible"
+                    "List has no card groups defined. Substitution impossible. Nothing will be shown"
                 )
+                defaultGroup = None
 
-        if defaultGroup:
+        if defaultGroup is not None:
             # Set Group shown on application start
             self.stackedWidget.setCurrentWidget(defaultGroup)
             # Set Group marked as selected on application start
