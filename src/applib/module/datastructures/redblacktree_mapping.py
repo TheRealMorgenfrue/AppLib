@@ -15,7 +15,7 @@ from .pure.meldableheap import MeldableHeap
 from .pure.redblacktree import RedBlackTree
 from .pure.skiplist import Skiplist
 
-_rbtm_key: TypeAlias = tuple[Hashable, Hashable, bool]
+_rbtm_key: TypeAlias = tuple[Hashable, Hashable, str]
 _rbtm_item: TypeAlias = tuple[Hashable, Any, Iterable[int], Iterable[Hashable]]
 _rbtm_iterable: TypeAlias = Iterable[_rbtm_item]
 _rbtm_mapping: TypeAlias = Union[Mapping, "RedBlackTreeMapping"]
@@ -345,8 +345,14 @@ class RedBlackTreeMapping(RedBlackTree):
         return self._convert_lookup_error(self.find, *self._check_key(key))
 
     def __setitem__(self, key, value):
-        k, p, im = self._check_key(key)
-        self._convert_lookup_error(self.update, k, value, p, im)
+        k, p, mode = self._check_key(key)
+        try:
+            # Try to infer the full parent path
+            tn, i = self._find_index(key, p, mode)
+            p = tn.parents[i]
+        except (KeyError, LookupError):
+            pass
+        self._convert_lookup_error(self.update, k, value, p)
 
     def __delitem__(self, key):
         self._convert_lookup_error(self.remove, *self._check_key(key))
@@ -412,7 +418,7 @@ class RedBlackTreeMapping(RedBlackTree):
         ValueError
             Key is invalid.
         """
-        k, p, mode = key, None, "smart"
+        k, p, mode = key, [], "smart"
         if isinstance(key, (tuple)):
             try:
                 if len(key) == 2:
