@@ -255,7 +255,7 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def __init__(
         self,
-        iterable: Iterable[_supports_rbtm_iter] = [],
+        elements: list[_supports_rbtm_iter] = [],
         name: str = "",
     ):
         """
@@ -266,15 +266,26 @@ class RedBlackTreeMapping(RedBlackTree):
         from key `k` to the root for any `k` in the tree. Thus, every key can be uniquely identified
         by combining (key, parents).
 
-        This structure is able to store arbitrary objects with O(log n) worst-case time searches,
-        additions, and removals. It has a space complexity of O(n).
+        This structure is able to store arbitrary objects with
+        - O(s + log n) worst-case time searches
+        - O(m*(p + log n)) worst-case time additions
+        - O(c*log n + log n) worst-case time removals
+
+        where
+        - s is the size of the subtree
+        - m is the size of the input to be added
+        - p is the size of the parent path for an item in m
+        - n is the size of the tree
+        - c is the number of child nodes the removed node has
+
+        It has a space complexity of O(n).
 
         Parameters
         ----------
-        iterable : Iterable[_supports_rbtm_iter], optional
-            Add elements in `iterable` to the tree.
+        elements : list[_supports_rbtm_iter], optional
+            Add items in `elements` to the tree.
 
-            `iterable` may contain any of:
+            `elements` may contain any of:
             - _rbtm_iterable : Iterable[_rbtm_item]
                 A tuple that must contain 3 or 4 items (`key`, `value`, `position`, `parents`), where `parents` may be omitted.
                 key : Hashable
@@ -303,7 +314,7 @@ class RedBlackTreeMapping(RedBlackTree):
         self._position_tracker = []
         self._modified = False
         self._dump_cache = None
-        self.add_all(iterable)
+        self.add_all(elements)
 
     def __iter__(self) -> Generator[_rbtm_item, Any, None]:
         heap = MeldableHeap()
@@ -482,9 +493,8 @@ class RedBlackTreeMapping(RedBlackTree):
                         updated = True
                         break
         else:
-            pos_len = len(position)
             current_pos = ""
-            for j in range(pos_len - 1 if pos_len > 1 else pos_len):
+            for j in range(len(position)):
                 current_pos += f"{position[j]}"
                 if current_pos in self._structure_tracker:
                     key_j, ps_j = self._structure_tracker[current_pos]
@@ -645,14 +655,14 @@ class RedBlackTreeMapping(RedBlackTree):
             return tn.get(i)
         return self._tree_dump(self._create_subtree(v)) if self._check_value(v) else v
 
-    def add_all(self, iterable: Iterable[_supports_rbtm_iter]):
+    def add_all(self, elements: list[_supports_rbtm_iter]):
         """
-        Add elements in `iterable` to the tree.
+        Add items in `elements` to the tree.
 
         Parameters
         ----------
-        iterable : Iterable[_supports_rbtm_iter]
-            `iterable` may contain any of:
+        elements : list[_supports_rbtm_iter]
+            `elements` may contain any of:
             - _rbtm_iterable : Iterable[_rbtm_item]
                 The tuple must contain 3 or 4 items (`key`, `value`, `position`, `parents`), where `parents` may be omitted.
                     key : Hashable
@@ -670,7 +680,7 @@ class RedBlackTreeMapping(RedBlackTree):
             - RedBlackTreeMapping :
                 An instance of this class.
         """
-        for x in iterable:
+        for x in elements:
             if isinstance(x, Mapping):
                 self.add_mapping(x)
             elif isinstance(x, RedBlackTreeMapping):
@@ -998,14 +1008,7 @@ class RedBlackTreeMapping(RedBlackTree):
         return dump
 
     def dump(self) -> dict[Hashable, Any]:
-        """
-        Generate a dictionary representation of the tree.
-
-        Returns
-        -------
-        dict[Hashable, Any]
-            A dictionary representation of the tree.
-        """
+        """Generate a dictionary representation of the tree."""
         if self._modified or self._dump_cache is None:
             self._dump_cache = self._tree_dump(self)
             self._modified = False
