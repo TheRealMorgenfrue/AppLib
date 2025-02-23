@@ -21,8 +21,8 @@ class MappingBase(RedBlackTreeMapping):
     @abstractmethod
     def _is_setting(self, item: _rbtm_item) -> bool: ...
 
-    def update(self, key, value, parents=..., search_mode="smart"):
-        super().update(key, value, parents, search_mode)
+    def update(self, key, value, parents=[]):
+        super().update(key, value, parents)
         self._settings_cache = None
 
     def get_settings(self) -> list[_rbtm_item]:
