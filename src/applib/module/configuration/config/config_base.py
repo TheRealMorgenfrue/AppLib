@@ -12,6 +12,7 @@ import tomlkit.exceptions
 from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
+from ...datastructures.redblacktree_mapping import _rbtm_item
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...tools.types.general import Model, StrPath
 from ...tools.types.templates import AnyTemplate
@@ -76,8 +77,9 @@ class ConfigBase(MappingBase):
             self.name = new_name
 
     @override
-    def _check_setting(self, v) -> bool:
+    def _is_setting(self, item: _rbtm_item) -> bool:
         check = False
+        k, v, pos, ps = item
         try:
             check = not isinstance(v, dict)
             check = check or not isinstance(v.x[0][0], dict)

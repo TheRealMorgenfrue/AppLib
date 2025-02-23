@@ -1,18 +1,15 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Literal, Union, override
+from typing import Any, Hashable, Iterable, Literal, Union
 
 from ..datastructures.pure.meldableheap import MeldableHeap
-from ..datastructures.pure.skiplist import Skiplist
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
 from ..logging import AppLibLogger
-from .tools.template_utils.options import Option
 
 
 class MappingBase(RedBlackTreeMapping):
     _logger = AppLibLogger().get_logger()
 
     def __init__(self, iterable=[], name=""):
-        self._settings = Skiplist()
         self._settings_cache = None
         super().__init__(iterable, name)
 
@@ -22,31 +19,11 @@ class MappingBase(RedBlackTreeMapping):
         ...
 
     @abstractmethod
-    def _check_setting(self, v) -> bool: ...
+    def _is_setting(self, item: _rbtm_item) -> bool: ...
 
-    @override
-    def _add(
-        self,
-        key: Hashable,
-        value: Any,
-        position: Iterable[int],
-        parents: Iterable[Hashable] = [],
-        *args,
-        **kwargs,
-    ):
-        if self._check_setting(value):
-            self._settings.append((key, value, position, parents))
-        return super()._add(key, value, position, parents, *args, **kwargs)
-
-    @override
-    def remove(self, key, parent=None, immediate=True):
-        tn, i = self._find_index(key, parent, immediate)
-        if len(tn) < 2:
-            try:
-                self._settings.remove(tn)
-            except ValueError:
-                pass
-        return super().remove(key, parent, immediate)
+    def update(self, key, value, parents=..., search_mode="smart"):
+        super().update(key, value, parents, search_mode)
+        self._settings_cache = None
 
     def get_settings(self) -> list[_rbtm_item]:
         """
@@ -57,9 +34,13 @@ class MappingBase(RedBlackTreeMapping):
         list[dict[Hashable, Any]]
             A position-prioritised list of settings.
         """
-        if self._modified or self._settings_cache is None:
+        if self._settings_cache is None:
             heap = MeldableHeap(
-                [RedBlackTreeMapping.HeapNode(*item) for item in self._settings]
+                [
+                    RedBlackTreeMapping.HeapNode(*item)
+                    for item in self
+                    if self._is_setting(item)
+                ]
             )
             d_settings = []
             while heap:

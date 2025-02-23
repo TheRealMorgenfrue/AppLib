@@ -3,6 +3,7 @@ from typing import Mapping, Optional, Self, override
 
 from ...datastructures.redblacktree_mapping import (
     RedBlackTreeMapping,
+    _rbtm_item,
     _supports_rbtm_iter,
 )
 from ...tools.types.general import iconDict
@@ -58,8 +59,9 @@ class BaseTemplate(MappingBase):
         return new
 
     @override
-    def _check_setting(self, v) -> bool:
+    def _is_setting(self, item: _rbtm_item) -> bool:
         check = False
+        k, v, pos, ps = item
         try:
             check = isinstance(v, Option)
             check = check or isinstance(v.x[0][0], Option)
