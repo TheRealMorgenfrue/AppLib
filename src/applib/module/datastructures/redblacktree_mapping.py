@@ -16,7 +16,7 @@ from .pure.redblacktree import RedBlackTree
 from .pure.skiplist import Skiplist
 
 _rbtm_key: TypeAlias = tuple[Hashable, Hashable, str]
-_rbtm_item: TypeAlias = tuple[Hashable, Any, Iterable[int], Iterable[Hashable]]
+_rbtm_item: TypeAlias = tuple[Hashable, Any, list[int], Iterable[Hashable]]
 _rbtm_iterable: TypeAlias = Iterable[_rbtm_item]
 _rbtm_mapping: TypeAlias = Union[Mapping, "RedBlackTreeMapping"]
 _supports_rbtm_iter: TypeAlias = Union[_rbtm_iterable, _rbtm_mapping]
@@ -28,7 +28,7 @@ class RedBlackTreeMapping(RedBlackTree):
             self,
             k: Hashable,
             v: Any,
-            pos: Iterable[int],
+            pos: list[int],
             ps: Union[Hashable, Iterable[Hashable], None],
         ):
             self._idx = f"{k}".encode(errors="replace")
@@ -169,7 +169,7 @@ class RedBlackTreeMapping(RedBlackTree):
             self,
             k: Hashable,
             v: Any,
-            pos: Iterable[int],
+            pos: list[int],
             ps: Iterable[Hashable],
         ):
             """
@@ -209,7 +209,7 @@ class RedBlackTreeMapping(RedBlackTree):
             self,
             k: Hashable,
             v: Any,
-            pos: Iterable[int],
+            pos: list[int],
             ps: Iterable[Hashable],
         ):
             self.k = k
@@ -245,7 +245,7 @@ class RedBlackTreeMapping(RedBlackTree):
             self,
             k: Hashable,
             v: Any,
-            pos: Iterable[int],
+            pos: list[int],
             ps: Iterable[Hashable],
         ):
             super().__init__(k, v, pos, ps)
@@ -281,7 +281,7 @@ class RedBlackTreeMapping(RedBlackTree):
                     Key to insert.
                 value : Any
                     Value mapped to `key`.
-                position : Iterable[int]
+                position : list[int]
                     The index of `key` and all its parents in the mapping.
                     The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
                 parents : Iterable[Hashable], optional
@@ -441,29 +441,40 @@ class RedBlackTreeMapping(RedBlackTree):
         self,
         idx: int,
         key: Hashable,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable],
     ) -> Iterable[int]:
         try:
             self._position_tracker[idx] += 1
         except IndexError:
-            self._position_tracker.append(0)
-        position[idx] = self._position_tracker[idx]
+            for i in range(idx - len(self._position_tracker)):
+                self._position_tracker.append(0)
+
+        try:
+            position[idx] = self._position_tracker[idx]
+        except IndexError:
+            for i in range(len(position), len(self._position_tracker)):
+                position.append(self._position_tracker[i] + 1)
+
         pos_i = "".join([f"{v}" for v in position])
         self._structure_tracker[pos_i] = (key, parents)
 
     def _normalize_position(
-        self, key: Hashable, position: Iterable[int], parents: Iterable[Hashable]
+        self, key: Hashable, position: list[int], parents: Iterable[Hashable]
     ) -> Iterable[int]:
         """Ensure position of keys remain predictable during unions"""
         pos_i = "".join([f"{v}" for v in position])
         updated = False
         if pos_i in self._structure_tracker:
             key_i, ps_i = self._structure_tracker[pos_i]
-            if len(parents) == len(ps_i) == 0:
-                if key != key_i:
-                    self._update_position(0, key, position, parents)
-                    updated = True
+            parents_len, ps_i_len = len(parents), len(ps_i)
+            if ps_i_len == 0:
+                if parents_len == 0:
+                    if key != key_i:
+                        self._update_position(0, key, position, parents)
+                        updated = True
+                else:
+                    self._update_position(parents_len, key, position, parents)
             else:
                 for i, p_i in enumerate(ps_i):
                     if parents[i] != p_i:
@@ -491,7 +502,7 @@ class RedBlackTreeMapping(RedBlackTree):
         if not updated:
             self._update_position(len(parents), key, position, parents)
 
-    def _remove_position(self, position: Iterable[int]):
+    def _remove_position(self, position: list[int]):
         pos_i = "".join([f"{v}" for v in position])
         try:
             self._structure_tracker.pop(pos_i)
@@ -648,7 +659,7 @@ class RedBlackTreeMapping(RedBlackTree):
                         Key to insert.
                     value : Any
                         Value mapped to `key`.
-                    position : Iterable[int]
+                    position : list[int]
                         The index of `key` and all its parents in the mapping.
                         The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
                     parents : Iterable[Hashable], optional
@@ -672,7 +683,7 @@ class RedBlackTreeMapping(RedBlackTree):
         self,
         key: Hashable,
         value: Any,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable] = [],
         *args,
         __normalize___=True,
@@ -694,7 +705,7 @@ class RedBlackTreeMapping(RedBlackTree):
         self,
         key: Hashable,
         value: Any,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable] = [],
         *args,
         **kwargs,
@@ -710,7 +721,7 @@ class RedBlackTreeMapping(RedBlackTree):
         value : Any
             Map value to `key`.
 
-        position : Iterable[int]
+        position : list[int]
             The index of `key` and all its parents in the mapping.
             The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
 
@@ -777,12 +788,26 @@ class RedBlackTreeMapping(RedBlackTree):
             The last element in the iterable denotes the "root" key this tree is appended to,
             which overwrites the previous value of "root" key.
         """
-        for node in t:
+        for i, item in enumerate(t):
+            k, v, pos, ps = item
             if parents:
-                k, v, pos, ps = node
-                self.add(k, v, pos, [*parents, *ps])
+                if i == 0:
+                    # The root node of the t must be connected to the tree
+                    tn_ps = parents[:-2]
+                    tn, tn_i = self._find_index(parents[-1], tn_ps)
+                    # Create reference to child nodes
+                    tn.values[tn_i] = node = RedBlackTree.Node([])
+                    tnp = (tn, tn_ps)
+                c_ps = [*parents, *ps]
+                cn = self._add(k, v, pos, c_ps)
+
+                # parent <- child
+                node.x.append((cn, c_ps))
+                # child <- parent
+                cn._parent_nodes[cn.index(c_ps)] = tnp
+                tnp = (cn, c_ps)
             else:
-                self.add(*node)
+                self.add(*item)
 
     def remove(
         self,
