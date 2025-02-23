@@ -12,7 +12,7 @@ class ValidationTree(RedBlackTreeMapping):
             self,
             setting: Hashable,
             value: Any,
-            position: Iterable[int],
+            position: list[int],
             parents: Iterable[Hashable],
             validator: Callable,
         ):
@@ -37,7 +37,7 @@ class FieldTree(RedBlackTreeMapping):
             self,
             setting: Hashable,
             value: Any,
-            position: Iterable[int],
+            position: list[int],
             parents: Iterable[Hashable],
         ):
             super().__init__(setting, value, position, parents)
@@ -115,7 +115,7 @@ class FieldTree(RedBlackTreeMapping):
         self,
         setting: Hashable,
         value: Any,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable],
     ):
         """
@@ -148,7 +148,7 @@ class ValidationInfo:
         self,
         setting: Hashable,
         field: dict,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable],
     ):
         self.fields.add(setting, field, position, parents)
@@ -156,7 +156,7 @@ class ValidationInfo:
     def add_setting_validation(
         self,
         setting: Hashable,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable],
         validators: list[Callable],
     ):

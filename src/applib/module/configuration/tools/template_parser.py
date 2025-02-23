@@ -227,7 +227,7 @@ class TemplateParser:
         self,
         setting: str,
         option: Option | GUIOption,
-        position: Iterable[int],
+        position: list[int],
         parents: Iterable[Hashable],
         validation_info: ValidationInfo,
     ):
