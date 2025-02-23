@@ -849,10 +849,14 @@ class RedBlackTreeMapping(RedBlackTree):
                 pass
 
         # Remove child nodes, if any
-        node = tn.values[i]
-        if self._check_value(node):
-            for cn, cps in node.x:
-                self.remove(cn.keys[cn.index(cps, "strict")], cps, "strict")
+        children = deque([tn.values[i]])
+        while children:
+            node = children.popleft()
+            if self._check_value(node):
+                for cn, cps in node.x:
+                    i = cn.index(cps, "strict")
+                    self.remove(cn.keys[i], cps, "strict")
+                    children.append(cn.values[i])
 
         # Adjust position counter
         self._remove_position(tn.positions[i])
