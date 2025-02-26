@@ -268,11 +268,11 @@ class RedBlackTreeMapping(RedBlackTree):
 
         This structure is able to store arbitrary objects with
         - O(s + log n) worst-case time searches
-        - O(m*(p + log n)) worst-case time additions
-        - O(c*log n + log n) worst-case time removals
+        - O(m * (p + log n)) worst-case time additions
+        - O(c * log n + log n) worst-case time removals
 
         where
-        - s is the size of the subtree
+        - s is the size of the subtree searched for
         - m is the size of the input to be added
         - p is the size of the parent path for an item in m
         - n is the size of the tree
@@ -310,7 +310,9 @@ class RedBlackTreeMapping(RedBlackTree):
         super().__init__()
         self.name = name
         self._key_count = 0
-        self._structure_tracker = {}  # type: dict[str, tuple[str, list]]
+        self._structure_tracker = (
+            {}
+        )  # type: dict[str, tuple[Hashable, Iterable[Hashable]]]
         self._position_tracker = []
         self._modified = False
         self._dump_cache = None
@@ -458,40 +460,36 @@ class RedBlackTreeMapping(RedBlackTree):
         try:
             self._position_tracker[idx] += 1
         except IndexError:
-            for i in range(idx - len(self._position_tracker)):
-                self._position_tracker.append(0)
+            self._position_tracker.append(0)
 
-        try:
-            position[idx] = self._position_tracker[idx]
-        except IndexError:
-            for i in range(len(position), len(self._position_tracker)):
-                position.append(self._position_tracker[i] + 1)
-
+        position[idx] = self._position_tracker[idx]
         pos_i = "".join([f"{v}" for v in position])
         self._structure_tracker[pos_i] = (key, parents)
 
     def _normalize_position(
         self, key: Hashable, position: list[int], parents: Iterable[Hashable]
     ) -> Iterable[int]:
-        """Ensure position of keys remain predictable during unions"""
-        pos_i = "".join([f"{v}" for v in position])
-        updated = False
-        if pos_i in self._structure_tracker:
-            key_i, ps_i = self._structure_tracker[pos_i]
-            parents_len, ps_i_len = len(parents), len(ps_i)
-            if ps_i_len == 0:
-                if parents_len == 0:
-                    if key != key_i:
-                        self._update_position(0, key, position, parents)
-                        updated = True
-                else:
-                    self._update_position(parents_len, key, position, parents)
-            else:
-                for i, p_i in enumerate(ps_i):
-                    if parents[i] != p_i:
-                        self._update_position(i, key, position, parents)
-                        updated = True
-                        break
+        """
+        Ensure position of keys remain predictable during unions
+
+        NOTE: If key is in _structure_tracker but their positions are different, position tracker will increment
+        E.g. key = (General, [1]), _structure_tracker = (General, [0]) | We do not check all positions in _structure_tracker for the key
+        This causes position tracker to become incorrect during unions, but does not affect tree operations (nor multiple unions)
+        """
+        pos_id = "".join([f"{v}" for v in position])
+        if pos_id in self._structure_tracker:
+            key_s, ps_s = self._structure_tracker[pos_id]
+
+            # Check entire parent path of `key`, including `key` to ensure that e.g.
+            #   position = [0, 0], parents = ["Fish", "Some"]
+            #   struct_position = [0, 0], parents = ["General", "Process"]
+            # results in position = [1, 1]
+            for i, keys in enumerate(zip([*parents, key], [*ps_s, key_s])):
+                k, k_st = keys
+                if k != k_st:
+                    self._update_position(i, key, position, parents)
+                    break
+                # if k == k_st: No new key is added, position tracker is unchanged
         else:
             current_pos = ""
             for j in range(len(position)):
@@ -500,17 +498,12 @@ class RedBlackTreeMapping(RedBlackTree):
                     key_j, ps_j = self._structure_tracker[current_pos]
                     if key_j != parents[j]:
                         self._update_position(j, key, position, parents)
-                        updated = True
                         break
                 else:
                     self._update_position(j, key, position, parents)
-                    updated = True
                     break
-        # NOTE: If key is in _structure_tracker but their positions are different, position tracker will increment
-        # E.g. key = (General, [1]), _structure_tracker = (General, [0]) | We do not check all positions in _structure_tracker for the key
-        # This causes position tracker to become incorrect during unions, but does not affect tree operations (nor multiple unions)
-        if not updated:
-            self._update_position(len(parents), key, position, parents)
+            else:
+                self._update_position(len(parents), key, position, parents)
 
     def _remove_position(self, position: list[int]):
         pos_i = "".join([f"{v}" for v in position])
@@ -759,8 +752,22 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         if not m:
             return
+
+        if parents:
+            tn_ps = parents[:-1]
+            # Create reference to child nodes
+            node = RedBlackTree.Node([])
+            try:
+                tn, tn_i = self._find_index(parents[-1], tn_ps)
+                tn.values[tn_i] = node
+            except KeyError:
+                tn = self._add(parents[-1], node, [0], tn_ps)
+            tnp = (tn, tn_ps)
+        else:
+            tnp = None
+
         q = deque(
-            [(m, parents, [None], None)]
+            [(m, parents, [None], tnp)]
         )  # type: deque[tuple[Mapping, list, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
         while q:
             d, ps, pos, tnp_tuple = q.popleft()
@@ -802,11 +809,15 @@ class RedBlackTreeMapping(RedBlackTree):
             k, v, pos, ps = item
             if parents:
                 if i == 0:
-                    # The root node of the t must be connected to the tree
-                    tn_ps = parents[:-2]
-                    tn, tn_i = self._find_index(parents[-1], tn_ps)
+                    # The root node of t must be connected to the tree
+                    tn_ps = parents[:-1]
                     # Create reference to child nodes
-                    tn.values[tn_i] = node = RedBlackTree.Node([])
+                    node = RedBlackTree.Node([])
+                    try:
+                        tn, tn_i = self._find_index(parents[-1], tn_ps)
+                        tn.values[tn_i] = node
+                    except KeyError:
+                        tn = self._add(parents[-1], node, [0], tn_ps)
                     tnp = (tn, tn_ps)
                 c_ps = [*parents, *ps]
                 cn = self._add(k, v, pos, c_ps)
