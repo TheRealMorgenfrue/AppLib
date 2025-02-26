@@ -462,7 +462,11 @@ class RedBlackTreeMapping(RedBlackTree):
         except IndexError:
             self._position_tracker.append(0)
 
-        position[idx] = self._position_tracker[idx]
+        try:
+            position[idx] = self._position_tracker[idx]
+        except IndexError:
+            for i in range(idx):
+                position.append(0)
         pos_i = "".join([f"{v}" for v in position])
         self._structure_tracker[pos_i] = (key, parents)
 
@@ -488,8 +492,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 k, k_st = keys
                 if k != k_st:
                     self._update_position(i, key, position, parents)
-                    break
-                # if k == k_st: No new key is added, position tracker is unchanged
+                    return
         else:
             current_pos = ""
             for j in range(len(position)):
@@ -498,12 +501,11 @@ class RedBlackTreeMapping(RedBlackTree):
                     key_j, ps_j = self._structure_tracker[current_pos]
                     if key_j != parents[j]:
                         self._update_position(j, key, position, parents)
-                        break
+                        return
                 else:
                     self._update_position(j, key, position, parents)
-                    break
-            else:
-                self._update_position(len(parents), key, position, parents)
+                    return
+        self._update_position(len(parents), key, position, parents)
 
     def _remove_position(self, position: list[int]):
         pos_i = "".join([f"{v}" for v in position])
@@ -515,16 +517,29 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def _create_subtree(self, node: RedBlackTree.Node) -> list[_rbtm_item]:
         subtree = []
-        q = deque(
-            node.x
-        )  # type: deque[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
-        while q:
-            tn, ps = q.popleft()
-            u = tn.values[tn.index(ps)]
-            if self._check_value(u):
-                for cn, cps in u.x:
-                    q.append((cn, cps))
-            subtree.append(tn.get(tn.index(ps, "strict")))
+        root_ps_len = None
+        heap = MeldableHeap(
+            [
+                RedBlackTreeMapping.HeapNode(*tn.get(tn.index(ps, "strict")))
+                for tn, ps in node.x
+            ]
+        )
+        while heap:
+            node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
+            k, v, pos, ps = node.get()
+            if root_ps_len is None:
+                root_ps_len = len(ps)
+                pos = [0]
+                ps = []
+            if self._check_value(v):
+                for cn, cps in v.x:
+                    c_k, c_v, c_pos, cps = cn.get(cn.index(cps, "strict"))
+                    heap.add(
+                        RedBlackTreeMapping.HeapNode(
+                            c_k, c_v, c_pos[root_ps_len:], cps[root_ps_len:]
+                        )
+                    )
+            subtree.append((k, v, pos, ps))
         return subtree
 
     def _find_index(
@@ -761,13 +776,19 @@ class RedBlackTreeMapping(RedBlackTree):
                 tn, tn_i = self._find_index(parents[-1], tn_ps)
                 tn.values[tn_i] = node
             except KeyError:
-                tn = self._add(parents[-1], node, [0], tn_ps)
+                tn = self._add(parents[-1], node, [0 for i in range(len(tn_ps))], tn_ps)
+                if tn_ps:
+                    ntnp, i = self._find_index(tn_ps[-1], tn_ps[:-1])
+                    if self._check_value(ntnp.values[i]):
+                        ntnp.values[i].x.append((tn, tn_ps))
+                    else:
+                        ntnp.values[i] = RedBlackTree.Node([(tn, tn_ps)])
             tnp = (tn, tn_ps)
         else:
             tnp = None
 
         q = deque(
-            [(m, parents, [None], tnp)]
+            [(m, parents, [0 for i in range(len(parents) + 1)], tnp)]
         )  # type: deque[tuple[Mapping, list, list, tuple[RedBlackTreeMapping.TreeNode, list] | None]]
         while q:
             d, ps, pos, tnp_tuple = q.popleft()
@@ -818,6 +839,12 @@ class RedBlackTreeMapping(RedBlackTree):
                         tn.values[tn_i] = node
                     except KeyError:
                         tn = self._add(parents[-1], node, [0], tn_ps)
+                        if tn_ps:
+                            ntnp, i = self._find_index(tn_ps[-1], tn_ps[:-1])
+                            if self._check_value(ntnp.values[i]):
+                                ntnp.values[i].x.append((tn, tn_ps))
+                            else:
+                                ntnp.values[i] = RedBlackTree.Node([(tn, tn_ps)])
                     tnp = (tn, tn_ps)
                 c_ps = [*parents, *ps]
                 cn = self._add(k, v, pos, c_ps)
