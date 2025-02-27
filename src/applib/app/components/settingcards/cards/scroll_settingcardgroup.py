@@ -4,10 +4,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import ScrollArea, SettingCardGroup
 
-from ..card_group import CardGroupBase
 
-
-class ScrollSettingCardGroup(CardGroupBase, ScrollArea):
+class ScrollSettingCardGroup(ScrollArea):
     def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self._cardGroup = SettingCardGroup(title, self)

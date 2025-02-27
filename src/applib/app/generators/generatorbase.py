@@ -18,7 +18,6 @@ from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
 from ...module.tools.utilities import iter_to_str
 from ..common.core_signalbus import core_signalbus
-from ..components.settingcards.card_group import CardGroupBase
 from ..components.settings.checkbox import CoreCheckBox
 from ..components.settings.color_picker import CoreColorPicker
 from ..components.settings.combobox import CoreComboBox
@@ -378,7 +377,7 @@ class GeneratorBase:
 
     def _addCardsBySortOrder(self) -> None:
         for card_or_group in list(self._getCardList()):
-            if issubclass(card_or_group, CardGroupBase):
+            if isinstance(card_or_group, AnyCardGroup):
                 cards = self._card_sort_order.get(f"{card_or_group}")
                 if cards:
                     for card in cards:

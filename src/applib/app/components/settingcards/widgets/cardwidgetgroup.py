@@ -4,10 +4,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 from ....common.core_stylesheet import CoreStyleSheet
-from ..card_group import CardGroupBase
 
 
-class CardWidgetGroup(CardGroupBase, QWidget):
+class CardWidgetGroup(QWidget):
     def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.titleLabel = QLabel(title)
