@@ -267,7 +267,9 @@ class GeneratorBase:
                 )
                 card_groups[section_name] = card_group
             except IndexError:
-                pass  # Cannot create card group for a setting without section name
+                card_group = (
+                    None  # Cannot create card group for a setting without section name
+                )
 
             # Get the raw ui_group
             raw_group = (
