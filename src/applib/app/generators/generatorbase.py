@@ -18,6 +18,7 @@ from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
 from ...module.tools.utilities import iter_to_str
 from ..common.core_signalbus import core_signalbus
+from ..components.settingcards.card_group import CardGroupBase
 from ..components.settings.checkbox import CoreCheckBox
 from ..components.settings.color_picker import CoreColorPicker
 from ..components.settings.combobox import CoreComboBox
@@ -247,9 +248,9 @@ class GeneratorBase:
     def _generate_cards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
         template_parser = TemplateParser()
         template_parser.parse(self._template)
+        card_groups = {}  # type: dict[str, AnyCardGroup]
         failed_cards = 0
 
-        card_groups = {}  # type: dict[str, AnyCardGroup]
         for k, v, pos, ps in self._template.get_settings():
             item = next(iter(v.items()))  # type: tuple[str, GUIOption]
             setting, option = item
@@ -366,25 +367,28 @@ class GeneratorBase:
         return self._card_list
 
     def _updateCardSortOrder(
-        self, card: AnySettingCard, cardGroup: AnyCardGroup
+        self, card: AnySettingCard, cardGroup: AnyCardGroup | None
     ) -> None:
+        if cardGroup is None:
+            return
         card_group_name = f"{cardGroup}"
         if card_group_name not in self._card_sort_order:
             self._card_sort_order[card_group_name] = []
         self._card_sort_order.get(card_group_name).append(card)
 
     def _addCardsBySortOrder(self) -> None:
-        for card_group in list(self._getCardList()):
-            cards = self._card_sort_order.get(f"{card_group}")
-            if cards:
-                for card in cards:
-                    card_group.addSettingCard(card)
-            else:
-                self._logger.warning(
-                    f"{self._prefix_msg()} Card group '{card_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
-                )
-                card_group.deleteLater()
-                self._getCardList().remove(card_group)
+        for card_or_group in list(self._getCardList()):
+            if issubclass(card_or_group, CardGroupBase):
+                cards = self._card_sort_order.get(f"{card_or_group}")
+                if cards:
+                    for card in cards:
+                        card_or_group.addSettingCard(card)
+                else:
+                    self._logger.warning(
+                        f"{self._prefix_msg()} Card group '{card_or_group.getTitleLabel().text()}' has no cards assigned to it. Removing"
+                    )
+                    card_or_group.deleteLater()
+                    self._getCardList().remove(card_or_group)
 
     def _getCardList(self) -> list[AnyCardGroup]:
         """Temp placement of unsorted cards"""
