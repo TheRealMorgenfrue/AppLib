@@ -260,15 +260,14 @@ class GeneratorBase:
             # Create a card group a tie it to a section name if it does not exist already
             try:
                 section_name = ps[-1]
-            except IndexError:
-                section_name = ""
-            try:
                 card_group = card_groups[section_name]
             except KeyError:
                 card_group = (
                     CardGroup(section_name, self._parent) if CardGroup else None
                 )
                 card_groups[section_name] = card_group
+            except IndexError:
+                pass  # Cannot create card group for a setting without section name
 
             # Get the raw ui_group
             raw_group = (
@@ -348,6 +347,8 @@ class GeneratorBase:
                 elif self._default_group is None:
                     self._default_group = card_group
                 self._card_list.append(card_group)
+            elif card:
+                self._card_list.append(card)
 
         final_all_groups = Group.get_all_groups(self._template.name)
         if final_all_groups:
