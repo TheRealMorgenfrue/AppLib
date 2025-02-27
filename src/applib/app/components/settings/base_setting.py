@@ -22,8 +22,6 @@ class BaseSetting(QWidget):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        current_value: Any,
-        default_value: Any,
         converter: Optional[Converter] = None,
         notify_disabled: bool = True,
         parent_keys: list[str] = [],
@@ -50,12 +48,6 @@ class BaseSetting(QWidget):
         option : GUIOption
             The options associated with `config_key`.
 
-        current_value : Any
-            The current value of the setting.
-
-        default_value : Any
-            The default value of the setting.
-
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
@@ -73,8 +65,8 @@ class BaseSetting(QWidget):
         super().__init__(parent=parent)
         self.config = config
         self.config_key = config_key
-        self.current_value = current_value
-        self.default_value = default_value
+        self.current_value = config.get_value(key=config_key, parents=parent_keys)
+        self.default_value = option.default
         self.backup_value = None
         self.converter = converter
         self.is_disabled = False
