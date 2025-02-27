@@ -176,7 +176,7 @@ class MappingBase(RedBlackTreeMapping):
             By default "ignore".
         """
         try:
-            self.update(key, value, parents, search_mode)
+            self.update(key, value, parents)
         except KeyError as e:
             if errors == "raise":
                 raise e from None
