@@ -1,12 +1,13 @@
-from PyQt6.QtWidgets import QWidget, QLabel, QVBoxLayout
-from PyQt6.QtCore import Qt
-
 from typing import Optional
 
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
+
 from ....common.core_stylesheet import CoreStyleSheet
+from ..card_group import CardGroupBase
 
 
-class CardWidgetGroup(QWidget):
+class CardWidgetGroup(CardGroupBase, QWidget):
     def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
         super().__init__(parent)
         self.titleLabel = QLabel(title)
