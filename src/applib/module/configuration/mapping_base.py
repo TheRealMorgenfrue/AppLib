@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Literal, Union
+from typing import Any, Hashable, Iterable, Literal, Union, override
 
 from ..datastructures.pure.meldableheap import MeldableHeap
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
@@ -21,6 +21,7 @@ class MappingBase(RedBlackTreeMapping):
     @abstractmethod
     def _is_setting(self, item: _rbtm_item) -> bool: ...
 
+    @override
     def update(self, key, value, parents=[]):
         super().update(key, value, parents)
         self._settings_cache = None
@@ -63,7 +64,7 @@ class MappingBase(RedBlackTreeMapping):
     def get_value(
         self,
         key: Hashable,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         default=None,
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         errors: Literal["ignore", "raise"] = "ignore",
@@ -78,7 +79,7 @@ class MappingBase(RedBlackTreeMapping):
         key : Hashable
             The key to look for.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parents of `key`.
             By default [].
 
@@ -129,7 +130,7 @@ class MappingBase(RedBlackTreeMapping):
         self,
         key: Hashable,
         value: Any,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         errors: Literal["ignore", "raise"] = "ignore",
     ):
@@ -144,7 +145,7 @@ class MappingBase(RedBlackTreeMapping):
         value : Any
             Map value to `key`.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parents of `key`.
             By default [].
 

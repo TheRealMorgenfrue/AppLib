@@ -16,7 +16,7 @@ from .pure.redblacktree import RedBlackTree
 from .pure.skiplist import Skiplist
 
 _rbtm_key: TypeAlias = tuple[Hashable, Hashable, str]
-_rbtm_item: TypeAlias = tuple[Hashable, Any, list[int], Iterable[Hashable]]
+_rbtm_item: TypeAlias = tuple[Hashable, Any, list[int], list[Hashable]]
 _rbtm_iterable: TypeAlias = Iterable[_rbtm_item]
 _rbtm_mapping: TypeAlias = Union[Mapping, "RedBlackTreeMapping"]
 _supports_rbtm_iter: TypeAlias = Union[_rbtm_iterable, _rbtm_mapping]
@@ -73,10 +73,10 @@ class RedBlackTreeMapping(RedBlackTree):
             )
             return f"{self.__class__.__name__} -> ({values})"
 
-        def _strict_index(self, parents: Iterable[Hashable]) -> list[int]:
+        def _strict_index(self, parents: list[Hashable]) -> list[int]:
             return [self.parents.index(parents)]  # ValueError
 
-        def _smart_index(self, parents: Iterable[Hashable]) -> list[int]:
+        def _smart_index(self, parents: list[Hashable]) -> list[int]:
             if len(self.keys) == 1:
                 return [0]
 
@@ -97,10 +97,10 @@ class RedBlackTreeMapping(RedBlackTree):
             #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
             raise LookupError()
 
-        def _immediate_index(self, parents: Iterable[Hashable]) -> list[int]:
+        def _immediate_index(self, parents: list[Hashable]) -> list[int]:
             return [i for i, ps in enumerate(self.parents) if parents[-1] == ps[-1]]
 
-        def _any_index(self, parents: Iterable[Hashable]) -> list[int]:
+        def _any_index(self, parents: list[Hashable]) -> list[int]:
             idxs = []
             for i, ps in enumerate(self.parents):
                 for p in parents:
@@ -110,7 +110,7 @@ class RedBlackTreeMapping(RedBlackTree):
 
         def index(
             self,
-            parents: Iterable[Hashable],
+            parents: list[Hashable],
             search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         ) -> int:
             """
@@ -118,7 +118,7 @@ class RedBlackTreeMapping(RedBlackTree):
 
             Parameters
             ----------
-            parents : Union[Hashable, Iterable[Hashable]]
+            parents : list[Hashable]
                 The parents of `key`.
 
             search_mode : Literal["strict", "smart", "immediate", "any"], optional
@@ -170,7 +170,7 @@ class RedBlackTreeMapping(RedBlackTree):
             k: Hashable,
             v: Any,
             pos: list[int],
-            ps: Iterable[Hashable],
+            ps: list[Hashable],
         ):
             """
             Add objects to the list.
@@ -210,7 +210,7 @@ class RedBlackTreeMapping(RedBlackTree):
             k: Hashable,
             v: Any,
             pos: list[int],
-            ps: Iterable[Hashable],
+            ps: list[Hashable],
         ):
             self.k = k
             self.v = v
@@ -246,7 +246,7 @@ class RedBlackTreeMapping(RedBlackTree):
             k: Hashable,
             v: Any,
             pos: list[int],
-            ps: Iterable[Hashable],
+            ps: list[Hashable],
         ):
             super().__init__(k, v, pos, ps)
 
@@ -295,7 +295,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 position : list[int]
                     The index of `key` and all its parents in the mapping.
                     The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
-                parents : Iterable[Hashable], optional
+                parents : list[Hashable], optional
                     Iterable of all `key`'s parents (a.k.a. ancestors).
                     May be omitted from the tuple, resulting in a "flat" tree.
             - Mapping
@@ -310,9 +310,7 @@ class RedBlackTreeMapping(RedBlackTree):
         super().__init__()
         self.name = name
         self._key_count = 0
-        self._structure_tracker = (
-            {}
-        )  # type: dict[str, tuple[Hashable, Iterable[Hashable]]]
+        self._structure_tracker = {}  # type: dict[str, tuple[Hashable, list[Hashable]]]
         self._position_tracker = []
         self._modified = False
         self._dump_cache = None
@@ -455,8 +453,8 @@ class RedBlackTreeMapping(RedBlackTree):
         idx: int,
         key: Hashable,
         position: list[int],
-        parents: Iterable[Hashable],
-    ) -> Iterable[int]:
+        parents: list[Hashable],
+    ):
         try:
             self._position_tracker[idx] += 1
         except IndexError:
@@ -471,8 +469,8 @@ class RedBlackTreeMapping(RedBlackTree):
         self._structure_tracker[pos_i] = (key, parents)
 
     def _normalize_position(
-        self, key: Hashable, position: list[int], parents: Iterable[Hashable]
-    ) -> Iterable[int]:
+        self, key: Hashable, position: list[int], parents: list[Hashable]
+    ):
         """
         Ensure position of keys remain predictable during unions
 
@@ -483,11 +481,6 @@ class RedBlackTreeMapping(RedBlackTree):
         pos_id = "".join([f"{v}" for v in position])
         if pos_id in self._structure_tracker:
             key_s, ps_s = self._structure_tracker[pos_id]
-
-            # Check entire parent path of `key`, including `key` to ensure that e.g.
-            #   position = [0, 0], parents = ["Fish", "Some"]
-            #   struct_position = [0, 0], parents = ["General", "Process"]
-            # results in position = [1, 1]
             for i, keys in enumerate(zip([*parents, key], [*ps_s, key_s])):
                 k, k_st = keys
                 if k != k_st:
@@ -545,7 +538,7 @@ class RedBlackTreeMapping(RedBlackTree):
     def _find_index(
         self,
         key: Hashable,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> tuple["RedBlackTreeMapping.TreeNode", int]:
         """
@@ -556,7 +549,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             The key to look for.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parents of `key`.
             By default [].
 
@@ -610,7 +603,7 @@ class RedBlackTreeMapping(RedBlackTree):
     def find(
         self,
         key: Hashable,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
         get_rbtm_item: bool = False,
     ) -> Any:
@@ -622,7 +615,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             The key to look for.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parents of `key`.
             By default [].
 
@@ -680,8 +673,8 @@ class RedBlackTreeMapping(RedBlackTree):
                     position : list[int]
                         The index of `key` and all its parents in the mapping.
                         The last element of the iterable must be unique for all keys k, where k.parents == `key`.`parents`.
-                    parents : Iterable[Hashable], optional
-                        Iterable of all `key`'s parents (a.k.a. ancestors).
+                    parents : list[Hashable], optional
+                        A list of all `key`'s parents (a.k.a. ancestors).
                         May be omitted from the tuple, resulting in a "flat" tree.
             - Mapping :
                 Any class supporting the Mapping interface for providing key-value pairs.
@@ -702,7 +695,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key: Hashable,
         value: Any,
         position: list[int],
-        parents: Iterable[Hashable] = [],
+        parents: list[Hashable] = [],
         *args,
         __normalize___=True,
         **kwargs,
@@ -724,7 +717,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key: Hashable,
         value: Any,
         position: list[int],
-        parents: Iterable[Hashable] = [],
+        parents: list[Hashable] = [],
         *args,
         **kwargs,
     ):
@@ -749,7 +742,7 @@ class RedBlackTreeMapping(RedBlackTree):
         """
         self._add(key, value, position, parents, *args, **kwargs)
 
-    def add_mapping(self, m: Mapping, parents: Iterable[Hashable] = []):
+    def add_mapping(self, m: Mapping, parents: list[Hashable] = []):
         """
         Add all key-value pairs in `m` to this tree.
 
@@ -810,7 +803,7 @@ class RedBlackTreeMapping(RedBlackTree):
                     # child <- parent
                     tn._parent_nodes[tn.index(ps)] = tnp_tuple
 
-    def add_tree(self, t: Self, parents: Iterable[Hashable] = []):
+    def add_tree(self, t: Self, parents: list[Hashable] = []):
         """
         Add all key-value pairs in `t` to this tree.
 
@@ -821,7 +814,7 @@ class RedBlackTreeMapping(RedBlackTree):
         t : Self
             The tree to add.
 
-        parents : Iterable[Hashable], optional
+        parents : list[Hashable], optional
             Add tree starting from this parent path.
             The last element in the iterable denotes the "root" key this tree is appended to,
             which overwrites the previous value of "root" key.
@@ -860,7 +853,7 @@ class RedBlackTreeMapping(RedBlackTree):
     def remove(
         self,
         key: Hashable,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> tuple[Hashable, Any, Hashable]:
         """
@@ -871,7 +864,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             Key-value pair to remove.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parents of `key`.
             By default [].
 
@@ -939,7 +932,7 @@ class RedBlackTreeMapping(RedBlackTree):
         self,
         key: Hashable,
         value: Any,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
     ):
         """
         Update value of `key` with `value`.
@@ -952,7 +945,7 @@ class RedBlackTreeMapping(RedBlackTree):
         value : Any
             Map value to `key`.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parent of `key`.
             By default [].
         """
@@ -969,7 +962,7 @@ class RedBlackTreeMapping(RedBlackTree):
         self,
         new_key: Hashable,
         key: Hashable,
-        parents: Union[Hashable, Iterable[Hashable]] = [],
+        parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ):
         """
@@ -983,7 +976,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key : Hashable
             The key to look for.
 
-        parents : Hashable | Iterable[Hashable], optional
+        parents : Hashable | list[Hashable], optional
             The parent of `key`.
             By default [].
 

@@ -483,7 +483,7 @@ class ConfigBase(MappingBase):
         self,
         key: str,
         value: Any,
-        parents: Union[str, Iterable[str]] = [],
+        parents: Union[str, list[str]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> bool:
         """
@@ -497,7 +497,7 @@ class ConfigBase(MappingBase):
         value : Any
             The value to insert.
 
-        parents : str | Iterable[str], optional
+        parents : str | list[str], optional
             The parents of `key`. Used to uniquely identify `key`
 
         search_mode : Literal["strict", "smart", "immediate", "any"], optional
