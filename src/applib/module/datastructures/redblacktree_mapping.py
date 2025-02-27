@@ -956,6 +956,12 @@ class RedBlackTreeMapping(RedBlackTree):
             self.add_mapping(value, [*parents, key])
         elif isinstance(value, RedBlackTreeMapping):
             self.add_tree(value, [*parents, key])
+        else:
+            try:
+                tn, i = self._find_index(key, parents, search_mode="smart")
+                tn.values[i] = value
+            except KeyError:
+                self.add(key, value, parents)
         self._modified = True
 
     def rename(
