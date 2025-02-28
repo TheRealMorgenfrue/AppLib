@@ -271,15 +271,13 @@ class GeneratorBase:
                     None  # Cannot create card group for a setting without section name
                 )
 
-            # Get the raw ui_group
-            raw_group = (
-                f"{option.ui_group}" if option.defined(option.ui_group) else None
-            )
             try:
                 # Split the ui_groups associated with this setting
                 formatted_groups = (
-                    template_parser.format_raw_group(self._template.name, raw_group)
-                    if raw_group
+                    template_parser.format_raw_group(
+                        self._template.name, option.ui_group
+                    )
+                    if option.defined(option.ui_group)
                     else None
                 )
             except OrphanGroupWarning:
@@ -287,13 +285,15 @@ class GeneratorBase:
                     f"{self._prefix_msg()} Cannot create card for orphan setting '{setting}'"
                 )
                 continue
+            except Exception:
+                formatted_groups = None
+
             # If multiple groups are defined for a setting, the first is considered the main group
             main_group = (
                 Group.get_group(self._template.name, formatted_groups[0])
                 if formatted_groups
                 else None
             )
-
             try:
                 card = self._create_card(
                     card_type=GeneratorUtils.infer_type(
