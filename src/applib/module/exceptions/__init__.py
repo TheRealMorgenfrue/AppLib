@@ -12,3 +12,7 @@ class IniParseError(ValueError):
 
 class OrphanGroupWarning(RuntimeWarning):
     pass
+
+
+class TreeLookupError(LookupError):
+    pass

@@ -11,6 +11,7 @@ from typing import (
     Union,
 )
 
+from ..exceptions import TreeLookupError
 from .pure.meldableheap import MeldableHeap
 from .pure.redblacktree import RedBlackTree
 from .pure.skiplist import Skiplist
@@ -105,7 +106,7 @@ class RedBlackTreeMapping(RedBlackTree):
             # TODO: Implement fuzzy matching of array values
             # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
             #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
-            raise LookupError()
+            raise TreeLookupError()
 
         def _immediate_index(self, parents: list[Hashable]) -> list[int]:
             return [i for i, ps in enumerate(self.parents) if parents[-1] == ps[-1]]
@@ -158,7 +159,7 @@ class RedBlackTreeMapping(RedBlackTree):
             ValueError
                 If `parents` does not exist.
 
-            LookupError
+            TreeLookupError
                 If `parents` cannot be uniquely identified.
                 Can happen if `parents` is not an Iterable of all parents of the key.
             """
@@ -172,7 +173,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 case "any":
                     i = self._any_index(parents)
             if len(i) != 1:
-                raise LookupError()
+                raise TreeLookupError()
             return i[0]
 
         def add(
@@ -371,7 +372,7 @@ class RedBlackTreeMapping(RedBlackTree):
             # Try to infer the full parent path
             tn, i = self._find_index(key, p, mode)
             p = tn.parents[i]
-        except (KeyError, LookupError):
+        except (KeyError, TreeLookupError):
             pass
         self._convert_lookup_error(self.update, k, value, p)
 
@@ -382,7 +383,7 @@ class RedBlackTreeMapping(RedBlackTree):
         try:
             self._find_index(*self._check_key(item))
             return True
-        except (ValueError, KeyError, LookupError):
+        except (ValueError, KeyError, TreeLookupError):
             return False
 
     def __str__(self):
@@ -402,7 +403,7 @@ class RedBlackTreeMapping(RedBlackTree):
             raise e
 
     def _raise_lookup_error(self, k, p, tn, from_none: bool = True):
-        e = LookupError(
+        e = TreeLookupError(
             f"{self._prefix_msg()} Cannot uniquely identify a value for key ('{k}', '{p}')"
         )
         e.add_note(f"Possible values: {tn}")
@@ -414,10 +415,9 @@ class RedBlackTreeMapping(RedBlackTree):
     def _convert_lookup_error(self, func, *args, **kwargs) -> Any:
         try:
             return func(*args, **kwargs)
-        except LookupError as e:
+        except TreeLookupError as e:
             k = KeyError()
-            for n in e.__notes__:
-                k.add_note(n)
+            k.__notes__ = e.__notes__
             raise k from None
 
     def _check_key(self, key: Hashable | tuple) -> _rbtm_key:
@@ -590,7 +590,7 @@ class RedBlackTreeMapping(RedBlackTree):
         KeyError
             If the combination of (`key`,`parents`) does not exist.
 
-        LookupError
+        TreeLookupError
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """
@@ -603,8 +603,8 @@ class RedBlackTreeMapping(RedBlackTree):
             self._raise_key_error(key, parents)
         try:
             i = u.index(parents, search_mode)
-        except LookupError:
-            # Convert generic LookupError to informative version
+        except TreeLookupError:
+            # Convert generic TreeLookupError to informative version
             self._raise_lookup_error(key, parents, u)
         except ValueError:
             self._raise_key_error(key, parents)
@@ -656,7 +656,7 @@ class RedBlackTreeMapping(RedBlackTree):
         KeyError
             If the combination of (`key`,`parents`) does not exist.
 
-        LookupError
+        TreeLookupError
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """
@@ -905,7 +905,7 @@ class RedBlackTreeMapping(RedBlackTree):
         KeyError
             If the combination of (`key`,`parents`) does not exist.
 
-        LookupError
+        TreeLookupError
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """
@@ -1018,7 +1018,7 @@ class RedBlackTreeMapping(RedBlackTree):
         KeyError
             If the combination of (`key`,`parents`) does not exist.
 
-        LookupError
+        TreeLookupError
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """

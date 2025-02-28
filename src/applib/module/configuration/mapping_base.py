@@ -3,6 +3,7 @@ from typing import Any, Hashable, Iterable, Literal, Union, override
 
 from ..datastructures.pure.meldableheap import MeldableHeap
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
+from ..exceptions import TreeLookupError
 from ..logging import AppLibLogger
 
 
@@ -118,7 +119,7 @@ class MappingBase(RedBlackTreeMapping):
         except KeyError as e:
             if errors == "raise":
                 raise e from None
-        except LookupError as e:
+        except TreeLookupError as e:
             if errors == "raise":
                 raise e from None
             self._logger.error(
@@ -181,7 +182,7 @@ class MappingBase(RedBlackTreeMapping):
             if errors == "raise":
                 raise e from None
             self._logger.warning(e.args[0])
-        except LookupError as e:
+        except TreeLookupError as e:
             if errors == "raise":
                 raise e from None
             self._logger.warning(f"{e.args[0]}\n  {"\n  ".join(e.__notes__)}")
