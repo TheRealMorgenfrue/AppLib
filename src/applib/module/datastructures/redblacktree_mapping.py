@@ -32,8 +32,10 @@ class RedBlackTreeMapping(RedBlackTree):
             v: Any,
             pos: list[int],
             ps: Union[Hashable, Iterable[Hashable], None],
+            __tree_name__: str = "",
         ):
             self._idx = f"{k}".encode(errors="replace")
+            self._name = __tree_name__
             self._parent_nodes = Skiplist([None])  # Pointer to this node's parent
             self.keys = Skiplist([k])  # Keys are identical for each node
             self.values = Skiplist([v])
@@ -86,7 +88,7 @@ class RedBlackTreeMapping(RedBlackTree):
                         break
                 else:
                     return [i]
-            raise ValueError(f"Parents '{parents}' not in the list")
+            raise ValueError(f"{self._name} Parents '{parents}' not in the list")
 
         def _smart_index(self, parents: list[Hashable]) -> list[int]:
             if len(self.keys) == 1:
@@ -182,7 +184,10 @@ class RedBlackTreeMapping(RedBlackTree):
                 case "any":
                     i = self._any_index(parents)
             if len(i) != 1:
-                RedBlackTreeMapping._raise_lookup_error(self.keys[0], parents, self)
+                e = TreeLookupError(
+                    f"{self._name} Cannot uniquely identify a value for key ('{self.keys[0]}', '{parents}')"
+                )
+                e.add_note(f"Possible values: {self}")
             return i[0]
 
         def add(
@@ -399,7 +404,7 @@ class RedBlackTreeMapping(RedBlackTree):
         return f"{self._prefix_msg()} (\n  nodes: {len(self)},\n  keys: {self._key_count},\n  positions: {self._position_tracker}\n)"  # ,\n  structure: {self._structure_tracker}\n)"
 
     def _create_node(self, *args, **kwargs) -> "RedBlackTreeMapping.TreeNode":
-        return RedBlackTreeMapping.TreeNode(*args, **kwargs)
+        return RedBlackTreeMapping.TreeNode(*args, **kwargs, __tree_name__=self.name)
 
     def _prefix_msg(self) -> str:
         return f"{self.__class__.__name__} '{self.name}':"
@@ -411,7 +416,6 @@ class RedBlackTreeMapping(RedBlackTree):
         else:
             raise e
 
-    @classmethod
     def _raise_lookup_error(self, k, p, tn, from_none: bool = True):
         e = TreeLookupError(
             f"{self._prefix_msg()} Cannot uniquely identify a value for key ('{k}', '{p}')"
@@ -422,7 +426,6 @@ class RedBlackTreeMapping(RedBlackTree):
         else:
             raise e
 
-    @classmethod
     def _convert_lookup_error(self, func, *args, **kwargs) -> Any:
         try:
             return func(*args, **kwargs)
