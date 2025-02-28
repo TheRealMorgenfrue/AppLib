@@ -214,7 +214,9 @@ class BaseSetting(QWidget):
     def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
             error = self.config.set_value(
-                self.config_key, self._convert_value(value), self.parent_keys
+                key=self.config_key,
+                value=self._convert_value(value),
+                parents=self.parent_keys,
             )
             success = not error
         else:
