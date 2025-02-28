@@ -107,7 +107,7 @@ class RedBlackTreeMapping(RedBlackTree):
             # TODO: Implement fuzzy matching of array values
             # E.g. ["a", "b", "c", "d"] == ["a", "b", "c"] iff im == False,
             #      ["a", "b", "c", "d"] == ["b", "c", "d"] iff im == True
-            raise TreeLookupError()
+            return []
 
         def _immediate_index(self, parents: list[Hashable]) -> list[int]:
             try:
@@ -182,7 +182,7 @@ class RedBlackTreeMapping(RedBlackTree):
                 case "any":
                     i = self._any_index(parents)
             if len(i) != 1:
-                raise TreeLookupError()
+                RedBlackTreeMapping._raise_lookup_error(self.keys[0], parents, self)
             return i[0]
 
         def add(
@@ -411,6 +411,7 @@ class RedBlackTreeMapping(RedBlackTree):
         else:
             raise e
 
+    @classmethod
     def _raise_lookup_error(self, k, p, tn, from_none: bool = True):
         e = TreeLookupError(
             f"{self._prefix_msg()} Cannot uniquely identify a value for key ('{k}', '{p}')"
@@ -421,6 +422,7 @@ class RedBlackTreeMapping(RedBlackTree):
         else:
             raise e
 
+    @classmethod
     def _convert_lookup_error(self, func, *args, **kwargs) -> Any:
         try:
             return func(*args, **kwargs)
@@ -628,9 +630,6 @@ class RedBlackTreeMapping(RedBlackTree):
             self._raise_key_error(key, parents)
         try:
             i = u.index(parents, search_mode)
-        except TreeLookupError:
-            # Convert generic TreeLookupError to informative version
-            self._raise_lookup_error(key, parents, u)
         except ValueError:
             self._raise_key_error(key, parents)
         return (u, i)
