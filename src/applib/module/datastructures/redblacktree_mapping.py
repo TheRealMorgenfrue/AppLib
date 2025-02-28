@@ -1,4 +1,5 @@
 from collections import deque
+from copy import deepcopy
 from typing import (
     Any,
     Generator,
@@ -109,7 +110,15 @@ class RedBlackTreeMapping(RedBlackTree):
             raise TreeLookupError()
 
         def _immediate_index(self, parents: list[Hashable]) -> list[int]:
-            return [i for i, ps in enumerate(self.parents) if parents[-1] == ps[-1]]
+            try:
+                ps_len = len(self.parents) - 1
+                return [
+                    i
+                    for i, ps in enumerate(self.parents)
+                    if parents[ps_len - i] == ps[ps_len - i]
+                ]
+            except IndexError:
+                return []
 
         def _any_index(self, parents: list[Hashable]) -> list[int]:
             idxs = []
@@ -521,6 +530,8 @@ class RedBlackTreeMapping(RedBlackTree):
     def _create_subtree(self, node: RedBlackTree.Node) -> list[_rbtm_item]:
         subtree = []
         root_ps_len = None
+        root_ps = []
+        root_pos = 0
         heap = MeldableHeap(
             [
                 RedBlackTreeMapping.HeapNode(*tn.get(tn.index(ps, "strict")))
@@ -532,8 +543,22 @@ class RedBlackTreeMapping(RedBlackTree):
             k, v, pos, ps = node.get()
             if root_ps_len is None:
                 root_ps_len = len(ps)
-                pos = [0]
+                root_ps = deepcopy(ps)
+                pos = [root_pos]
                 ps = []
+                root_pos += 1
+            try:
+                # Check if we have other nodes at root level
+                for p, rp in zip(ps, root_ps, strict=True):
+                    if p != rp:
+                        break
+                else:
+                    ps = []  # Root nodes have no parents
+                    pos = [root_pos]
+                    root_pos += 1
+            except ValueError:
+                pass
+
             if self._check_value(v):
                 for cn, cps in v.x:
                     c_k, c_v, c_pos, cps = cn.get(cn.index(cps, "strict"))
