@@ -111,12 +111,12 @@ class Skiplist(BaseList):
 
     def _get(self, i):
         if i < 0 or i > self._n - 1:
-            raise IndexError()
+            raise IndexError(f"Index {i} out of range for list of size {self._n-1}")
         return self._find_pred(i).next[0].x
 
     def _set(self, i, x):
         if i < 0 or i > self._n - 1:
-            raise IndexError()
+            raise IndexError(f"Index {i} out of range for list of size {self._n-1}")
         u = self._find_pred(i).next[0]
         y = u.x
         u.x = x
