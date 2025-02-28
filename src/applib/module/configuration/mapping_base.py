@@ -123,7 +123,7 @@ class MappingBase(RedBlackTreeMapping):
             if errors == "raise":
                 raise e from None
             self._logger.error(
-                f"{e.args[0]}. Returning default '{default}'\n  {"\n  ".join(e.__notes__)}"
+                f"{e.args[0]}.  \n{"\n  ".join(e.__notes__)}\nReturning default '{default}'\n"
             )
         return default
 

@@ -438,7 +438,7 @@ class ConfigBase(MappingBase):
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.info(f"{self._prefix_msg()} Config '{filename}' loaded!")
+                self._logger.info(f"{self._prefix_msg()} '{filename}' loaded!")
             return config, failure
 
     def _repair_config(self, config: dict, model_dict: dict) -> dict:
