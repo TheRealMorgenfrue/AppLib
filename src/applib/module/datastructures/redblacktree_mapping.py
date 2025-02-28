@@ -74,7 +74,17 @@ class RedBlackTreeMapping(RedBlackTree):
             return f"{self.__class__.__name__} -> ({values})"
 
         def _strict_index(self, parents: list[Hashable]) -> list[int]:
-            return [self.parents.index(parents)]  # ValueError
+            for i, s_ps in enumerate(self.parents):
+                try:
+                    ps_tuple = zip(s_ps, parents, strict=True)
+                except ValueError:
+                    continue
+                for sp, op in ps_tuple:
+                    if sp != op:
+                        break
+                else:
+                    return [i]
+            raise ValueError(f"Parents '{parents}' not in the list")
 
         def _smart_index(self, parents: list[Hashable]) -> list[int]:
             if len(self.keys) == 1:
@@ -855,7 +865,7 @@ class RedBlackTreeMapping(RedBlackTree):
         key: Hashable,
         parents: Union[Hashable, list[Hashable]] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
-    ) -> tuple[Hashable, Any, Hashable]:
+    ) -> _rbtm_item:
         """
         Remove and return a key-value pair from this tree.
 
@@ -921,8 +931,8 @@ class RedBlackTreeMapping(RedBlackTree):
             if self._check_value(node):
                 for cn, cps in node.x:
                     i = cn.index(cps, "strict")
-                    self.remove(cn.keys[i], cps, "strict")
-                    children.append(cn.values[i])
+                    c_k, c_v, c_pos, c_ps = self.remove(cn.keys[i], cps, "strict")
+                    children.append(c_v)
 
         # Adjust position counter
         self._remove_position(tn.positions[i])
