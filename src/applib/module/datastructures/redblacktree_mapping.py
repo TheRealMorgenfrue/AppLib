@@ -188,6 +188,7 @@ class RedBlackTreeMapping(RedBlackTree):
                     f"{self._name} Cannot uniquely identify a value for key ('{self.keys[0]}', '{parents}')"
                 )
                 e.add_note(f"Possible values: {self}")
+                raise e
             return i[0]
 
         def add(
@@ -404,7 +405,9 @@ class RedBlackTreeMapping(RedBlackTree):
         return f"{self._prefix_msg()} (\n  nodes: {len(self)},\n  keys: {self._key_count},\n  positions: {self._position_tracker}\n)"  # ,\n  structure: {self._structure_tracker}\n)"
 
     def _create_node(self, *args, **kwargs) -> "RedBlackTreeMapping.TreeNode":
-        return RedBlackTreeMapping.TreeNode(*args, **kwargs, __tree_name__=self.name)
+        return RedBlackTreeMapping.TreeNode(
+            *args, **kwargs, __tree_name__=self._prefix_msg()
+        )
 
     def _prefix_msg(self) -> str:
         return f"{self.__class__.__name__} '{self.name}':"
@@ -528,7 +531,10 @@ class RedBlackTreeMapping(RedBlackTree):
         pos_i = "".join([f"{v}" for v in position])
         try:
             self._structure_tracker.pop(pos_i)
-            self._position_tracker[len(position) - 1] -= 1
+            pt_i = len(position) - 1
+            self._position_tracker[pt_i] -= 1
+            if self._position_tracker[pt_i] < 0:
+                self._position_tracker.pop(pt_i)
         except (KeyError, IndexError):
             pass
 
@@ -806,7 +812,9 @@ class RedBlackTreeMapping(RedBlackTree):
                 tn, tn_i = self._find_index(parents[-1], tn_ps)
                 tn.values[tn_i] = node
             except KeyError:
-                tn = self._add(parents[-1], node, [0 for i in range(len(tn_ps))], tn_ps)
+                tn = self._add(
+                    parents[-1], node, [0 for i in range(max(len(tn_ps), 1))], tn_ps
+                )
                 if tn_ps:
                     ntnp, i = self._find_index(tn_ps[-1], tn_ps[:-1])
                     if self._check_value(ntnp.values[i]):
@@ -868,7 +876,12 @@ class RedBlackTreeMapping(RedBlackTree):
                         tn, tn_i = self._find_index(parents[-1], tn_ps)
                         tn.values[tn_i] = node
                     except KeyError:
-                        tn = self._add(parents[-1], node, [0], tn_ps)
+                        tn = self._add(
+                            parents[-1],
+                            node,
+                            [0 for i in range(max(len(tn_ps), 1))],
+                            tn_ps,
+                        )
                         if tn_ps:
                             ntnp, i = self._find_index(tn_ps[-1], tn_ps[:-1])
                             if self._check_value(ntnp.values[i]):
@@ -945,11 +958,14 @@ class RedBlackTreeMapping(RedBlackTree):
         # Remove parent node's reference to this node, if any.
         ps = tn.parents[i]
         if ps:
-            try:
-                tnp = tn._parent_nodes[i]  # type: RedBlackTreeMapping.TreeNode
-                tnp.values.remove((tn, ps))
-            except (ValueError, AttributeError):
-                pass
+            maybe_tn_tuple = tn._parent_nodes[i]
+            if maybe_tn_tuple:
+                tnp, tn_ps = maybe_tn_tuple
+                for node in tnp.values:
+                    try:
+                        node.x.remove((tn, ps))
+                    except ValueError:
+                        pass
 
         # Remove child nodes, if any
         children = deque([tn.values[i]])
@@ -1049,19 +1065,9 @@ class RedBlackTreeMapping(RedBlackTree):
             If a key-value pair can not be uniquely identified from (`key`,`parents`).
             Can happen if `parents` information is insufficient.
         """
-        tn, i = self._find_index(key, parents, search_mode)
-        if len(tn) < 2:  # At most one key in node, remove node entirely
-            super().remove(tn)
-
-        pn_tuple = tn._parent_nodes[
-            i
-        ]  # type: tuple[RedBlackTreeMapping.TreeNode, list[Hashable]]
-        pn, pnps = pn_tuple
-        k, v, pos, ps = tn.remove(i)
-        new_tn = self._add(new_key, v, pos, ps, __normalize___=False)
-        new_tn._parent_nodes[new_tn.index(ps, "strict")] = pn  # Add parent to child
-        pn_value = pn.values[pn.index(pnps, "strict")]
-        pn_value[pn_value.index((tn, ps))] = new_tn  # Add child to parent
+        old_value = self.find(key, parents, search_mode)
+        k, v, pos, ps = self.remove(key, parents, search_mode)
+        self.add_mapping({new_key: old_value}, ps)
 
     def _tree_dump(self, items: Iterable[_rbtm_item]) -> dict[Hashable, Any]:
         """Generate a dictionary representation of `items`"""
