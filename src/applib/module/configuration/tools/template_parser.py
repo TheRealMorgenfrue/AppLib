@@ -308,23 +308,23 @@ class TemplateParser:
             self._parsed_templates.add(template_name)
 
     def format_raw_group(
-        self, template_name: str, raw_ui_group: Union[str, Hashable, list[Hashable]]
-    ) -> list[str]:
+        self, template_name: str, raw_ui_group: Union[Hashable, list[Hashable]]
+    ) -> list[Hashable]:
         """
-        Format a raw template Group string.
+        Format a raw template Group.
 
         Parameters
         ----------
         template_name : str
             The template where `raw_ui_group` originates.
 
-        raw_ui_group : Union[str, Hashable, list[Hashable]]
+        raw_ui_group : Union[Hashable, list[Hashable]]
             The raw ui_group.
 
         Returns
         -------
-        list[str]
-            A list of formatted ui group strings.
+        list[Hashable]
+            A list of formatted ui groups.
 
         Raises
         ------
