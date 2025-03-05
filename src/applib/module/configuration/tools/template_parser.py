@@ -7,8 +7,8 @@ from ...exceptions import OrphanGroupWarning
 from ...logging import AppLibLogger
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import iter_to_str
+from ..runners.actions.action_manager import Actions
 from ..tools.template_utils.options import GUIOption, Option
-from .template_utils.action_manager import Actions
 from .template_utils.groups import Group
 from .template_utils.template_enums import UIFlags, UIGroups
 from .template_utils.validation_info import ValidationInfo
@@ -232,6 +232,8 @@ class TemplateParser:
         validation_info: ValidationInfo,
     ):
         if option.defined(option.validators):
+            if not isinstance(option.validators, list):
+                option.validators = [option.validators]
             validation_info.add_setting_validation(
                 setting, position, parents, option.validators
             )
