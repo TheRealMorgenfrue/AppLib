@@ -116,7 +116,7 @@ class FieldTree(RedBlackTreeMapping):
         setting: Hashable,
         value: Any,
         position: list[int],
-        parents: Iterable[Hashable],
+        parents: list[Hashable],
     ):
         """
         Merge `setting`'s node with its parent node and remove `setting`'s node.
@@ -149,7 +149,7 @@ class ValidationInfo:
         setting: Hashable,
         field: dict,
         position: list[int],
-        parents: Iterable[Hashable],
+        parents: list[Hashable],
     ):
         self.fields.add(setting, field, position, parents)
 
@@ -157,8 +157,8 @@ class ValidationInfo:
         self,
         setting: Hashable,
         position: list[int],
-        parents: Iterable[Hashable],
+        parents: list[Hashable],
         validators: list[Callable],
     ):
         for validator in validators:
-            self.validators.add(setting, None, position, parents, validator)
+            self.validators.add(setting, None, position, parents, validator=validator)
