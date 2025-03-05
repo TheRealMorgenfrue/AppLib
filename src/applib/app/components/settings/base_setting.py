@@ -5,7 +5,7 @@ from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QHideEvent
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
-from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.configuration.tools.template_utils.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig

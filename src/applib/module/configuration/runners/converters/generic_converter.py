@@ -1,6 +1,6 @@
 from typing import Any, override
 
-from ...tools.template_utils.converter import Converter
+from .converter import Converter
 
 
 class GenericConverter(Converter):

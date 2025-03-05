@@ -3,7 +3,7 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
 
-from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIMessage, GUIOption
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus

@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QLabel, QWidget
 from qfluentwidgets import Slider
 
 from ....module.configuration.internal.core_args import CoreArgs
-from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.utilities import dict_lookup

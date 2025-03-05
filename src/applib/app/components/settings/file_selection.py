@@ -4,7 +4,7 @@ from typing import Optional, override
 from PyQt6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import PushButton
 
-from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.general import StrPath

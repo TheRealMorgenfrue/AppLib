@@ -2,7 +2,7 @@ from typing import override
 
 from PyQt6.QtGui import QColor
 
-from ...tools.template_utils.converter import Converter
+from .converter import Converter
 
 
 class ColorConverter(Converter):

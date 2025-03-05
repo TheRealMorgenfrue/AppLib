@@ -96,6 +96,7 @@ from .module.configuration.runners.actions.theme_actions import (
     change_theme_color,
 )
 from .module.configuration.runners.converters.color_converter import ColorConverter
+from .module.configuration.runners.converters.converter import Converter
 from .module.configuration.runners.converters.generic_converter import GenericConverter
 from .module.configuration.runners.validators.app_validator import (
     validate_loglevel,
@@ -108,7 +109,6 @@ from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.config_utils.config_enums import ConfigLoadOptions
 from .module.configuration.tools.ini_file_parser import IniFileParser
 from .module.configuration.tools.template_parser import TemplateParser
-from .module.configuration.tools.template_utils.converter import Converter
 from .module.configuration.tools.template_utils.groups import Group
 from .module.configuration.tools.template_utils.options import (
     ColorPickerOption,

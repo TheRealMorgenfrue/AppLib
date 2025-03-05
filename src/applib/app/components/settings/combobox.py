@@ -3,7 +3,7 @@ from typing import Optional, Union, override
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
 
-from ....module.configuration.tools.template_utils.converter import Converter
+from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
