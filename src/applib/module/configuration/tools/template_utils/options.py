@@ -1,15 +1,12 @@
 from numbers import Number
-from typing import Any, Callable, Hashable, Optional, Union
+from typing import Any, Callable, Hashable
 
-from applib.module.configuration.runners.converters.color_converter import (
-    ColorConverter,
-)
-from applib.module.configuration.tools.template_utils.converter import Converter
-
+from ...runners.converters.color_converter import ColorConverter
+from ...runners.converters.converter import Converter
 from .template_enums import UIFlags, UIGroups, UITypes
 
 
-class Undefined:
+class _Undefined:
     """Denotes an argument as undefined. Is used to allow None as an Option argument"""
 
     pass
@@ -36,13 +33,14 @@ class Option:
     def __init__(
         self,
         default,
-        actions: Callable | list[Callable] = Undefined,
-        max: int = Undefined,
-        min: int = Undefined,
-        type: type = Undefined,
-        validators: Callable | list[Callable] = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        max: int = _Undefined,
+        min: int = _Undefined,
+        type: type = _Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
-        """Create an option instance usable in a non-GUI environment.
+        """
+        Create an option instance usable in a non-GUI environment.
 
         An Option is the value of a setting, as defined in the template specification.
 
@@ -80,36 +78,36 @@ class Option:
         raises an AttributeError because `name` is not an instance attribute or an attribute in the class tree
         for self; or __get__() of a `name` property raises AttributeError)
         """
-        return Undefined
+        return _Undefined
 
     def defined(self, attr_value) -> bool:
         """Whether the given attribute is defined. Returns True if it is."""
-        return type(attr_value) != type(Undefined)
+        return type(attr_value) != type(_Undefined)
 
 
 class GUIOption(Option):
     def __init__(
         self,
         default,
-        actions: Callable | list[Callable] = Undefined,
-        converter: Converter = Undefined,
-        max: Number = Undefined,
-        min: Number = Undefined,
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
-        ui_file_filter: str | None = Undefined,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Union[str, Hashable, list[Hashable]] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
-        ui_invalid_input: GUIMessage = Undefined,
-        ui_show_dir_only: bool = Undefined,
-        ui_type: UITypes = Undefined,
-        ui_unit: str = Undefined,
-        validators: Callable | list[Callable] = Undefined,
-        values: list | dict = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        converter: Converter = _Undefined,
+        max: Number = _Undefined,
+        min: Number = _Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
+        ui_file_filter: str | None = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Hashable | list[Hashable] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
+        ui_invalid_input: GUIMessage = _Undefined,
+        ui_show_dir_only: bool = _Undefined,
+        ui_type: UITypes = _Undefined,
+        ui_unit: str = _Undefined,
+        validators: Callable | list[Callable] = _Undefined,
+        values: list | dict = _Undefined,
     ):
         """
         Create an option instance usable in a GUI environment.
@@ -173,7 +171,7 @@ class GUIOption(Option):
         ui_flags : UIFlags | list[UIFlags], optional
             Special flags that apply to this setting.
             ##### Applicable settings: All
-        ui_group : str | Hashable | list[Hashable], optional
+        ui_group : Hashable | list[Hashable], optional
             Designate a group ID (GID) which all options with this GID belongs to.
             This makes various actions possible for settings, e.g., they can be visually grouped in the GUI.
 
@@ -246,20 +244,20 @@ class FileSelectorOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = Undefined,
-        converter: Converter = Undefined,
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        converter: Converter = _Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
         ui_file_filter: str | None = None,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Any | list[Any] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Any | list[Any] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
         ui_show_dir_only: bool = False,
         ui_type: UITypes = UITypes.FILE_SELECTION,
-        validators: Callable | list[Callable] = Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
         super().__init__(
             default=default,
@@ -284,18 +282,18 @@ class ColorPickerOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
         converter: Converter = ColorConverter(),
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Union[str, Hashable, list[Hashable]] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Hashable | list[Hashable] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.COLOR_PICKER,
-        validators: Callable | list[Callable] = Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
         super().__init__(
             default=default,
@@ -319,20 +317,20 @@ class ComboBoxOption(GUIOption):
         self,
         default,
         values: list | dict,
-        actions: Callable | list[Callable] = Undefined,
-        converter: Converter = Undefined,
-        max: Number = Undefined,
-        min: Number = Undefined,
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Any | list[Any] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        converter: Converter = _Undefined,
+        max: Number = _Undefined,
+        min: Number = _Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Any | list[Any] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.COMBOBOX,
-        validators: Callable | list[Callable] = Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
         super().__init__(
             default=default,
@@ -358,19 +356,19 @@ class TextEditOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = Undefined,
-        converter: Converter = Undefined,
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Any | list[Any] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
-        ui_invalid_input: GUIMessage = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        converter: Converter = _Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Any | list[Any] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
+        ui_invalid_input: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.LINE_EDIT,
-        validators: Callable | list[Callable] = Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
         super().__init__(
             default=default,
@@ -394,21 +392,21 @@ class NumberOption(GUIOption):
     def __init__(
         self,
         default: Number,
-        actions: Callable | list[Callable] = Undefined,
-        converter: Converter = Undefined,
-        min: Number = Undefined,
-        max: Number = Undefined,
-        type: type = Undefined,
-        ui_disable_button: bool = Undefined,
-        ui_disable_other: Any = Undefined,
-        ui_disable_self: Any = Undefined,
-        ui_flags: UIFlags | list[UIFlags] = Undefined,
-        ui_group: Any | list[Any] = Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = Undefined,
-        ui_info: GUIMessage = Undefined,
-        ui_type: UITypes = Undefined,
-        ui_unit: str = Undefined,
-        validators: Callable | list[Callable] = Undefined,
+        actions: Callable | list[Callable] = _Undefined,
+        converter: Converter = _Undefined,
+        min: Number = _Undefined,
+        max: Number = _Undefined,
+        type: type = _Undefined,
+        ui_disable_button: bool = _Undefined,
+        ui_disable_other: Any = _Undefined,
+        ui_disable_self: Any = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = _Undefined,
+        ui_group: Any | list[Any] = _Undefined,
+        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
+        ui_info: GUIMessage = _Undefined,
+        ui_type: UITypes = _Undefined,
+        ui_unit: str = _Undefined,
+        validators: Callable | list[Callable] = _Undefined,
     ):
         super().__init__(
             default=default,
