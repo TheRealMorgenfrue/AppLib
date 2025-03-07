@@ -113,6 +113,7 @@ class CoreFileSelect(BaseSetting):
         self.notify.connect(self._onParentNotification)
 
     def _onParentNotification(self, values: tuple) -> None:
+        super()._onParentNotification(values)
         type, value = values
         if type == "content":
             self.setWidgetValue(self.current_value)
