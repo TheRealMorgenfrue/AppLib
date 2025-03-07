@@ -1,5 +1,7 @@
 import traceback
-from typing import Iterable
+from typing import Callable, Iterable
+
+from PyQt6.QtCore import pyqtBoundSignal
 
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_utils.groups import Group
@@ -20,7 +22,7 @@ class GeneratorUtils:
     _logger = AppLibLogger().get_logger()
 
     @classmethod
-    def _check_bool_child(cls, parent: AnyParentCard, child: AnyCard, group: Group):
+    def _check_bool(cls, parent: AnyParentCard, child: AnyCard):
         """Used for all sync/desync Groups"""
         parent_option = parent.get_option()
         child_option = child.get_option()
@@ -30,19 +32,26 @@ class GeneratorUtils:
         ):
             return True
         else:
-            cls._logger.warning(
-                f"UI Group '{group.get_group_name()}': "
-                + f"The option of both parent and child must be a strictly boolean setting (e.g. switch). "
-                + f"Parent '{parent.card_name}' has option of type '{type(parent_option).__name__}', "
-                + f"child '{child.card_name}' has option of type '{type(child_option).__name__}'"
-            )
             return False
+
+    @classmethod
+    def _update_signal_slots(
+        cls,
+        ss: dict[pyqtBoundSignal, list[Callable]],
+        signal: pyqtBoundSignal,
+        slots: list[Callable],
+    ):
+        try:
+            if signal is not None:
+                ss[signal].extend(slots)
+        except KeyError:
+            ss[signal] = [*slots]
 
     @classmethod
     def _sync_children(cls, wrapper: DisableWrapper | bool, child: AnyCard) -> None:
         # Result == Input
         if isinstance(wrapper, DisableWrapper):
-            child.get_disablesignal().emit(wrapper)
+            child.getDisableSignal().emit(wrapper)
         else:
             child.get_option().setConfigValue(wrapper)
 
@@ -51,7 +60,7 @@ class GeneratorUtils:
         # Result == !Input
         if isinstance(wrapper, DisableWrapper):
             wrapper.is_disabled = not wrapper.is_disabled
-            child.get_disablesignal().emit(wrapper)
+            child.getDisableSignal().emit(wrapper)
         else:
             child.get_option().setConfigValue(not wrapper)
 
@@ -59,7 +68,7 @@ class GeneratorUtils:
     def _desync_true_children(
         cls, wrapper: DisableWrapper | bool, child: AnyCard
     ) -> None:
-        # Input ? Result == Input : pass
+        # Result == Input ? Input : pass
         if isinstance(wrapper, DisableWrapper) and wrapper.is_disabled or wrapper:
             cls._sync_children(wrapper, child)
 
@@ -67,7 +76,7 @@ class GeneratorUtils:
     def _desync_false_children(
         cls, wrapper: DisableWrapper | bool, child: AnyCard
     ) -> None:
-        # Input ? Result == !Input : pass
+        # Result == !Input ? Input : pass
         if isinstance(wrapper, DisableWrapper) and wrapper.is_disabled or wrapper:
             cls._desync_children(wrapper, child)
 
@@ -76,7 +85,6 @@ class GeneratorUtils:
         for group in ui_groups:
             ui_group_parent = group.get_ui_group_parent()
             parent = group.get_parent_card()
-            is_disabled = False
             try:
                 parent_option = parent.get_option()
             except AttributeError:
@@ -94,81 +102,69 @@ class GeneratorUtils:
                     for child in group.get_child_cards():
                         parent.add_child(child)
 
-                if UIGroups.DISABLE_CHILDREN in ui_group_parent:
-                    for child in group.get_child_cards():
-                        if UIGroups.SYNC_CHILDREN in ui_group_parent:
-                            is_disabled = True
-                            parent.get_disable_children_signal().connect(
-                                lambda wrapper, child=child: cls._sync_children(
-                                    wrapper, child
+                disable_children = UIGroups.DISABLE_CHILDREN in ui_group_parent
+                sync_children = UIGroups.SYNC_CHILDREN in ui_group_parent
+                desync_children = UIGroups.DESYNC_CHILDREN in ui_group_parent
+                desync_true_children = UIGroups.DESYNC_TRUE_CHILDREN in ui_group_parent
+                desync_false_children = (
+                    UIGroups.DESYNC_FALSE_CHILDREN in ui_group_parent
+                )
+                is_undirected = UIGroups.UNDIRECTED_SYNC in ui_group_parent
+                signal_slots = {}  # type: dict[pyqtBoundSignal, list[Callable]]
+                child_slots = []
+                parent_slots = []
+                for child in group.get_child_cards():
+                    is_bool_child = cls._check_bool(parent, child)
+                    func = None
+                    if sync_children:
+                        func = cls._sync_children
+                    elif desync_children:
+                        func = cls._desync_children
+                    elif desync_true_children:
+                        func = cls._desync_true_children
+                    elif desync_false_children:
+                        func = cls._desync_false_children
+                    if func is not None:
+                        if is_undirected:
+                            parent_slots.append(
+                                lambda wrapper_or_checked, parent=parent, func=func: func(
+                                    wrapper_or_checked, parent
                                 )
                             )
+                        child_slots.append(
+                            lambda wrapper_or_checked, child=child, func=func: func(
+                                wrapper_or_checked, child
+                            )
+                        )
+                    if disable_children:
+                        if func is None:
+                            child_slots.append(child.getDisableSignal().emit)
 
-                        if UIGroups.DESYNC_CHILDREN in ui_group_parent:
-                            is_disabled = True
-                            parent.get_disable_children_signal().connect(
-                                lambda wrapper, child=child: cls._desync_children(
-                                    wrapper, child
+                        if is_undirected:
+                            cls._update_signal_slots(
+                                signal_slots, child.getDisableSignal(), parent_slots
+                            )
+                        cls._update_signal_slots(
+                            signal_slots, parent.getDisableChildrenSignal(), child_slots
+                        )
+                    else:
+                        if is_bool_child:
+                            if is_undirected:
+                                cls._update_signal_slots(
+                                    signal_slots,
+                                    child.get_option().getCheckedSignal(),
+                                    parent_slots,
                                 )
+                            cls._update_signal_slots(
+                                signal_slots,
+                                parent_option.getCheckedSignal(),
+                                child_slots,
                             )
 
-                        if UIGroups.DESYNC_TRUE_CHILDREN in ui_group_parent:
-                            is_disabled = True
-                            parent.get_disable_children_signal().connect(
-                                lambda wrapper, child=child: cls._desync_true_children(
-                                    wrapper, child
-                                )
-                            )
-
-                        if UIGroups.DESYNC_FALSE_CHILDREN in ui_group_parent:
-                            is_disabled = True
-                            parent.get_disable_children_signal().connect(
-                                lambda wrapper, child=child: cls._desync_false_children(
-                                    wrapper, child
-                                )
-                            )
-
-                        if not is_disabled:
-                            parent.get_disable_children_signal().connect(
-                                child.get_disablesignal().emit
-                            )
-
-                if not is_disabled:
-                    if UIGroups.SYNC_CHILDREN in ui_group_parent:
-                        for child in group.get_child_cards():
-                            if cls._check_bool_child(parent, child, group):
-                                parent_option.getCheckedSignal().connect(
-                                    lambda checked, child=child: cls._sync_children(
-                                        checked, child
-                                    )
-                                )
-
-                    if UIGroups.DESYNC_CHILDREN in ui_group_parent:
-                        for child in group.get_child_cards():
-                            if cls._check_bool_child(parent, child, group):
-                                parent_option.getCheckedSignal().connect(
-                                    lambda checked, child=child: cls._desync_children(
-                                        checked, child
-                                    )
-                                )
-
-                    if UIGroups.DESYNC_TRUE_CHILDREN in ui_group_parent:
-                        for child in group.get_child_cards():
-                            if cls._check_bool_child(parent, child, group):
-                                parent_option.getCheckedSignal().connect(
-                                    lambda checked, child=child: cls._desync_true_children(
-                                        checked, child
-                                    )
-                                )
-
-                    if UIGroups.DESYNC_FALSE_CHILDREN in ui_group_parent:
-                        for child in group.get_child_cards():
-                            if cls._check_bool_child(parent, child, group):
-                                parent_option.getCheckedSignal().connect(
-                                    lambda checked, child=child: cls._desync_false_children(
-                                        checked, child
-                                    )
-                                )
+                # Connect signals to slots
+                for signal, child_slots in signal_slots.items():
+                    for slot in child_slots:
+                        signal.connect(slot)
 
                 # Update parent's and its children's disable status
                 if not group.is_nested_child():
