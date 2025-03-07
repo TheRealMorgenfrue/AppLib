@@ -20,7 +20,7 @@ from qfluentwidgets import (
 )
 from qfluentwidgets.components.settings.setting_card import SettingIconWidget
 
-from .....module.tools.types.gui_settings import AnySetting
+from .....module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 from ....common.core_stylesheet import CoreStyleSheet
 from ...fluent_label import FluentLabel
 from ..card_base import CardBase, DisableWrapper
@@ -251,6 +251,11 @@ class SettingCardMixin:
         # Disable button
         if self.has_disable_button:
             self._createDisableButton(alignment)
+
+            # A bool setting and a disable button are equivalent
+            if isinstance(option, AnyBoolSetting):
+                self.hide_option = False
+                option.setHidden(True)
 
         # Reset button
         self.resetbutton = PrimaryPushButton(self.tr("Reset"))
