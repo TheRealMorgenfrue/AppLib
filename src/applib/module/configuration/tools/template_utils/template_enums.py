@@ -31,6 +31,14 @@ class UIGroups(Enum):
     #### Applies to: All
     """
 
+    UNDIRECTED_SYNC = 5
+    """
+    All synchronization directives (sync/desync) affects both ways, i.e. to parent and child.
+    Without this, they affect only the children.
+
+    #### Applies to: Booleans (e.g. Switch, CheckBox)
+    """
+
     SYNC_CHILDREN = 6
     """
     This setting's children will change their value according to their parent.
