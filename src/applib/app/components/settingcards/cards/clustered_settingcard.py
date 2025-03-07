@@ -7,7 +7,7 @@ from qfluentwidgets import FluentIconBase, isDarkTheme
 
 from .....module.tools.types.gui_settings import AnySetting
 from ....common.core_stylesheet import CoreStyleSheet
-from ..card_base import CardBase, DisableWrapper, ParentSettingCardBase
+from ..card_base import DisableWrapper, ParentSettingCardBase
 from .expanding_settingcard import GroupSeparator
 from .settingcard import FluentSettingCard
 
@@ -79,10 +79,10 @@ class ClusteredSettingCard(ParentSettingCardBase, QFrame):
 
         if isDarkTheme():
             painter.setBrush(QColor(255, 255, 255, 13))
-            painter.setPen(QColor(0, 0, 0, 50))
+            painter.setPen(QColor(255, 255, 255, 100))
         else:
             painter.setBrush(QColor(255, 255, 255, 170))
-            painter.setPen(QColor(0, 0, 0, 19))
+            painter.setPen(QColor(0, 0, 0, 100))
 
         painter.drawRoundedRect(self.rect().adjusted(1, 1, -1, -1), 6, 6)
 
