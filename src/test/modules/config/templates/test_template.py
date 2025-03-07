@@ -102,8 +102,11 @@ class TestTemplate(BaseTemplate):
                 "partialCompat": GUIOption(
                     default=False,
                     ui_flags=UIFlags.REQUIRES_RELOAD,
-                    ui_group_parent=UIGroups.DESYNC_FALSE_CHILDREN,
-                    ui_group="pu_partialCompat, pu_fullCompat",
+                    ui_group_parent=[
+                        UIGroups.DESYNC_FALSE_CHILDREN,
+                        UIGroups.UNDIRECTED_SYNC,
+                    ],
+                    ui_group="pu_compat",
                     ui_info=GUIMessage(
                         "Use partial compatibility mode",
                         AutoTextWrap.text_format(
@@ -118,8 +121,7 @@ class TestTemplate(BaseTemplate):
                 "fullCompat": GUIOption(
                     default=False,
                     ui_flags=UIFlags.REQUIRES_RELOAD,
-                    ui_group_parent=UIGroups.DESYNC_FALSE_CHILDREN,
-                    ui_group="pu_fullCompat, pu_partialCompat",
+                    ui_group="pu_compat",
                     ui_info=GUIMessage(
                         "Use full compatibility mode",
                         AutoTextWrap.text_format(
