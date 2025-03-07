@@ -203,12 +203,12 @@ class Group:
         return self._children.values()
 
     def set_ui_group_parent(self, ui_group_parent: list[UIGroups]):
-        self._ui_group_parent = ui_group_parent
+        self._ui_group_parent = set(ui_group_parent)
         self._isNestingChildren = (
             UIGroups.NESTED_CHILDREN in ui_group_parent
             or UIGroups.CLUSTERED in ui_group_parent
         )
 
-    def get_ui_group_parent(self) -> list[UIGroups] | None:
+    def get_ui_group_parent(self) -> set[UIGroups] | None:
         """Returns None if UI group parent has not been set - this indicates an error"""
         return self._ui_group_parent
