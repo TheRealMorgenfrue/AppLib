@@ -51,10 +51,10 @@ class CardBase:
         filter = self._tooltip_filters.pop(obj)
         filter.deleteLater()
 
-    def get_disablesignal(self) -> pyqtBoundSignal:
+    def getDisableSignal(self) -> pyqtBoundSignal:
         return self.disableCard
 
-    def get_disable_children_signal(self) -> pyqtBoundSignal:
+    def getDisableChildrenSignal(self) -> pyqtBoundSignal:
         return self.disableChildren
 
     @abstractmethod
@@ -71,17 +71,17 @@ class CardBase:
     ) -> None: ...
 
 
-class ParentCardBase:
-    def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+class ParentCardBase(CardBase):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
     @abstractmethod
     def add_child(self, child: QWidget) -> None: ...
 
 
 class ParentSettingCardBase(ParentCardBase):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     def enable_tight_mode(self, is_tight: bool) -> tuple[int, int]:
         return self.card.enable_tight_mode(is_tight)

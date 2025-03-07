@@ -40,7 +40,7 @@ class ClusterHeaderSettingCard(FluentSettingCard):
         return super().eventFilter(obj, e)
 
 
-class ClusteredSettingCard(CardBase, ParentSettingCardBase, QFrame):
+class ClusteredSettingCard(ParentSettingCardBase, QFrame):
     def __init__(
         self,
         card_name: str,
