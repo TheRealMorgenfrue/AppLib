@@ -74,13 +74,11 @@ class BaseSetting(QWidget):
         self.parent_keys = parent_keys
 
         # The value which disables this setting.
-        self.disable_self_value = (
-            option.ui_disable_self if option.defined(option.ui_disable_self) else None
-        )
+        self.disable_self_value = option.ui_disable_self
+        self.can_get_disabled = option.defined(option.ui_disable_self)
         # The value which disables children of this setting
-        self.disable_other_value = (
-            option.ui_disable_other if option.defined(option.ui_disable_other) else None
-        )
+        self.disable_other_value = option.ui_disable_other
+        self.can_disable_other = option.defined(option.ui_disable_other)
 
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
@@ -188,25 +186,19 @@ class BaseSetting(QWidget):
             else:
                 value = self.backup_value
 
-            if self._canGetDisabled() and save:
+            if self.can_get_disabled and save:
                 self.setConfigValue(value)
-
-    def _canGetDisabled(self) -> bool:
-        return self.disable_self_value is not None
-
-    def _canDisableOther(self) -> bool:
-        return self.disable_other_value is not None
 
     def updateDisabledStatus(self):
         self.maybeDisableParent(self.current_value, save=False)
 
     def maybeDisableParent(self, value: Any, save: bool = True):
         if self.notify_disabled:
-            if self._canGetDisabled():
+            if self.can_get_disabled:
                 self.notifyParent.emit(
                     ("disable", (self.disable_self_value == value, save))
                 )
-            elif self._canDisableOther():
+            elif self.can_disable_other:
                 self.notifyParent.emit(
                     ("disable_other", (self.disable_other_value == value, save))
                 )
