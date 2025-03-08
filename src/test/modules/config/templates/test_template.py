@@ -178,5 +178,36 @@ class TestTemplate(BaseTemplate):
                     ),
                     validators=[validate_path],
                 ),
+                "ignore-config": GUIOption(
+                    default=False,
+                    ui_disable_self=False,
+                    ui_group_parent=[UIGroups.CLUSTERED],
+                    ui_group="config",
+                    ui_info=GUIMessage(
+                        "Don't load any more configuration files except those given to --config-locations",
+                        "For backward compatibility, if this option is found inside the system configuration file, the user configuration is not loaded.",
+                    ),
+                ),
+                "no-config-locations": GUIOption(
+                    default=False,
+                    ui_disable_self=False,
+                    ui_group_parent=[
+                        UIGroups.NESTED_CHILDREN,
+                        UIGroups.DISABLE_CHILDREN,
+                    ],
+                    ui_group="config-locations, config",
+                    ui_info=GUIMessage(
+                        "Load custom configuration files",
+                        "When disabled, ignore all previous --config-locations defined in the current configuration file",
+                    ),
+                ),
+                "config-locations": FileSelectorOption(
+                    default="",
+                    ui_group="config-locations",
+                    ui_info=GUIMessage(
+                        "Location of the main configuration file",
+                        "Either the path to the config or its containing directory",
+                    ),
+                ),
             },
         }
