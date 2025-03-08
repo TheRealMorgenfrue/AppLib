@@ -460,10 +460,9 @@ class ConfigBase(MappingBase):
             A new config where all values are valid with as many as possible
             preserved from `config`.
         """
-        repaired_config = {}
 
         def repair(c: dict, md: dict):
-            nonlocal repaired_config
+            repaired_config = {}
             for template_key, value in md.items():
                 if isinstance(value, dict) and template_key in c:
                     # Search config/model_dict recursively, depth-first
@@ -474,9 +473,9 @@ class ConfigBase(MappingBase):
                 else:
                     # Use value from model_dict
                     repaired_config[template_key] = value
+            return repaired_config
 
-        repair(config, model_dict)
-        return repaired_config
+        return repair(config, model_dict)
 
     @override
     def set_value(
