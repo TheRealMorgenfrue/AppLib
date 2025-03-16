@@ -103,6 +103,7 @@ from .module.configuration.runners.validators.app_validator import (
     validate_theme,
 )
 from .module.configuration.runners.validators.generic_validator import (
+    validate_ip_address,
     validate_path,
     validate_proxy_address,
 )
@@ -282,6 +283,7 @@ __all__ = [
     "insert_dict_value",
     "iter_to_str",
     "retrieve_dict_value",
+    "validate_ip_address",
     "validate_loglevel",
     "validate_path",
     "validate_proxy_address",
