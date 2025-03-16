@@ -109,6 +109,7 @@ from .module.configuration.runners.validators.generic_validator import (
 )
 from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
+from .module.configuration.tools.cli_argument_gen import CLIArgumentGenerator
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.config_utils.config_enums import ConfigLoadOptions
 from .module.configuration.tools.ini_file_parser import IniFileParser
@@ -187,6 +188,7 @@ __all__ = [
     "ColorPickerOption",
     "Converter",
     "ComboBoxOption",
+    "CLIArgumentGenerator",
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
     "ConfigBase",
