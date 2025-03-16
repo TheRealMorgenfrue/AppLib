@@ -34,6 +34,7 @@ class Option:
         self,
         default,
         actions: Callable | list[Callable] = _Undefined,
+        disable_self: bool = _Undefined,
         max: int = _Undefined,
         min: int = _Undefined,
         type: type = _Undefined,
@@ -51,6 +52,9 @@ class Option:
         actions : Callable | list[Callable], optional
             Functions to call when this setting changes value.
             Each function must take one argument, which is the new value of this setting.
+        disable_self : bool, optional
+            The value that disables this setting.
+            Disabled settings are excluded from command line arguments.
         max : int, optional
             The maximum value for this setting.
             If None, there is no limit.
@@ -59,7 +63,10 @@ class Option:
             If None, there is no limit.
         type : type, optional
             The Python type for the value of this setting. For instance, 3 has type 'int'.
-            NOTE: Types are also inferred from other arguments.
+
+            The final type is a union of:
+            - default
+            - type
         validators : Callable | list[Callable], optional
             Functions used to validate the value of this setting (in addition to default Pydantic validation).
             Each function must take one argument, which is the value of this setting.
@@ -67,6 +74,7 @@ class Option:
         """
         self.default = default
         self.actions = actions
+        self.disable_self = disable_self
         self.max = max
         self.min = min
         self.type = type
@@ -138,8 +146,11 @@ class GUIOption(Option):
             NOTE: Sliders do not support floats currently.
         type : type, optional
             The Python type for the value of this setting. For instance, 3 has type 'int'.
+
+            The final type is a union of:
+            - default
+            - type
             ##### Applicable settings: All
-            NOTE: Types are also inferred from other arguments.
         ui_disable_button : bool, optional
             Enable or disable the disable button for this setting.
             ##### Applicable settings: All
