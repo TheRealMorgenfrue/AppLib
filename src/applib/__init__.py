@@ -102,7 +102,10 @@ from .module.configuration.runners.validators.app_validator import (
     validate_loglevel,
     validate_theme,
 )
-from .module.configuration.runners.validators.generic_validator import validate_path
+from .module.configuration.runners.validators.generic_validator import (
+    validate_path,
+    validate_proxy_address,
+)
 from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
 from .module.configuration.tools.config_tools import ConfigUtils
@@ -281,6 +284,7 @@ __all__ = [
     "retrieve_dict_value",
     "validate_loglevel",
     "validate_path",
+    "validate_proxy_address",
     "validate_theme",
     "YFastTrie",
 ]
