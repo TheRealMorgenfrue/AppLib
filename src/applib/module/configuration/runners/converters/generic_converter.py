@@ -29,7 +29,10 @@ class GenericConverter(Converter):
         try:
             idx = source.index(value)
         except ValueError:
-            idx = target.index(value)  # Uncaught value error on purpose
+            try:
+                idx = target.index(value)
+            except ValueError:
+                return value  # No mapping provided for value
         return target[idx]
 
     @override
