@@ -32,10 +32,11 @@ class CLIArgumentGenerator:
         for k, v, pos, ps in config.get_settings():
             v_t = template.find(k, ps, search_mode="strict")  # type: Option | GUIOption
 
-            if v_t.defined(v_t.disable_self) and v_t.disable_self != v:
-                args.append(f"{arg_prefix}{v}")
-            elif v_t.defined(v_t.ui_disable_self) and v_t.ui_disable_self != v:
-                args.append(f"{arg_prefix}{v}")
-            else:
+            try:
+                if v_t.defined(v_t.disable_self) and v_t.disable_self != v:
+                    args.append(f"{arg_prefix}{v}")
+                elif v_t.defined(v_t.ui_disable_self) and v_t.ui_disable_self != v:
+                    args.append(f"{arg_prefix}{v}")
+            except AttributeError:
                 args.append(f"{arg_prefix}{v}")
         return args
