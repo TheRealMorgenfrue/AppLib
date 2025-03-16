@@ -937,8 +937,8 @@ class RedBlackTreeMapping(RedBlackTree):
 
         Returns
         -------
-        tuple[Hashable, Any, Hashable]
-            A tuple of (`key`, `value`, `parents`).
+        _rbtm_item
+            A tuple of (`key`, `value`, 'position', `parents`).
 
         Raises
         ------
