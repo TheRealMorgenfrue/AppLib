@@ -116,6 +116,7 @@ class GUIOption(Option):
         ui_unit: str = _Undefined,
         validators: Callable | list[Callable] = _Undefined,
         values: list | dict = _Undefined,
+        **kwargs,
     ):
         """
         Create an option instance usable in a GUI environment.
@@ -234,6 +235,7 @@ class GUIOption(Option):
             min=min,
             type=type,
             validators=validators,
+            **kwargs,
         )
         self.converter = converter
         self.ui_disable_button = ui_disable_button
@@ -269,6 +271,7 @@ class FileSelectorOption(GUIOption):
         ui_show_dir_only: bool = False,
         ui_type: UITypes = UITypes.FILE_SELECTION,
         validators: Callable | list[Callable] = _Undefined,
+        **kwargs,
     ):
         super().__init__(
             default=default,
@@ -286,6 +289,7 @@ class FileSelectorOption(GUIOption):
             ui_show_dir_only=ui_show_dir_only,
             ui_type=ui_type,
             validators=validators,
+            **kwargs,
         )
 
 
@@ -305,6 +309,7 @@ class ColorPickerOption(GUIOption):
         ui_info: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.COLOR_PICKER,
         validators: Callable | list[Callable] = _Undefined,
+        **kwargs,
     ):
         super().__init__(
             default=default,
@@ -320,6 +325,7 @@ class ColorPickerOption(GUIOption):
             ui_info=ui_info,
             ui_type=ui_type,
             validators=validators,
+            **kwargs,
         )
 
 
@@ -342,6 +348,7 @@ class ComboBoxOption(GUIOption):
         ui_info: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.COMBOBOX,
         validators: Callable | list[Callable] = _Undefined,
+        **kwargs,
     ):
         super().__init__(
             default=default,
@@ -360,6 +367,7 @@ class ComboBoxOption(GUIOption):
             ui_info=ui_info,
             ui_type=ui_type,
             validators=validators,
+            **kwargs,
         )
 
 
@@ -380,6 +388,7 @@ class TextEditOption(GUIOption):
         ui_invalid_input: GUIMessage = _Undefined,
         ui_type: UITypes = UITypes.LINE_EDIT,
         validators: Callable | list[Callable] = _Undefined,
+        **kwargs,
     ):
         super().__init__(
             default=default,
@@ -396,6 +405,7 @@ class TextEditOption(GUIOption):
             ui_invalid_input=ui_invalid_input,
             ui_type=ui_type,
             validators=validators,
+            **kwargs,
         )
 
 
@@ -418,6 +428,7 @@ class NumberOption(GUIOption):
         ui_type: UITypes = _Undefined,
         ui_unit: str = _Undefined,
         validators: Callable | list[Callable] = _Undefined,
+        **kwargs,
     ):
         super().__init__(
             default=default,
@@ -436,4 +447,5 @@ class NumberOption(GUIOption):
             ui_type=ui_type,
             ui_unit=ui_unit,
             validators=validators,
+            **kwargs,
         )
