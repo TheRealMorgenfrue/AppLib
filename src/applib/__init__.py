@@ -136,6 +136,7 @@ from .module.configuration.tools.validation_model_gen import (
 )
 from .module.datastructures.pure.meldableheap import MeldableHeap
 from .module.datastructures.pure.redblacktree import RedBlackTree
+from .module.datastructures.pure.trie import Trie
 from .module.datastructures.redblacktree_mapping import RedBlackTreeMapping
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from .module.logging import AppLibLogger, create_logger
@@ -268,6 +269,7 @@ __all__ = [
     "TextMessageBox",
     "ThreadManager",
     "ThreadUIStreamer",
+    "Trie",
     "UIFlags",
     "UIGroups",
     "UITypes",
