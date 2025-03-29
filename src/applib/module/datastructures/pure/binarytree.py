@@ -6,8 +6,6 @@ Courtesy of https://opendatastructures.org/
 
 from typing import Self
 
-from .arrayqueue import ArrayQueue
-
 
 class BinaryTree:
     class Node:
@@ -63,38 +61,6 @@ class BinaryTree:
             return
         self._traverse(u.left)
         self._traverse(u.right)
-
-    def _traverse2(self):
-        u = self._r
-        prv = self._nil
-        while u != self._nil:
-            if prv == u.parent:
-                if u.left != self._nil:
-                    nxt = u.left
-                elif u.right != self._nil:
-                    nxt = u.right
-                else:
-                    nxt = u.parent
-            elif prv == u.left:
-                if u.right != self._nil:
-                    nxt = u.right
-                else:
-                    nxt = u.parent
-            else:
-                nxt = u.parent
-            prv = u
-            u = nxt
-
-    def _bf_traverse(self):
-        q = ArrayQueue()
-        if self._r != self._nil:
-            q.add(self._r)
-        while q._size() > 0:
-            u = q.remove()  # type: BinaryTree.Node
-            if u.left != self._nil:
-                q.add(u.left)
-            if u.right != self._nil:
-                q.add(u.right)
 
     def _first_node(self) -> Node:
         """Find the first node in an in-order traversal"""
