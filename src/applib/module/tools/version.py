@@ -2,7 +2,7 @@
 
 __all__ = "VERSION"
 
-VERSION = "0.2.23"
+VERSION = "0.2.24"
 """The version of the app."""
 
 
