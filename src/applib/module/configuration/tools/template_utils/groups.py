@@ -1,18 +1,18 @@
-from typing import Any, Iterable, Self
+from typing import Iterable, Self
 
 from ....logging import AppLibLogger
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
-from ....tools.utilities import iter_to_str
 from .template_enums import UIGroups
 
 
 class Group:
-    _instances: dict[str, dict[str, Self]] = {}
+    _instances = {}  # type: dict[str, dict[str, Self]]
     _logger = AppLibLogger().get_logger()
 
     def __new__(cls, template_name: str, group_name: str) -> Self:
-        """Specifies a relationship between parent and child settings.
+        """
+        Specifies a relationship between parent and child settings.
 
         Create a new Group if another Group instance with the supplied template name
         and group name does not exist. Otherwise, return the existing instance.
@@ -20,54 +20,65 @@ class Group:
         Parameters
         ----------
         template_name : str
-            The name of the template this group belongs to
+            The name of the template this group belongs to.
 
         group_name : str
-            The name of the group
+            The name of the group.
 
         Returns
         -------
         Self
-            An instance (new or existing) of Group matching the template name and group name
+            An instance (new or existing) of Group matching the template name and group name.
         """
         if not template_name in cls._instances:
             cls._instances[template_name] = {}
 
         if not group_name in cls._instances[template_name]:
             instance = super().__new__(cls)
-            instance._template_name = template_name
-            instance._group_name = group_name
-            instance._parent = {}  # Type: dict[str, AnyParentCard]
-            instance._children = {}  # Type: dict[str, AnyCard]
-            instance._ui_group_parent = None
-            instance._parent_card_group = None  # The card group which this parent could be a child of - if its nesting level is 0
-            instance._child_card_groups = (
-                {}
-            )  # If children of this group are not nested under a parent, they should be added to their original card group
-            instance._parent_group_names = []  # This group is a child of these groups
-            instance._nesting_level = (
-                -1
-            )  # How many parent groups want to nest this group. A nesting_level of -1 means it is unknown.
-            instance._isNestingChildren = False
+            instance._created = False
             cls._instances[template_name][group_name] = instance
         return cls._instances[template_name][group_name]
 
+    def __init__(self, template_name: str, group_name: str):
+        if not self._created:
+            self._template_name = template_name
+            self._group_name = group_name
+            self._parent = {}  # type: dict[str, AnyParentCard]
+            self._children = {}  # type: dict[str, AnyCard]
+            self._ui_group_parent = None
+
+            # The card group which this parent could be a child of - if its nesting level is 0
+            self._parent_card_group = None
+
+            # If children of this group are not nested under a parent, they should be added to their original card group
+            self._child_card_groups = {}
+
+            # This group is a child of these groups
+            self._parent_group_names = []
+
+            # How many parent groups want to nest this group. A nesting_level of -1 means it is unknown.
+            self._nesting_level = -1
+            self._is_nesting_children = False
+
+            self._created = True
+
     @classmethod
     def get_group(cls, template_name: str, ui_group: str) -> Self | None:
-        """Get group instance matching the *ui_group* ID
+        """
+        Get the Group instance with name `ui_group`.
 
         Parameters
         ----------
         template_name : str
-            The template in which to search for the *ui_group* ID
+            The template in which to search for `ui_group`.
 
         ui_group : str
-            The ID of the Group to search for
+            The ID of the Group to search for.
 
         Returns
         -------
         Self | None
-             Returns Group instance if an instance with the *ui_group* ID exists, otherwise None
+             Returns Group instance if an instance with `ui_group` exists, otherwise None.
         """
         try:
             return cls._instances.get(template_name, None).get(ui_group, None)
@@ -79,13 +90,15 @@ class Group:
 
     @classmethod
     def get_all_groups(cls, template_name: str) -> Iterable[Self] | None:
+        """Get all Group instances in `template_name`."""
         groups = cls._instances.get(template_name, None)
-        if groups:
-            groups = groups.values()
-        return groups
+        return groups.values() if groups else groups
 
     @classmethod
     def remove_group(cls, template_name: str, ui_group: str) -> None:
+        """
+        Remove `ui_group` from all Group instances in `template_name`.
+        """
         group = cls._instances[template_name].pop(ui_group)
         # Remove group from any parent groups as well
         for parent in group._parent_group_names:
@@ -107,15 +120,15 @@ class Group:
             for parent_group_name in self._parent_group_names:
                 if self.get_group(
                     self._template_name, parent_group_name
-                ).getParentNestingPolicy():
+                ).get_parent_nesting_policy():
                     self._nesting_level += 1
 
             # A nesting_level above 1 indicates a problem; multiple parents want to nest this child.
             if self._nesting_level > 1:
                 self._logger.warning(
                     f"Group '{self.get_group_name()}': Multiple parents want to nest this UI group. "
-                    + f"Only the first parent in the list '{iter_to_str(self._parent_group_names, separator=", ")}' "
-                    + f"will be allowed nesting."
+                    + f"Only the first parent in the list [{", ".join(self._parent_group_names)}] "
+                    + f"will be allowed nesting"
                 )
                 # Only the first parent is allowed to nest - all other parent groups have their reference to this child group deleted.
                 for parent_group_name in self._parent_group_names[
@@ -126,6 +139,24 @@ class Group:
                     )
                 self._nesting_level = 1
 
+            # Check whether a parent wants to nest their child which also wants to nest their parent
+            if self.get_parent_nesting_policy():
+                group_name = self.get_group_name()
+                for child_name in self.get_parent_group_names():
+                    child = self.get_group(self._template_name, child_name)
+                    if (
+                        child.get_parent_nesting_policy()
+                        and group_name in child.get_parent_group_names()
+                    ):
+                        self._logger.error(
+                            f"Group '{group_name}': Nesting conflict detected. "
+                            + f"Parent group '{group_name}' and child group '{child_name}' want to nest each other. "
+                            + f"Removing '{group_name}' from '{child_name}' to prevent deadlock (this will cause graphical issues)"
+                        )
+                        # Completely remove all references to this group from the child
+                        child.remove_child(self.get_parent_card())
+                        child.get_parent_group_names().remove(group_name)
+
     def set_parent_group_names(self, parent_groups: list[str]) -> None:
         self._parent_group_names = parent_groups
 
@@ -133,12 +164,13 @@ class Group:
         return self._parent_group_names
 
     def is_nested_child(self) -> bool:
-        """The parent of this Group is a nested child of another Group"""
+        """Returns True if the parent of this Group is a nested child of another Group"""
         self.enforce_logical_nesting()
         return self._nesting_level > 0
 
-    def getParentNestingPolicy(self) -> bool:
-        return self._isNestingChildren
+    def get_parent_nesting_policy(self) -> bool:
+        """Returns True if this group is nesting children"""
+        return self._is_nesting_children
 
     def get_group_name(self) -> str:
         return self._group_name
@@ -187,7 +219,7 @@ class Group:
                 f"Group '{self.get_group_name()}': Cannot add card with non-existing name '{card_name}' to the child list"
             )
 
-    def remove_child(self, child: Any) -> None:
+    def remove_child(self, child: str | AnyCard) -> None:
         if isinstance(child, str):
             self._children.pop(child)
         else:
@@ -204,7 +236,7 @@ class Group:
 
     def set_ui_group_parent(self, ui_group_parent: list[UIGroups]):
         self._ui_group_parent = set(ui_group_parent)
-        self._isNestingChildren = (
+        self._is_nesting_children = (
             UIGroups.NESTED_CHILDREN in ui_group_parent
             or UIGroups.CLUSTERED in ui_group_parent
         )
