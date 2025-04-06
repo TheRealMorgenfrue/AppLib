@@ -89,8 +89,8 @@ class Option:
         return _Undefined
 
     def defined(self, attr_value) -> bool:
-        """Whether the given attribute is defined. Returns True if it is."""
-        return type(attr_value) != type(_Undefined)
+        """Returns True if the given attribute is defined."""
+        return attr_value != _Undefined
 
 
 class GUIOption(Option):
