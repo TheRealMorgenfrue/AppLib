@@ -60,11 +60,11 @@ class TemplateParser:
 
                 # Create a strong reference to the Group class (prevent accidental garbage collection)
                 self.group = Group(template_name, group_name)
-                if parent_groups:
+                if parent_groups and group_name not in parent_groups:
                     self.group.set_parent_group_names(parent_groups)
 
                 # Check if this setting is a ui_group_parent.
-                # Note: If multiple ui_groups are given to a parent setting, the setting is only a parent for the first group and
+                # NOTE: If multiple ui_groups are given to a parent setting, the setting is only a parent for the first group and
                 #       a child in any remaining groups
                 if i == 0 and option.defined(option.ui_group_parent):
                     # Check if a parent is defined for this group
