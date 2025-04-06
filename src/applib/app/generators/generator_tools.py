@@ -245,6 +245,6 @@ class GeneratorUtils:
             if baseunit not in CoreArgs._core_config_units.keys():
                 cls._logger.warning(
                     f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                    + f"Expected one of '{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}'"
+                    + f"Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}]"
                 )
         return baseunit
