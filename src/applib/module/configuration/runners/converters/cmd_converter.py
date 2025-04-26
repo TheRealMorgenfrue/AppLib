@@ -1,6 +1,6 @@
 from typing import override
 
-from applib import GenericConverter
+from .generic_converter import GenericConverter
 
 
 class CMDConverter(GenericConverter):
