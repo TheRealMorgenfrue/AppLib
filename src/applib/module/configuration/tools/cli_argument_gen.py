@@ -1,3 +1,5 @@
+from applib.module.configuration.runners.converters.cmd_converter import CMDConverter
+
 from ...tools.types.config import AnyConfig
 from ...tools.types.templates import AnyTemplate
 from .template_utils.options import GUIOption, Option
@@ -30,11 +32,23 @@ class CLIArgumentGenerator:
         """
         args = []
         for k, v, pos, ps in config.get_settings():
-            v_t = template.find(k, ps, search_mode="strict")  # type: Option | GUIOption
+            option = template.find(
+                k, ps, search_mode="strict"
+            )  # type: Option | GUIOption
             if not (
-                (v_t.defined(v_t.disable_self) and v_t.disable_self != v)
-                or (v_t.defined(v_t.ui_disable_self) and v_t.ui_disable_self != v)
+                (option.defined(option.disable_self) and option.disable_self != v)
+                or (
+                    option.defined(option.ui_disable_self)
+                    and option.ui_disable_self != v
+                )
             ):
                 continue
+
+            if option.defined(option.converter) and isinstance(
+                option.converter, CMDConverter
+            ):
+                # Convert value to the correct CLI argument
+                v = option.converter.getArgument(v)
+
             args.append(f"{arg_prefix}{v}")
         return args
