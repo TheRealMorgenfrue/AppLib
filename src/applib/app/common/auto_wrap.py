@@ -1,5 +1,6 @@
 from re import sub
 from typing import Tuple
+
 from qfluentwidgets import TextWrap
 
 
@@ -28,7 +29,7 @@ class AutoTextWrap(TextWrap):
             The string processed for whitespace characters and newlines.
         """
         clean_str = sub(pattern=r"\s+", repl=" ", string=text).strip()
-        return sub(pattern=newline_repl, repl="\n", string=clean_str)
+        return sub(pattern=newline_repl, repl="<br>", string=clean_str)
 
     @classmethod
     def _wrap_line(
