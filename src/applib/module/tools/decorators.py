@@ -1,4 +1,4 @@
-def makeSetupArgs(cls):
+def make_setup_args(cls):
     """Class decorator for declaring a class as the main setup arguments for the application."""
     from ..configuration.internal.core_args import CoreArgs
 
