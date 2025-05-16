@@ -4,7 +4,7 @@ from typing import Any, Hashable, Iterable, Self, Union
 from pydantic import Field
 
 from ...exceptions import OrphanGroupWarning
-from ...logging import AppLibLogger
+from ...logging import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import iter_to_str
 from ..runners.actions.action_manager import Actions
@@ -16,7 +16,7 @@ from .template_utils.validation_info import ValidationInfo
 
 class TemplateParser:
     _instance = None
-    _logger = AppLibLogger().get_logger()
+    _logger = None
     _current_template_name = ""
 
     # Remember templates already parsed
@@ -31,6 +31,7 @@ class TemplateParser:
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._logger = LoggingManager().applib_logger()
         return cls._instance
 
     def _prefix_msg(self) -> str:

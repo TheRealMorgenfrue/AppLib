@@ -1,5 +1,7 @@
 from typing import Self, override
 
+from applib.module.logging import LoggingManager
+
 from ..internal.core_args import CoreArgs
 from ..runners.actions.theme_actions import change_theme, change_theme_color
 from ..runners.validators.app_validator import validate_loglevel, validate_theme
@@ -39,7 +41,7 @@ class CoreTemplate(BaseTemplate):
             "General": {
                 "loglevel": ComboBoxOption(
                     default="INFO" if CoreArgs._core_is_release else "DEBUG",
-                    actions=[self._logger.setLevel],
+                    actions=[LoggingManager().applib_logger().setLevel],
                     ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
                     validators=[validate_loglevel],
                     values=CoreArgs._core_template_loglevels,

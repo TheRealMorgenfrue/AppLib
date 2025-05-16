@@ -3,22 +3,22 @@ from ...internal.core_args import CoreArgs
 
 
 def validate_loglevel(loglevel: str) -> str:
-    """Validate loglevel which must confirm to the loglevel specification
+    """Ensure `loglevel` follows the loglevel specification.
 
     Parameters
     ----------
     loglevel : str
-        The loglevel, e.g. "DEBUG"
+        The loglevel, e.g. "DEBUG".
 
     Returns
     -------
     str
-        The loglevel, if valid
+        The loglevel, if valid.
 
     Raises
     ------
     AssertionError
-        The loglevel is invalid
+        The loglevel is invalid.
     """
     loglevel = loglevel.upper()
     if not loglevel in CoreArgs._core_template_loglevels:
@@ -31,22 +31,22 @@ def validate_loglevel(loglevel: str) -> str:
 
 
 def validate_theme(theme: str) -> str:
-    """Ensure the theme is a valid argument for the app
+    """Ensure the theme is a valid argument for the app.
 
     Parameters
     ----------
     theme : str
-        The theme, e.g. "Dark"
+        The theme, e.g. "Dark".
 
     Returns
     -------
     str
-        The theme, if valid
+        The theme, if valid.
 
     Raises
     ------
     AssertionError
-        The theme is invalid
+        The theme is invalid.
     """
     if not theme in CoreArgs._core_template_themes:
         err_msg = f"Invalid theme '{theme}'. Expected one of '{iter_to_str(CoreArgs._core_template_themes, separator=", ")}'"

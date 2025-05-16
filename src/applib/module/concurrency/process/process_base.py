@@ -6,20 +6,20 @@ from abc import abstractmethod
 from PyQt6.QtCore import QObject, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
-from ...logging import AppLibLogger
+from ...logging import LoggingManager
 
 
 # Signals must not be connected to slots in __init__
 # as that will result in them being bound to the main thread
 # (a good idea would be to connect signals in the "start" method instead)
 class ProcessBase(QObject):
-    _logger = AppLibLogger().get_logger()
     finished = pyqtSignal(int)  # process_id
     failed = pyqtSignal(int)  # process_id
     consoleStream = pyqtSignal(str)  # Receives text (stdout+stderr) from subprocess
 
     def __init__(self) -> None:
         super().__init__()
+        self._logger = LoggingManager().applib_logger()
         self.process = None  # type: asyncio.subprocess.Process
         self.process_id = None  # type: int
 

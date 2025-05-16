@@ -7,15 +7,13 @@ from PyQt6.QtWidgets import QVBoxLayout, QWidget
 from qfluentwidgets import FluentIconBase, PopUpAniStackedWidget, ScrollArea, qrouter
 
 from ...module.configuration.internal.core_args import CoreArgs
-from ...module.logging import AppLibLogger
+from ...module.logging import LoggingManager
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar import InfoBar, InfoBarPosition
 from ..components.sample_card import SampleCardView
 
 
 class CoreSettingsInterface(ScrollArea):
-    _logger = AppLibLogger().get_logger()
-
     def __init__(self, parent: Optional[QWidget] = None):
         """
         The default main settings page.
@@ -121,7 +119,7 @@ class CoreSettingsInterface(ScrollArea):
                 widget_id=id(widget), icon=icon, title=title, widget=widget
             )
         except Exception:
-            self._logger.error(
+            LoggingManager().applib_logger().error(
                 f"Failed to add subinterface '{type(widget).__name__}'\n"
                 + f"{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}"
             )

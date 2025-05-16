@@ -37,24 +37,16 @@ class CoreApp:
             header = f"{line} Crash reported at {time.asctime()} {line}\n"
             content = traceback.format_exc()
             footer = "─" * len(header)
-            terminal_str = f"{header}\n{content}\n{footer}"
-
-            try:
-                from ..module.logging import create_logger
-
-                logger = create_logger("app_crash")
-                logger.debug(terminal_str)
-            except:  # Catch everything as we're crashing
-                print(terminal_str)
+            print(f"{header}\n{content}\n{footer}")
 
             crash_dir = Path(Path.cwd(), "crashes")
             os.makedirs(crash_dir, exist_ok=True)
             with open(
                 Path(
                     crash_dir,
-                    f"crash {datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}.txt",
+                    f"crash {datetime.now().strftime("%Y-%m-%d")}.txt",
                 ),
                 "a",
                 encoding="utf-8",
             ) as file:
-                file.write(header + "\n" + content)
+                file.write(f"{header}\n{content}\n\n\n")

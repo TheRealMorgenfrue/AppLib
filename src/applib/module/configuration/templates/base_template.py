@@ -51,7 +51,7 @@ class BaseTemplate(MappingBase):
     def new(
         cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict | None
     ) -> Self:
-        """Let singleton subclasses create a new instance of their class"""
+        """Let direct singleton subclasses create a new instance of their class"""
         new = super().__new__(cls)
         # This is called in a direct subclass. Thus, super() is actually calling this class
         super(type(new), new).__init__(name, [], icons)

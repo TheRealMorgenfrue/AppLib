@@ -1,5 +1,5 @@
-from datetime import datetime
 import os
+from datetime import datetime
 from pathlib import Path
 
 from ...tools.version import VERSION
@@ -18,6 +18,7 @@ class CoreArgs:
     _core_app_dir = os.environ["APPLIB_PATH"]
 
     # Logging
+    _core_log_name = _core_app_name
     _core_log_dir = Path(_core_app_dir, "logs")
     _core_log_format = "%(asctime)s - %(module)s - %(lineno)s - %(levelname)s - %(message)s"  # %(asctime)s - %(name)s - %(levelname)s - %(message)s'
     _core_log_use_color = True

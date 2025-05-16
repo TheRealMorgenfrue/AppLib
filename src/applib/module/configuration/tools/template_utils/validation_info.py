@@ -3,7 +3,7 @@ from typing import Any, Callable, Generator, Hashable, Iterable, override
 from ....datastructures.pure.meldableheap import MeldableHeap
 from ....datastructures.pure.redblacktree import RedBlackTree
 from ....datastructures.redblacktree_mapping import RedBlackTreeMapping
-from ....logging import AppLibLogger
+from ....logging import LoggingManager
 
 
 class ValidationTree(RedBlackTreeMapping):
@@ -13,7 +13,7 @@ class ValidationTree(RedBlackTreeMapping):
             setting: Hashable,
             value: Any,
             position: list[int],
-            parents: Iterable[Hashable],
+            parents: list[Hashable],
             validator: Callable,
         ):
             super().__init__(setting, value, position, parents)
@@ -61,9 +61,13 @@ class FieldTree(RedBlackTreeMapping):
                 pass
             return k, v, pos, ps
 
-    _logger = AppLibLogger().get_logger()
+    _logger = None
 
     def __init__(self, iterable=[], name=""):
+        if self._logger is None:
+            # Lazy load the logger
+            self._logger = LoggingManager().applib_logger()
+
         super().__init__(iterable, name)
 
     def __iter__(self) -> Generator[FieldNode, Any, None]:
@@ -71,7 +75,7 @@ class FieldTree(RedBlackTreeMapping):
 
     def __reversed__(
         self,
-    ) -> Generator[tuple[str, dict, Iterable[Hashable]], Any, None]:
+    ) -> Generator[tuple[Hashable, dict, list[int], list[Hashable]], Any, None]:
         heap = MeldableHeap(
             [
                 RedBlackTreeMapping.ReversedHeapNode(
@@ -132,7 +136,7 @@ class FieldTree(RedBlackTreeMapping):
             try:
                 pos = position[:-1]
             except IndexError:
-                pos = position[-1]
+                pos = [position[-1]]
             self.remove(setting, parents)
             self.add(key, value, pos, ps)
         else:

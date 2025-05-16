@@ -8,7 +8,7 @@ from qfluentwidgets import PrimaryPushButton, PushButton, ScrollArea
 from ....module.concurrency.process.process_generator import ProcessGenerator
 from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
 from ....module.configuration.internal.core_args import CoreArgs
-from ....module.logging import AppLibLogger
+from ....module.logging import LoggingManager
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.templates import AnyTemplate
 from ...common.core_signalbus import core_signalbus
@@ -20,8 +20,6 @@ from .process_subinterface import ProcessSubinterface
 
 
 class CoreProcessInterface(ScrollArea):
-    _logger = AppLibLogger().get_logger()
-
     def __init__(
         self,
         main_config: AnyConfig,
@@ -218,7 +216,7 @@ class CoreProcessInterface(ScrollArea):
             else:
                 self._onMissingInput()
         except Exception:
-            self._logger.error(
+            LoggingManager().applib_logger().error(
                 f"Process Manager failed\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )

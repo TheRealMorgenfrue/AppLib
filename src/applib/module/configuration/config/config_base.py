@@ -5,11 +5,13 @@ import traceback
 from numbers import Number
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Iterable, Literal, Mapping, Optional, Union, override
+from typing import Any, Callable, Literal, Mapping, Optional, Union, override
 
 import tomlkit
 import tomlkit.exceptions
 from pydantic import ValidationError
+
+from applib.module.logging import LoggingManager
 
 from ....app.common.core_signalbus import core_signalbus
 from ...datastructures.redblacktree_mapping import _rbtm_item
@@ -65,6 +67,10 @@ class ConfigBase(MappingBase):
         self.file_path = file_path
         self.failure = False  # The config failed to load
         self.__connectSignalToSlot()
+
+        if self._logger is None:
+            # Lazy load the logger
+            self._logger = LoggingManager().applib_logger()
 
         # Initialize config after everything is set up
         super().__init__([self._init_config()], name)

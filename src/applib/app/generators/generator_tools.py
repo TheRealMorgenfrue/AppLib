@@ -10,7 +10,7 @@ from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
 )
-from ...module.logging import AppLibLogger
+from ...module.logging import LoggingManager
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
 from ...module.tools.types.gui_settings import AnyBoolSetting
@@ -19,8 +19,6 @@ from ..components.settingcards.card_base import DisableWrapper
 
 
 class GeneratorUtils:
-    _logger = AppLibLogger().get_logger()
-
     @classmethod
     def _check_bool(cls, parent: AnyParentCard, child: AnyCard):
         """Used for all sync/desync Groups"""
@@ -88,7 +86,7 @@ class GeneratorUtils:
             try:
                 parent_option = parent.get_option()
             except AttributeError:
-                cls._logger.error(
+                LoggingManager().applib_logger().error(
                     f"Template '{group.get_template_name()}': Unable to connect cards in UI group '{group.get_group_name()}' "
                     + f"due to missing card for parent setting '{group.get_parent_name()}'"
                 )
@@ -170,7 +168,7 @@ class GeneratorUtils:
                 if not group.is_nested_child():
                     parent.notifyCard.emit(("updateState", None))
             except Exception:
-                cls._logger.error(
+                LoggingManager().applib_logger().error(
                     f"Template '{group.get_template_name()}': An error occurred while connecting cards in UI group '{group.get_group_name()}'\n"
                     + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                 )
@@ -229,7 +227,7 @@ class GeneratorUtils:
         elif isinstance(option.default, str):
             card_type = UITypes.LINE_EDIT  # FIXME: Temporary
         else:
-            cls._logger.warning(
+            LoggingManager().applib_logger().warning(
                 f"Config '{config_name}': Failed to infer ui_type for setting '{setting}'. "
                 + f"The default value '{option.default}' has unsupported type '{type(option.default).__name__}'"
             )
@@ -243,7 +241,7 @@ class GeneratorUtils:
         if option.defined(option.ui_unit):
             baseunit = option.ui_unit
             if baseunit not in CoreArgs._core_config_units.keys():
-                cls._logger.warning(
+                LoggingManager().applib_logger().warning(
                     f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
                     + f"Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}]"
                 )

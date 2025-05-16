@@ -4,7 +4,7 @@ from typing import Any, Generator, Optional
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
-from ...logging import AppLibLogger
+from ...logging import LoggingManager
 from ...tools.utilities import iter_to_str
 from ..process.process_base import ProcessBase
 from ..process.process_generator import ProcessGenerator
@@ -21,8 +21,6 @@ class ThreadManager(QThread):
     As such, all communication must be done using the signal/slot system.
     """
 
-    _logger = AppLibLogger().get_logger()
-
     updateMaxThreads = pyqtSignal(int)
     threadsRemoved = pyqtSignal(list)  # list of threadIDs safe for removal
     currentProgress = pyqtSignal(int)
@@ -34,6 +32,7 @@ class ThreadManager(QThread):
 
     def __init__(self, max_threads: int) -> None:
         super().__init__()
+        self._logger = LoggingManager().applib_logger()
         self.name = "thread manager"
         self.max_threads = max_threads
 

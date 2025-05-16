@@ -10,7 +10,7 @@ from ...module.configuration.tools.template_utils.groups import Group
 from ...module.configuration.tools.template_utils.options import GUIOption
 from ...module.configuration.tools.template_utils.template_enums import UIFlags, UITypes
 from ...module.exceptions import OrphanGroupWarning
-from ...module.logging import AppLibLogger
+from ...module.logging import LoggingManager
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
@@ -30,8 +30,6 @@ from .generator_tools import GeneratorUtils
 
 
 class GeneratorBase:
-    _logger = AppLibLogger().get_logger()
-
     def __init__(
         self,
         config: AnyConfig,
@@ -44,6 +42,8 @@ class GeneratorBase:
         if config.failure:
             err_msg = f"Config '{config.name}' is invalid"
             raise RuntimeError(err_msg)
+
+        self._logger = LoggingManager().applib_logger()
         self._config = config
         self._template = template
         self._config_name = config.name

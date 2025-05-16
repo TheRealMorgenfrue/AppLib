@@ -4,13 +4,16 @@ from typing import Any, Hashable, Iterable, Literal, Union, override
 from ..datastructures.pure.meldableheap import MeldableHeap
 from ..datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
 from ..exceptions import TreeLookupError
-from ..logging import AppLibLogger
+from ..logging import LoggingManager
 
 
 class MappingBase(RedBlackTreeMapping):
-    _logger = AppLibLogger().get_logger()
+    _logger = None
 
     def __init__(self, iterable=[], name=""):
+        if self._logger is None:
+            # Lazy load the logger
+            self._logger = LoggingManager().applib_logger()
         self._settings_cache = None
         super().__init__(iterable, name)
 

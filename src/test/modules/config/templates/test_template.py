@@ -28,6 +28,7 @@ from applib.module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
 )
+from applib.module.logging import LoggingManager
 
 
 class TestTemplate(BaseTemplate):
@@ -54,7 +55,7 @@ class TestTemplate(BaseTemplate):
             "General": {
                 "loglevel": ComboBoxOption(
                     default="INFO" if CoreArgs._core_is_release else "DEBUG",
-                    actions=[self._logger.setLevel],
+                    actions=[LoggingManager().applib_logger().setLevel],
                     ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
                     validators=[validate_loglevel],
                     values=TestArgs.main_loglevels,

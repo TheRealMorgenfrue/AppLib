@@ -29,15 +29,15 @@ class ClusterHeaderSettingCard(FluentSettingCard):
         self.titleLabel.installEventFilter(self)
         self.contentLabel.installEventFilter(self)
 
-    def eventFilter(self, obj: QObject, e: QEvent) -> None:
-        if (
-            obj in [self.titleLabel, self.contentLabel]
-            and e.type() == QEvent.Type.Resize
-        ):
-            self.resizeEvent(e)
-            if self.parentWidget():
-                self.parentWidget().resizeEvent(e)
-        return super().eventFilter(obj, e)
+    # def eventFilter(self, obj: QObject, e: QEvent) -> None:
+    #     if (
+    #         obj in [self.titleLabel, self.contentLabel]
+    #         and e.type() == QEvent.Type.Resize
+    #     ):
+    #         self.resizeEvent(e)
+    #         if self.parentWidget():
+    #             self.parentWidget().resizeEvent(e)
+    #     return super().eventFilter(obj, e)
 
 
 class ClusteredSettingCard(ParentSettingCardBase, QFrame):

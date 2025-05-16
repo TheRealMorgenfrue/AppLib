@@ -5,16 +5,13 @@ from collections import deque
 from pathlib import Path
 
 import tomlkit
-import tomlkit.exceptions
 
-from ...logging import AppLibLogger
+from ...logging import LoggingManager
 from ...tools.types.general import Model, StrPath
 from ..internal.core_args import CoreArgs
 
 
 class ConfigUtils:
-    _logger = AppLibLogger().get_logger()
-
     @classmethod
     def writeConfig(
         cls,
@@ -51,9 +48,11 @@ class ConfigUtils:
             elif extension.lower() == "json":
                 cls._generateJSONConfig(config, dst_path)
             else:
-                cls._logger.warning(f"Cannot write unsupported file '{file}'")
+                LoggingManager().applib_logger().warning(
+                    f"Cannot write unsupported file '{file}'"
+                )
         except Exception:
-            cls._logger.error(
+            LoggingManager().applib_logger().error(
                 f"Failed to write {file} to '{dst_path}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
@@ -82,7 +81,9 @@ class ConfigUtils:
             doc.append(section, table)
 
         with open(dstPath, "w", encoding="utf-8") as file:
-            cls._logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+            LoggingManager().applib_logger().debug(
+                f"Writing '{fileName}' to '{dstPath}'"
+            )
             tomlkit.dump(doc, file)
 
     @classmethod
@@ -119,7 +120,9 @@ class ConfigUtils:
 
         fileName = os.path.split(dstPath)[1]
         with open(dstPath, "w", encoding="utf-8") as file:
-            cls._logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+            LoggingManager().applib_logger().debug(
+                f"Writing '{fileName}' to '{dstPath}'"
+            )
             file.write("".join(document))
 
     @classmethod
@@ -137,5 +140,7 @@ class ConfigUtils:
         """
         fileName = os.path.split(dstPath)[1]
         with open(dstPath, "w", encoding="utf-8") as file:
-            cls._logger.debug(f"Writing '{fileName}' to '{dstPath}'")
+            LoggingManager().applib_logger().debug(
+                f"Writing '{fileName}' to '{dstPath}'"
+            )
             file.write(json.dumps(config, indent=4))

@@ -140,7 +140,7 @@ from .module.datastructures.pure.redblacktree import RedBlackTree
 from .module.datastructures.pure.trie import Trie
 from .module.datastructures.redblacktree_mapping import RedBlackTreeMapping
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
-from .module.logging import AppLibLogger, create_logger
+from .module.logging import LoggingManager
 from .module.tools.types.config import AnyConfig
 from .module.tools.types.general import Model, StrPath, iconDict
 from .module.tools.types.gui_cardgroups import AnyCardGroup
@@ -179,7 +179,6 @@ __all__ = [
     "AnySettingCard",
     "AnySettingWidget",
     "AnyTemplate",
-    "AppLibLogger",
     "AutoTextWrap",
     "BaseTemplate",
     "CardBase",
@@ -242,6 +241,7 @@ __all__ = [
     "InvalidMasterKeyError",
     "LinkCard",
     "LinkCardView",
+    "LoggingManager",
     "MenuListView",
     "MeldableHeap",
     "MessageBoxBase",
@@ -281,7 +281,6 @@ __all__ = [
     "change_theme",
     "change_theme_color",
     "check_dict_nestingLevel",
-    "create_logger",
     "dict_lookup",
     "format_list_for_display",
     "format_validation_error",

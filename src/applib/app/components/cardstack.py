@@ -16,10 +16,10 @@ from qfluentwidgets import (
     qrouter,
 )
 
-from ...module.logging import AppLibLogger
+from ...module.logging import LoggingManager
 from ...module.tools.types.gui_generators import AnyCardGenerator
 
-# InQuad                   // Straight
+# InQuad                        // Straight
 # QEasingCurve.Type.InBack      // Bounce up
 # QEasingCurve.Type.InOutBack   // Bounce up & down
 
@@ -29,8 +29,6 @@ AnyPivot: TypeAlias = Pivot | SegmentedToolWidget
 
 
 class CardStackBase(ScrollArea):
-    _logger = AppLibLogger().get_logger()
-
     def __init__(
         self,
         generator: AnyCardGenerator,
@@ -40,6 +38,7 @@ class CardStackBase(ScrollArea):
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
+            self._logger = LoggingManager().applib_logger()
             super().__init__(parent)
             self._cards = generator.getCards()
             self._generatorDefaultGroup = generator.getDefaultGroup()

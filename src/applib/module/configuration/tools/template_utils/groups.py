@@ -1,6 +1,6 @@
 from typing import Iterable, Self
 
-from ....logging import AppLibLogger
+from ....logging import LoggingManager
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
 from .template_enums import UIGroups
@@ -8,7 +8,7 @@ from .template_enums import UIGroups
 
 class Group:
     _instances = {}  # type: dict[str, dict[str, Self]]
-    _logger = AppLibLogger().get_logger()
+    _logger = None
 
     def __new__(cls, template_name: str, group_name: str) -> Self:
         """
@@ -30,6 +30,10 @@ class Group:
         Self
             An instance (new or existing) of Group matching the template name and group name.
         """
+        if cls._logger is None:
+            # Lazy load the logger
+            cls._logger = LoggingManager().applib_logger()
+
         if not template_name in cls._instances:
             cls._instances[template_name] = {}
 

@@ -25,14 +25,15 @@ from qfluentwidgets import (
     setTheme,
 )
 
+from applib.module.logging.logger_utils import create_main_logger, write_header_to_log
+
 from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
-from ...module.logging import AppLibLogger
-from ...module.tools.decorators import makeSetupArgs
+from ...module.tools.decorators import make_setup_args
 from ...module.tools.types.config import AnyConfig
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
@@ -52,13 +53,11 @@ class CoreMainWindow(MSFluentWindow):
         ] = None,
     ):
         # Copy MainArgs attributes to CoreArgs, overriding its attributes if possible
-        makeSetupArgs(MainArgs)
+        make_setup_args(MainArgs)
 
         # Initialize logger after MainArgs is read
-        applogger = AppLibLogger()
-        applogger.setLogDir(CoreArgs._core_log_dir)
-        applogger.writeHeaderToLog()
-        self._logger = applogger.get_logger()
+        self._logger = create_main_logger()
+        write_header_to_log()
 
         super().__init__()
         self._subinterfaces = subinterfaces
