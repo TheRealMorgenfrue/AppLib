@@ -4,8 +4,8 @@ from .generic_converter import GenericConverter
 
 
 class CMDConverter(GenericConverter):
-    def __init__(self, config_values, gui_values):
-        super().__init__(config_values, gui_values)
+    def __init__(self, config_values, cmd_values):
+        super().__init__(config_values, cmd_values)
 
     @override
     def convert(self, value, to_gui=False):
