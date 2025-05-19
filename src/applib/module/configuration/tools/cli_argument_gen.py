@@ -8,7 +8,7 @@ from .template_utils.options import GUIOption, Option
 class CLIArgumentGenerator:
 
     def create_arguments(
-        config: AnyConfig, template: AnyTemplate, arg_prefix: str = "--"
+        self, config: AnyConfig, template: AnyTemplate, arg_prefix: str = "--"
     ) -> list[str]:
         """
         Create command line arguments from `config` and its associated `template`.
