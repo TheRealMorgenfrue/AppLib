@@ -1,5 +1,5 @@
 import traceback
-from typing import Hashable, Optional, Union
+from typing import Hashable
 
 from PyQt6.QtCore import QEasingCurve, Qt
 from PyQt6.QtGui import QIcon
@@ -14,7 +14,7 @@ from ..components.sample_card import SampleCardView
 
 
 class CoreSettingsInterface(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None):
+    def __init__(self, parent: QWidget | None = None):
         """
         The default main settings page.
 
@@ -77,7 +77,7 @@ class CoreSettingsInterface(ScrollArea):
     def _createSampleCard(
         self,
         widget_id: Hashable,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
         widget: QWidget | None,
     ):
@@ -98,7 +98,7 @@ class CoreSettingsInterface(ScrollArea):
         )
 
     def addSubInterface(
-        self, icon: Union[str, QIcon, FluentIconBase], title: str, widget: QWidget
+        self, icon: str | QIcon | FluentIconBase, title: str, widget: QWidget
     ) -> None:
         """
         Add a subinterface to the main settings page.
@@ -119,8 +119,9 @@ class CoreSettingsInterface(ScrollArea):
                 widget_id=id(widget), icon=icon, title=title, widget=widget
             )
         except Exception:
-            LoggingManager().applib_logger().error(
+            LoggingManager().error(
                 f"Failed to add subinterface '{type(widget).__name__}'\n"
-                + f"{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}"
+                + f"{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}",
+                gui=True,
             )
             widget.deleteLater()

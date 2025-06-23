@@ -1,9 +1,9 @@
 import os
 import traceback
-from typing import Any, Optional, Union
+from typing import Any
 
-from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtGui import QIcon, QPainter, QPaintEvent, QPixmap
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QPixmap
 from PyQt6.QtWidgets import (
     QApplication,
     QGraphicsBlurEffect,
@@ -13,8 +13,8 @@ from PyQt6.QtWidgets import (
     QGraphicsView,
     QWidget,
 )
-from qfluentwidgets import FluentIcon as FIF
 from qfluentwidgets import (
+    FluentIcon,
     FluentIconBase,
     MSFluentWindow,
     NavigationBarPushButton,
@@ -25,6 +25,8 @@ from qfluentwidgets import (
     setTheme,
 )
 
+from applib.app.interfaces.process.process_interface import CoreProcessInterface
+from applib.module.logging import LoggingManager
 from applib.module.logging.logger_utils import create_main_logger, write_header_to_log
 
 from ...module.configuration.config.core_config import CoreConfig
@@ -41,28 +43,33 @@ from ..components.infobar import InfoBar, InfoBarPosition
 
 
 class CoreMainWindow(MSFluentWindow):
+    gui_msg_signal = pyqtSignal(str, str, str, Qt.Orientation)
+    """Send messages to the main thread (GUI) from anywhere.\n
+    level: str, title: str, content: str, orient: Qt.Orientation
+    """
+
     def __init__(
         self,
         MainArgs,
-        MainConfig: Optional[AnyConfig] = None,
-        subinterfaces: Optional[
-            list[tuple[QWidget, Union[str, QIcon, FluentIconBase], str]]
-        ] = None,
-        settings_interface: Optional[
-            tuple[QWidget, Union[str, QIcon, FluentIconBase], str]
-        ] = None,
+        MainConfig: type[AnyConfig] | None = None,
+        subinterfaces: (
+            list[tuple[type[QWidget], str | QIcon | FluentIconBase, str]] | None
+        ) = None,
+        settings_interface: (
+            tuple[type[QWidget], str | QIcon | FluentIconBase, str] | None
+        ) = None,
     ):
         # Copy MainArgs attributes to CoreArgs, overriding its attributes if possible
         make_setup_args(MainArgs)
 
         # Initialize logger after MainArgs is read
-        self._logger = create_main_logger()
+        self._logger = LoggingManager()
+        create_main_logger()
         write_header_to_log()
 
         super().__init__()
         self._subinterfaces = subinterfaces
         self._settings_tuple = settings_interface
-        self._error_log = []
         self._default_logmsg = f"Please check the log for details"
         self.background = None  # type: QPixmap | None
         self.background_opacity = 0.0
@@ -79,14 +86,12 @@ class CoreMainWindow(MSFluentWindow):
             self._connectSignalToSlot()
             self._initNavigation()
             self._initBackgroundAndTheme()
-            self._checkSoftErrors()
+            self._check_soft_errors()
         except Exception:
-            self._error_log.append(
-                traceback.format_exc(limit=CoreArgs._core_traceback_limit)
-            )
+            self._log_error(traceback.format_exc(limit=CoreArgs._core_traceback_limit))
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
-        self._displayErrors()
+        self._logger.set_gui_ready(True)
 
     def _validate_background(self, image_path):
         return image_path and os.path.isfile(image_path)
@@ -115,15 +120,17 @@ class CoreMainWindow(MSFluentWindow):
                         interface=init_interface, icon=icon, text=self.tr(title)
                     )
                     created_interfaces.append(init_interface)
+                    if isinstance(init_interface, CoreProcessInterface):
+                        self._logger.set_proc_signal(init_interface._proc_msg_signal)
                 except Exception:
-                    self._error_log.append(
+                    self._log_error(
                         traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
             self._subinterfaces = created_interfaces
 
         self.navigationInterface.addWidget(
             "themeButton",
-            NavigationBarPushButton(FIF.CONSTRACT, "", isSelectable=False),
+            NavigationBarPushButton(FluentIcon.CONSTRACT, "", isSelectable=False),
             self.toggleTheme,
             NavigationItemPosition.BOTTOM,
         )
@@ -169,12 +176,11 @@ class CoreMainWindow(MSFluentWindow):
         QApplication.processEvents()
 
     def _connectSignalToSlot(self):
-        core_signalbus.configUpdated.connect(self._onConfigUpdated)
-        core_signalbus.configValidationError.connect(self._onConfigValidationFailed)
-        core_signalbus.configStateChange.connect(self._onConfigStateChange)
-        core_signalbus.genericError.connect(self._onGenericError)
+        self._logger.set_gui_signal(self.gui_msg_signal)
+        self.gui_msg_signal.connect(self._on_gui_msg_received)
+        core_signalbus.configUpdated.connect(self._on_config_updated)
 
-    def _onConfigUpdated(
+    def _on_config_updated(
         self,
         names: tuple[str, str],
         config_key: str,
@@ -195,79 +201,91 @@ class CoreMainWindow(MSFluentWindow):
                 self.background_blur_radius = float(value)
                 self.update()
 
-    def _onGenericError(self, title: str, content: str):
-        InfoBar.error(
-            title=self.tr(title),
-            content=self.tr(content) if content else self._default_logmsg,
-            orient=Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal,
-            isClosable=True,
-            duration=7000,
-            position=InfoBarPosition.TOP,
-            parent=self,
-        )
-
-    def _onConfigValidationFailed(self, config_name: str, title: str, content: str):
-        InfoBar.warning(
-            title=self.tr(title),
-            content=self.tr(content),
-            orient=(Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal),
-            isClosable=False,
-            duration=5000,
-            position=InfoBarPosition.TOP,
-            parent=self,
-        )
-
-    def _onConfigStateChange(self, state: bool, title: str, content: str):
-        if state:
-            InfoBar.success(
-                title=self.tr(title),
-                content=self.tr(content),
-                orient=(
-                    Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal
-                ),
-                isClosable=False,
-                duration=5000,
-                position=InfoBarPosition.TOP,
-                parent=self,
-            )
-        else:
-            InfoBar.error(
-                title=self.tr(title),
-                content=self.tr(content) if content else self._default_logmsg,
-                orient=(
-                    Qt.Orientation.Vertical if content else Qt.Orientation.Horizontal
-                ),
-                isClosable=False,
-                duration=5000,
-                position=InfoBarPosition.TOP,
-                parent=self,
-            )
-
-    def _checkSoftErrors(self):
+    def _check_soft_errors(self):
         if self.main_config.failure:
-            InfoBar.warning(
-                title=self.tr("Using internal config"),
-                content=self.tr("Setting changes may not persist"),
-                orient=Qt.Orientation.Vertical,
-                isClosable=True,
-                duration=-1,
-                position=InfoBarPosition.TOP,
-                parent=self,
+            self._logger.warning(
+                "Setting changes may not persist",
+                title="Using internal config",
+                gui=True,
             )
 
-    def _displayErrors(self):
-        for error in self._error_log:
-            self._logger.critical(
-                "Encountered a critical error during startup\n" + error
-            )
-            InfoBar.error(
-                title=self.tr("Critical Error!"),
-                content=error,
-                isClosable=True,
-                duration=-1,
-                position=InfoBarPosition.TOP,
-                parent=self,
-            )
+    def _log_error(self, error):
+        self._logger.critical(
+            msg="Encountered a critical error during startup\n" + error, gui=True
+        )
+
+    def _on_gui_msg_received(
+        self, level: str, title: str, content: str, orient: Qt.Orientation
+    ):
+        match level.lower():
+            case "info":
+                self._info(title, content, orient)
+            case "debug":
+                self._debug(title, content, orient)
+            case "warning":
+                self._warning(title, content, orient)
+            case "error":
+                self._error(title, content, orient)
+            case "critical":
+                self._critical(title, content, orient)
+
+    def _info(self, title: str, content: str, orient: Qt.Orientation):
+        InfoBar.info(
+            title=title,
+            content=content,
+            orient=orient,
+            isClosable=True,
+            duration=8000,
+            position=InfoBarPosition.TOP_RIGHT,
+            parent=self,
+        )
+
+    def _debug(self, title: str, content: str, orient: Qt.Orientation):
+        w = InfoBar.new(
+            icon=FluentIcon.DEVELOPER_TOOLS,
+            title=title,
+            content=content,
+            orient=orient,
+            isClosable=True,
+            duration=8000,
+            position=InfoBarPosition.TOP_RIGHT,
+            parent=self,
+        )
+        if w:
+            w.setCustomBackgroundColor(QColor("1c7e83"), QColor("2abdc7"))
+
+    def _warning(self, title: str, content: str, orient: Qt.Orientation):
+        InfoBar.warning(
+            title=title,
+            content=content,
+            orient=orient,
+            isClosable=True,
+            duration=10000,
+            position=InfoBarPosition.TOP_LEFT,
+            parent=self,
+        )
+
+    def _error(self, title: str, content: str, orient: Qt.Orientation):
+        InfoBar.error(
+            title=title,
+            content=content,
+            orient=orient,
+            isClosable=True,
+            duration=10000,
+            position=InfoBarPosition.TOP,
+            parent=self,
+        )
+
+    def _critical(self, title: str, content: str, orient: Qt.Orientation):
+        InfoBar.error(
+            title=title,
+            content=content,
+            orient=orient,
+            isClosable=True,
+            duration=10000,
+            position=InfoBarPosition.TOP,
+            parent=self,
+        )
 
     def toggleTheme(self):
         theme = Theme.LIGHT if isDarkTheme() else Theme.DARK

@@ -31,7 +31,7 @@ class TemplateParser:
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._logger = LoggingManager().applib_logger()
+            cls._logger = LoggingManager()
         return cls._instance
 
     def _prefix_msg(self) -> str:
@@ -176,7 +176,7 @@ class TemplateParser:
             if not isinstance(option.actions, list):
                 option.actions = [option.actions]
 
-            for i, action in enumerate(deepcopy(option.actions)):
+            for i, action in enumerate(option.actions):
                 if callable(action):
                     self.actions.add_action(setting, action, parents, template_name)
                 else:

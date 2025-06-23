@@ -48,11 +48,9 @@ class ConfigUtils:
             elif extension.lower() == "json":
                 cls._generateJSONConfig(config, dst_path)
             else:
-                LoggingManager().applib_logger().warning(
-                    f"Cannot write unsupported file '{file}'"
-                )
+                LoggingManager().warning(f"Cannot write unsupported file '{file}'")
         except Exception:
-            LoggingManager().applib_logger().error(
+            LoggingManager().error(
                 f"Failed to write {file} to '{dst_path}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
@@ -81,9 +79,7 @@ class ConfigUtils:
             doc.append(section, table)
 
         with open(dstPath, "w", encoding="utf-8") as file:
-            LoggingManager().applib_logger().debug(
-                f"Writing '{fileName}' to '{dstPath}'"
-            )
+            LoggingManager().debug(f"Writing '{fileName}' to '{dstPath}'")
             tomlkit.dump(doc, file)
 
     @classmethod
@@ -120,9 +116,7 @@ class ConfigUtils:
 
         fileName = os.path.split(dstPath)[1]
         with open(dstPath, "w", encoding="utf-8") as file:
-            LoggingManager().applib_logger().debug(
-                f"Writing '{fileName}' to '{dstPath}'"
-            )
+            LoggingManager().debug(f"Writing '{fileName}' to '{dstPath}'")
             file.write("".join(document))
 
     @classmethod
@@ -140,7 +134,5 @@ class ConfigUtils:
         """
         fileName = os.path.split(dstPath)[1]
         with open(dstPath, "w", encoding="utf-8") as file:
-            LoggingManager().applib_logger().debug(
-                f"Writing '{fileName}' to '{dstPath}'"
-            )
+            LoggingManager().debug(f"Writing '{fileName}' to '{dstPath}'")
             file.write(json.dumps(config, indent=4))

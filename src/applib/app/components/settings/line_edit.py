@@ -5,8 +5,8 @@ from qfluentwidgets import LineEdit
 
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIMessage, GUIOption
+from ....module.logging import LoggingManager
 from ....module.tools.types.config import AnyConfig
-from ...common.core_signalbus import core_signalbus
 from .base_setting import BaseSetting
 
 
@@ -109,7 +109,9 @@ class CoreLineEdit(BaseSetting):
             if not self.is_disabled:
                 self.setWidgetValue(value)
         else:
-            core_signalbus.configValidationError.emit(
-                self.config.name, self.ui_invalid_input[0], self.ui_invalid_input[1]
+            LoggingManager().warning(
+                msg=self.ui_invalid_input.description,
+                title=self.ui_invalid_input.title,
+                gui=True,
             )
             self.setWidgetValue(value)

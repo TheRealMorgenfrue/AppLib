@@ -1,5 +1,7 @@
 from typing import Iterable, Self
 
+from applib.app.common.auto_wrap import AutoTextWrap
+
 from ....logging import LoggingManager
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
@@ -32,7 +34,7 @@ class Group:
         """
         if cls._logger is None:
             # Lazy load the logger
-            cls._logger = LoggingManager().applib_logger()
+            cls._logger = LoggingManager()
 
         if not template_name in cls._instances:
             cls._instances[template_name] = {}
@@ -153,9 +155,14 @@ class Group:
                         and group_name in child.get_parent_group_names()
                     ):
                         self._logger.error(
-                            f"Group '{group_name}': Nesting conflict detected. "
-                            + f"Parent group '{group_name}' and child group '{child_name}' want to nest each other. "
-                            + f"Removing '{group_name}' from '{child_name}' to prevent deadlock (this will cause graphical issues)"
+                            AutoTextWrap.text_format(
+                                f"""
+                                Group '{group_name}': Nesting conflict detected.
+                                Parent group '{group_name}' and child group '{child_name}' want to nest each other.
+                                Removing '{group_name}' from '{child_name}' to prevent deadlock (this will cause graphical issues)
+                                """
+                            ),
+                            gui=True,
                         )
                         # Completely remove all references to this group from the child
                         child.remove_child(self.get_parent_card())

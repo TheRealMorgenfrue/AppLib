@@ -1,8 +1,9 @@
 import traceback
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 from PyQt6.QtCore import pyqtBoundSignal
 
+from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_utils.groups import Group
 from ...module.configuration.tools.template_utils.options import GUIOption
@@ -80,15 +81,22 @@ class GeneratorUtils:
 
     @classmethod
     def connect_ui_groups(cls, ui_groups: Iterable[Group]):
+        logger = LoggingManager()
         for group in ui_groups:
             ui_group_parent = group.get_ui_group_parent()
             parent = group.get_parent_card()
             try:
                 parent_option = parent.get_option()
             except AttributeError:
-                LoggingManager().applib_logger().error(
-                    f"Template '{group.get_template_name()}': Unable to connect cards in UI group '{group.get_group_name()}' "
-                    + f"due to missing card for parent setting '{group.get_parent_name()}'"
+                logger.error(
+                    AutoTextWrap.text_format(
+                        f"""
+                        Template '{group.get_template_name()}':
+                        Unable to connect cards in UI group '{group.get_group_name()}'
+                        due to missing card for parent setting '{group.get_parent_name()}'
+                        """
+                    ),
+                    gui=True,
                 )
                 continue
             try:
@@ -168,9 +176,15 @@ class GeneratorUtils:
                 if not group.is_nested_child():
                     parent.notifyCard.emit(("updateState", None))
             except Exception:
-                LoggingManager().applib_logger().error(
-                    f"Template '{group.get_template_name()}': An error occurred while connecting cards in UI group '{group.get_group_name()}'\n"
-                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                LoggingManager().error(
+                    AutoTextWrap.text_format(
+                        f"""
+                        Template '{group.get_template_name()}':
+                        An error occurred while connecting cards in UI group '{group.get_group_name()}'/n
+                        """
+                    )
+                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                    gui=True,
                 )
 
     @classmethod
@@ -227,9 +241,14 @@ class GeneratorUtils:
         elif isinstance(option.default, str):
             card_type = UITypes.LINE_EDIT  # FIXME: Temporary
         else:
-            LoggingManager().applib_logger().warning(
-                f"Config '{config_name}': Failed to infer ui_type for setting '{setting}'. "
-                + f"The default value '{option.default}' has unsupported type '{type(option.default).__name__}'"
+            LoggingManager().warning(
+                AutoTextWrap.text_format(
+                    f"""
+                    Config '{config_name}': Failed to infer ui_type for setting '{setting}'.
+                    The default value '{option.default}' has unsupported type '{type(option.default).__name__}'
+                    """
+                ),
+                gui=True,
             )
         return card_type
 
@@ -241,8 +260,13 @@ class GeneratorUtils:
         if option.defined(option.ui_unit):
             baseunit = option.ui_unit
             if baseunit not in CoreArgs._core_config_units.keys():
-                LoggingManager().applib_logger().warning(
-                    f"Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'. "
-                    + f"Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}]"
+                LoggingManager().warning(
+                    AutoTextWrap.text_format(
+                        f"""
+                        Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'.
+                        Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}]
+                        """
+                    ),
+                    gui=True,
                 )
         return baseunit

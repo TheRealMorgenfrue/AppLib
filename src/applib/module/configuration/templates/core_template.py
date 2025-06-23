@@ -41,7 +41,7 @@ class CoreTemplate(BaseTemplate):
             "General": {
                 "loglevel": ComboBoxOption(
                     default="INFO" if CoreArgs._core_is_release else "DEBUG",
-                    actions=[LoggingManager().applib_logger().setLevel],
+                    actions=[LoggingManager().set_level],
                     ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
                     validators=[validate_loglevel],
                     values=CoreArgs._core_template_loglevels,

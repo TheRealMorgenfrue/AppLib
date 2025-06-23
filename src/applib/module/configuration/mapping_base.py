@@ -13,7 +13,7 @@ class MappingBase(RedBlackTreeMapping):
     def __init__(self, iterable=[], name=""):
         if self._logger is None:
             # Lazy load the logger
-            self._logger = LoggingManager().applib_logger()
+            self._logger = LoggingManager()
         self._settings_cache = None
         super().__init__(iterable, name)
 

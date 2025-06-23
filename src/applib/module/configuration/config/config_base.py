@@ -2,20 +2,19 @@ import json
 import os
 import shutil
 import traceback
-from numbers import Number
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from time import time
-from typing import Any, Callable, Literal, Mapping, Optional, Union, override
+from typing import Any, Literal, override
 
 import tomlkit
 import tomlkit.exceptions
 from pydantic import ValidationError
 
-from applib.module.logging import LoggingManager
-
 from ....app.common.core_signalbus import core_signalbus
 from ...datastructures.redblacktree_mapping import _rbtm_item
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
+from ...logging import LoggingManager
 from ...tools.types.general import Model, StrPath
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import format_validation_error
@@ -33,7 +32,7 @@ class ConfigBase(MappingBase):
         template: AnyTemplate,
         validation_model: Model | None,
         file_path: StrPath,
-        save_interval: Number = 1,
+        save_interval: int = 1,
     ) -> None:
         """
         Base class for all configs.
@@ -52,7 +51,7 @@ class ConfigBase(MappingBase):
         file_path : StrPath
             The config's location on disk.
 
-        save_interval : Number, optional
+        save_interval : int, optional
             Time between config saves in seconds.
             By default 1.
         """
@@ -70,7 +69,7 @@ class ConfigBase(MappingBase):
 
         if self._logger is None:
             # Lazy load the logger
-            self._logger = LoggingManager().applib_logger()
+            self._logger = LoggingManager()
 
         # Initialize config after everything is set up
         super().__init__([self._init_config()], name)
@@ -231,7 +230,7 @@ class ConfigBase(MappingBase):
         key: str,
         value: Any,
         validator: Callable[[dict], None],
-        parents: Union[str, list[str]] = [],
+        parents: str | list[str] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> bool:
         """
@@ -282,14 +281,11 @@ class ConfigBase(MappingBase):
             is_error = True
             self._logger.error(
                 f"{self._prefix_msg()} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                gui=True,
             )
         finally:
-            if is_error:
-                core_signalbus.configStateChange.emit(
-                    False, "Failed to save setting", ""
-                )
-            else:
+            if not is_error:
                 core_signalbus.configUpdated.emit(
                     (self.name, self.template.name), key, (value,), parents
                 )
@@ -298,8 +294,8 @@ class ConfigBase(MappingBase):
 
     def _load_config(
         self,
-        validator: Optional[Callable[[Mapping], dict]] = None,
-        model_dict: Optional[dict] = None,
+        validator: Callable[[Mapping], dict] | None = None,
+        model_dict: dict | None = None,
         load_options: (
             ConfigLoadOptions | list[ConfigLoadOptions]
         ) = ConfigLoadOptions.WRITE_CONFIG,
@@ -488,7 +484,7 @@ class ConfigBase(MappingBase):
         self,
         key: str,
         value: Any,
-        parents: Union[str, list[str]] = [],
+        parents: str | list[str] = [],
         search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
     ) -> bool:
         """
@@ -547,12 +543,11 @@ class ConfigBase(MappingBase):
                 ConfigUtils.writeConfig(self.dump(), self.file_path)
                 self._is_modified = False
         except Exception:
-            msg = "Failed to save the config"
             self._logger.error(
-                f"{self._prefix_msg()} {msg}\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                f"{self._prefix_msg()} Failed to save config\n"
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                gui=True,
             )
-            core_signalbus.configStateChange.emit(False, msg, "")
 
     def backup_config(self) -> None:
         """Creates a backup of the config file on disk, overwriting any existing backup."""
@@ -564,5 +559,6 @@ class ConfigBase(MappingBase):
         except Exception:
             self._logger.error(
                 f"Failed to create backup of '{self.file_path}'\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                gui=True,
             )

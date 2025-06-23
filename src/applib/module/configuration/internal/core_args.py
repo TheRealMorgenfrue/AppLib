@@ -28,7 +28,6 @@ class CoreArgs:
     # Templates
     _core_main_template_name = _core_app_name
     _core_config_units = {}
-    _core_template_loglevels = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
     _core_template_themes = ["Light", "Dark", "System"]
 
     # Configs

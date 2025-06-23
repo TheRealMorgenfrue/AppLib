@@ -1,9 +1,9 @@
 import traceback
 from abc import abstractmethod
-from typing import Optional
 
 from PyQt6.QtWidgets import QWidget
 
+from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.configuration.tools.template_utils.groups import Group
@@ -17,7 +17,6 @@ from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
 from ...module.tools.utilities import iter_to_str
-from ..common.core_signalbus import core_signalbus
 from ..components.settings.checkbox import CoreCheckBox
 from ..components.settings.color_picker import CoreColorPicker
 from ..components.settings.combobox import CoreComboBox
@@ -34,16 +33,16 @@ class GeneratorBase:
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        default_group: Optional[str] = None,
+        default_group: str | None = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         if config.failure:
             err_msg = f"Config '{config.name}' is invalid"
             raise RuntimeError(err_msg)
 
-        self._logger = LoggingManager().applib_logger()
+        self._logger = LoggingManager()
         self._config = config
         self._template = template
         self._config_name = config.name
@@ -70,7 +69,7 @@ class GeneratorBase:
         option: GUIOption,
         parent_keys: list[str],
         group: Group | None,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> AnyCard | None:
         """
         Create a setting card to be displayed in the GUI.
@@ -98,7 +97,7 @@ class GeneratorBase:
             The group this card belongs to.
             Defines how this card is placed relative to other cards.
 
-        parent : Optional[QWidget], optional
+        parent : QWidget | None, optional
             The parent of the card.
             By default None.
 
@@ -115,7 +114,7 @@ class GeneratorBase:
         key: str,
         option: GUIOption,
         parent_keys: list[str],
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> AnySetting | None:
         """
         Create a setting widget for use on a setting card.
@@ -202,7 +201,7 @@ class GeneratorBase:
                 config=self._config,
                 config_key=key,
                 option=option,
-                num_range=(option.min, option.max),
+                num_range=(int(option.min), int(option.max)),
                 is_tight=self._is_tight,
                 baseunit=GeneratorUtils.parse_unit(key, option, self._config_name),
                 converter=converter,
@@ -244,7 +243,9 @@ class GeneratorBase:
             )
         return exclude
 
-    def _generate_cards(self, CardGroup: AnyCardGroup | None) -> list[AnyCardGroup]:
+    def _generate_cards(
+        self, CardGroup: type[AnyCardGroup] | None
+    ) -> list[AnyCardGroup]:
         template_parser = TemplateParser()
         template_parser.parse(self._template)
         card_groups = {}  # type: dict[str, AnyCardGroup]
@@ -359,9 +360,15 @@ class GeneratorBase:
 
         if failed_cards:
             setting_grammar = "setting" if failed_cards == 1 else "settings"
-            core_signalbus.genericError.emit(
-                f"Failed to create {failed_cards} {setting_grammar}",
-                "See log for details",
+            self._logger.error(
+                AutoTextWrap.text_format(
+                    f"""
+                    Failed to create {failed_cards} {setting_grammar}n/
+                    See log for details
+                    """
+                ),
+                log=False,
+                gui=True,
             )
         return self._card_list
 
