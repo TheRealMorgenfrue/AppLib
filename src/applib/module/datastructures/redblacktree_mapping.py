@@ -359,18 +359,12 @@ class RedBlackTreeMapping(RedBlackTree):
     def __or__(self, other):
         if not isinstance(other, (Mapping, RedBlackTreeMapping)):
             return NotImplemented
-        new = self.__new__(type(self))
-        new.name = f"{self.name}-union"
-        new.add_all([self, other])
-        return new
+        return self._new(f"{self.name}-union", [self, other])
 
     def __ror__(self, other):
         if not isinstance(other, Mapping):
             return NotImplemented
-        new = self.__new__(type(self))
-        new.name = f"{self.name}-union"
-        new.add_all([other, self])
-        return new
+        return self._new(f"{self.name}-runion", [other, self])
 
     def __ior__(self, other):
         if not isinstance(other, (Mapping, RedBlackTreeMapping)):
@@ -403,6 +397,12 @@ class RedBlackTreeMapping(RedBlackTree):
 
     def __str__(self):
         return f"{self._prefix_msg()} (\n  nodes: {len(self)},\n  keys: {self._key_count},\n  positions: {self._position_tracker}\n)"  # ,\n  structure: {self._structure_tracker}\n)"
+
+    @classmethod
+    def _new(cls, name: str, iterable: list[_supports_rbtm_iter]) -> Self:
+        new = super().__new__(cls)
+        new.__init__(iterable, name)
+        return new
 
     def _create_node(self, *args, **kwargs) -> "RedBlackTreeMapping.TreeNode":
         return RedBlackTreeMapping.TreeNode(
