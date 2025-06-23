@@ -85,9 +85,8 @@ from .app.interfaces.settings_interface import CoreSettingsInterface
 from .app.interfaces.settings_subinterface import CoreSettingsSubInterface
 from .module.concurrency.process.process_base import ProcessBase
 from .module.concurrency.process.process_generator import ProcessGenerator
-from .module.concurrency.process.stream_reader import async_read_pipe
 from .module.concurrency.thread.thread_manager import ThreadManager
-from .module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
+from .module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from .module.configuration.config.config_base import ConfigBase
 from .module.configuration.config.core_config import CoreConfig
 from .module.configuration.internal.core_args import CoreArgs
@@ -270,13 +269,12 @@ __all__ = [
     "TextEditOption",
     "TextMessageBox",
     "ThreadManager",
-    "ThreadUIStreamer",
+    "ThreadManagerGui",
     "Trie",
     "UIFlags",
     "UIGroups",
     "UITypes",
     "ValidationInfo",
-    "async_read_pipe",
     "core_signalbus",
     "change_theme",
     "change_theme_color",
