@@ -1,12 +1,13 @@
-from numbers import Number
 from typing import override
+
+from ....module.tools.types.general import floatOrInt
 
 
 class RangeSettingMixin:
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-    def _defineRange(self, num_range: tuple[Number | None, Number | None]):
+    def _defineRange(self, num_range: tuple[floatOrInt | None, floatOrInt | None]):
         min, max = num_range
         self.min_value = min if min is not None else -999999
         self.max_value = max if max is not None else 999999

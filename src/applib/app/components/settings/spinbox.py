@@ -1,5 +1,4 @@
-from numbers import Number
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import DoubleSpinBox, SpinBox
@@ -7,6 +6,7 @@ from qfluentwidgets import DoubleSpinBox, SpinBox
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
+from ....module.tools.types.general import floatOrInt
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
 
@@ -17,10 +17,10 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        num_range: tuple[Number | None, Number | None],
-        converter: Optional[Converter] = None,
+        num_range: tuple[floatOrInt | None, floatOrInt | None],
+        converter: Converter | None = None,
         parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Spinbox widget connected to a config key.
@@ -36,7 +36,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         option : GUIOption
             The options associated with `config_key`.
 
-        num_range : tuple[Number | None, Number | None]
+        num_range : tuple[floatOrInt | None, floatOrInt | None]
             - num_range[0] == min
             - num_range[1] == max
             If min is None, it defaults to 0.
@@ -88,7 +88,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         self.setting.valueChanged.connect(self.setConfigValue)
 
     @override
-    def _setWidgetValue(self, value: Number) -> None:
+    def _setWidgetValue(self, value: floatOrInt) -> None:
         if self.notify_disabled:
             self.notify_disabled = False
             # Do not update GUI with disable values

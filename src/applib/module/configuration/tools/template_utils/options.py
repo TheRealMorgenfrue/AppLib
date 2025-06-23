@@ -1,6 +1,6 @@
-from numbers import Number
 from typing import Any, Callable, Hashable
 
+from ....tools.types.general import floatOrInt
 from ...runners.converters.color_converter import ColorConverter
 from ...runners.converters.converter import Converter
 from .template_enums import UIFlags, UIGroups, UITypes
@@ -35,8 +35,8 @@ class Option:
         default,
         actions: Callable | list[Callable] = _Undefined,
         disable_self: bool = _Undefined,
-        max: int = _Undefined,
-        min: int = _Undefined,
+        max: floatOrInt = _Undefined,
+        min: floatOrInt = _Undefined,
         type: type = _Undefined,
         validators: Callable | list[Callable] = _Undefined,
     ):
@@ -55,10 +55,10 @@ class Option:
         disable_self : bool, optional
             The value that disables this setting.
             Disabled settings are excluded from command line arguments.
-        max : int, optional
+        max : floatOrInt, optional
             The maximum value for this setting.
             If None, there is no limit.
-        min : int, optional
+        min : floatOrInt, optional
             The minimum value for this setting.
             If None, there is no limit.
         type : type, optional
@@ -99,8 +99,8 @@ class GUIOption(Option):
         default,
         actions: Callable | list[Callable] = _Undefined,
         converter: Converter = _Undefined,
-        max: Number = _Undefined,
-        min: Number = _Undefined,
+        max: floatOrInt = _Undefined,
+        min: floatOrInt = _Undefined,
         type: type = _Undefined,
         ui_disable_button: bool = _Undefined,
         ui_disable_other: Any = _Undefined,
@@ -135,12 +135,12 @@ class GUIOption(Option):
         converter : Converter, optional
             The value converter used to convert values between config and GUI representation.
             ##### Applicable settings: All
-        max : Number, optional
+        max : floatOrInt, optional
             The maximum value for this setting.
             If None, there is no limit (though upper limit is 999999 in the GUI).
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
-        min : Number, optional
+        min : floatOrInt, optional
             The minimum value for this setting.
             If None, there is no limit (though lower limit is -999999 in the GUI).
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
@@ -336,8 +336,8 @@ class ComboBoxOption(GUIOption):
         values: list | dict,
         actions: Callable | list[Callable] = _Undefined,
         converter: Converter = _Undefined,
-        max: Number = _Undefined,
-        min: Number = _Undefined,
+        max: floatOrInt = _Undefined,
+        min: floatOrInt = _Undefined,
         type: type = _Undefined,
         ui_disable_button: bool = _Undefined,
         ui_disable_other: Any = _Undefined,
@@ -412,11 +412,11 @@ class TextEditOption(GUIOption):
 class NumberOption(GUIOption):
     def __init__(
         self,
-        default: Number,
+        default: floatOrInt,
         actions: Callable | list[Callable] = _Undefined,
         converter: Converter = _Undefined,
-        min: Number = _Undefined,
-        max: Number = _Undefined,
+        min: floatOrInt = _Undefined,
+        max: floatOrInt = _Undefined,
         type: type = _Undefined,
         ui_disable_button: bool = _Undefined,
         ui_disable_other: Any = _Undefined,
