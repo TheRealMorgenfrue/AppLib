@@ -1,13 +1,13 @@
-from qfluentwidgets import FluentIcon as FIF
+from modules.config.templates.test_template import TestTemplate
+from modules.config.test_config import TestConfig
 from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import FluentIcon as FIF
 
 from applib.app.components.cardstack import PivotCardStack
 from applib.app.generators.card_generator import CardGenerator
-from applib.module.configuration.internal.core_args import CoreArgs
 from applib.app.interfaces.settings_interface import CoreSettingsInterface
 from applib.app.interfaces.settings_subinterface import CoreSettingsSubInterface
-from test.modules.config.templates.test_template import TestTemplate
-from test.modules.config.test_config import TestConfig
+from applib.module.configuration.internal.core_args import CoreArgs
 
 
 class TestSettingsInterface(CoreSettingsInterface):

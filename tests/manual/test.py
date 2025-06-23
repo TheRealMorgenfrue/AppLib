@@ -17,8 +17,18 @@
 # Plugin: Enable anti-bloat to remove dependency-heavy imports
 # nuitka-project: --enable-plugin=anti-bloat
 
-from test.interfaces.mainwindow import TestMainWindow
+
+# Automatic testing
+import sys
+
+import pytest
+
+sys.exit(pytest.main(["-ra -q"]))  # , plugins=[MyPlugin()]))
+
+
+# Manual testing
+from interfaces.mainwindow import TestMainWindow
 
 from applib.app.core_app import CoreApp
 
-CoreApp(TestMainWindow)
+CoreApp(TestMainWindow)  # type: ignore

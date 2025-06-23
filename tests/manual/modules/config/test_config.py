@@ -1,7 +1,8 @@
-from test.modules.config.templates.process_template import ProcessTemplate
-from test.modules.config.templates.test_template import TestTemplate
-from test.modules.config.test_args import TestArgs
 from typing import Self
+
+from modules.config.templates.process_template import ProcessTemplate
+from modules.config.templates.test_template import TestTemplate
+from modules.config.test_args import TestArgs
 
 from applib.module.configuration.config.config_base import ConfigBase
 from applib.module.configuration.tools.validation_model_gen import (

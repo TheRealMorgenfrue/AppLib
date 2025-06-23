@@ -1,5 +1,6 @@
+from modules.config.test_config import TestConfig
+
 from applib.app.interfaces.home_interface import CoreHomeInterface
-from test.modules.config.test_config import TestConfig
 
 
 class TestHomeInterface(CoreHomeInterface):

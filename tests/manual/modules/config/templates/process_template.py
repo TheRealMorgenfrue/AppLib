@@ -1,5 +1,6 @@
-from test.modules.config.test_args import TestArgs
 from typing import Self, override
+
+from modules.config.test_args import TestArgs
 
 from applib import BaseTemplate, UIGroups, UITypes
 from applib.module.configuration.tools.template_utils.options import (

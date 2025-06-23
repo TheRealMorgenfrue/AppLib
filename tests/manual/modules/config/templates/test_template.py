@@ -1,5 +1,6 @@
-from test.modules.config.test_args import TestArgs
 from typing import Self, override
+
+from modules.config.test_args import TestArgs
 
 from applib.app.common.auto_wrap import AutoTextWrap
 from applib.module.configuration.internal.core_args import CoreArgs
@@ -55,7 +56,7 @@ class TestTemplate(BaseTemplate):
             "General": {
                 "loglevel": ComboBoxOption(
                     default="INFO" if CoreArgs._core_is_release else "DEBUG",
-                    actions=[LoggingManager().applib_logger().setLevel],
+                    actions=[LoggingManager().set_level],
                     ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
                     validators=[validate_loglevel],
                     values=TestArgs.main_loglevels,
