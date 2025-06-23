@@ -9,33 +9,36 @@ from typing import Any, Self
 
 class TrieNode:
     def __init__(self, key: str | None):
-        # the "key" value will be the character in sequence
         self.key = key
-        # the "data" value is the data associated with the whole word. Thus only present (not None) if self.end == True
+        """A character in the whole word"""
         self.data = None  # type: set | None
-        # we keep a reference to parent
-        self.parent = None  # type: Self | None
-        # we have a dict of children
-        self.children = {}  # type: dict[str, Self]
-        # check to see if the node is at the end
-        self.end = False
+        """The data associated with the whole word. Only present (not null) if self.end == True"""
+        self.parent = None  # type: Self
+        self.children = {}  # type: dict[str | None, Self]
+        self.end = None  # type: None | str
+        """
+        Check to see if the node is at the end of a whole word.
+        We abuse this variable slightly by also storing the word here if we're at the end.
+        """
 
-    def getWord(self):
-        output = []
-        node = self
-        while node.parent is not None:
-            output.append(node.key)
-            node = node.parent
-        return "".join(reversed(output))
+    def delete(self):
+        """Remove this node from the trie."""
+        if len(self.children) == 0:
+            # Remove reference to this from parent's children.
+            self.parent.children.pop(self.key)
+        self.end = None
+        del self.data
+        self.data = None
 
 
 class Trie:
     def __init__(self):
         """
         A basic Trie of word/data pairs.
-
-        It allows O(k) worst-case additions and O(dk) worst-case searches,
-        where k is the word size and d is size of the alphabet.
+        It allows O(k) worst-case additions and O(k + |V_T|) worst-case searches,
+        where:
+         - k is the word size.
+         - |V_T| is the size of the remaining subtree after traversing k trie nodes.
         """
         self.base = TrieNode(None)
 
@@ -47,21 +50,22 @@ class Trie:
         Parameters
         ----------
         word : str
-            The word to add. If it already exists, `data` is appended to its internal list (unless `override` is True).
+            The word to add.
         data : Any
-            Data associated with `word`.
+            The data to associate with `word`.
         override : bool, optional
-            If `word` already exists, override its data with `data`.
+            If `word` already exists, override existing data in the trie with `data`.
             By default False.
         """
         node = self.base
-        for point in word:
-            if not point in node.children:
-                node.children[point] = TrieNode(point)
-                node.children[point].parent = node
-            node = node.children[point]
+        for char in word:
+            if not char in node.children:
+                child = TrieNode(char)
+                child.parent = node
+                node.children[char] = child
+            node = node.children[char]
         else:
-            node.end = True
+            node.end = word
             if not override and isinstance(node.data, set):
                 node.data.add(data)
             else:
@@ -69,7 +73,7 @@ class Trie:
 
     def contains(self, word: str) -> bool:
         """
-        Test word membership in the trie
+        Test word membership in the trie.
 
         Returns
         -------
@@ -77,16 +81,24 @@ class Trie:
             Whether the word is in the trie.
         """
         node = self.base
-        for point in word:
-            if point in node.children:
-                node = node.children[point]
+        for char in word:
+            if char in node.children:
+                node = node.children[char]
             else:
                 return False
-        return node.end
+        return node.end is not None
 
-    def find(self, prefix: str) -> list[str]:
+    def find(self, prefix: str, limit: int = 0) -> list[str]:
         """
-        Find word/data pairs that contains `prefix`
+        Find word/data pairs that contains `prefix`.
+
+        Parameters
+        ----------
+        prefix : str
+            The prefix word to search for.
+        limit : int
+            Stop search after at most `limit` words. `0` means no limit.
+            By default 0.
 
         Returns
         -------
@@ -96,21 +108,42 @@ class Trie:
         """
         node = self.base
         output = []
-        for point in prefix:
-            # make sure prefix actually has words
-            if point in node.children:
-                node = node.children[point]
+        for char in prefix:
+            if char in node.children:
+                node = node.children[char]
             else:
-                # there's none. just return it.
                 return output
 
-        queue = deque([node])
-        while queue:
-            node = queue.popleft()
-            # base case, if node is at a word, append to output
-            if node.end:
-                output.append([node.getWord(), node.data])
+        stack = deque([node])
+        while stack:
+            node = stack.popleft()
+            #  Base case: If node is at a word, push to output.
+            if node.end is not None:
+                if limit > 0 and len(output) >= limit:
+                    break
+                output.append([node.end, node.data])
 
-            for child in node.children:
-                queue.append(node.children[child])
-        return reversed(output)
+            # Traverse all children
+            for child in node.children.values():
+                stack.append(child)
+        return output
+
+    def remove(self, word: str, item: Any = None):
+        node = self.base
+        for char in word:
+            try:
+                node = node.children.get(char)
+            except AttributeError:
+                pass
+
+        if node and node.end is not None:
+            if item is not None:
+                if node.data and len(node.data) > 1:
+                    try:
+                        node.data.remove(item)
+                    except KeyError:
+                        pass
+            else:
+                # If we have `item` and deleting would create a node with empty data,
+                # delete the node instead.
+                node.delete()
