@@ -5,22 +5,6 @@ class CoreSignalBus(QObject):
     # ───────────────────────────────────────────────────────────────────────────#
     # Config updates
     # ───────────────────────────────────────────────────────────────────────────#
-    configStateChange = pyqtSignal(bool, str, str)
-    """
-    Notify whether a value was inserted in a config successfully or not.
-
-    Parameters
-    ----------
-    is_success : bool
-        The value was succesfully inserted in the config.
-
-    title : str
-        Title of GUI message.
-
-    content : str
-        Content of GUI message.
-    """
-
     configUpdated = pyqtSignal(tuple, str, tuple, list)
     """
     Notify that a value in a config is updated.
@@ -76,52 +60,6 @@ class CoreSignalBus(QObject):
 
     parent_keys : list[str]
         The parent keys of `config_key`.
-    """
-
-    # ───────────────────────────────────────────────────────────────────────────#
-    # Errors
-    # ───────────────────────────────────────────────────────────────────────────#
-    genericError = pyqtSignal(str, str)
-    """
-    Notify the user that a generic program error has occurred.
-
-    Parameters
-    ----------
-    title : str
-        Title of GUI message.
-
-    content : str
-        Content of GUI message.
-    """
-
-    configValidationError = pyqtSignal(str, str, str)
-    """
-    Notify the user that a config validation error occured.
-
-    Parameters
-    ----------
-    config_name : str
-        The name of the config.
-
-    title : str
-        Title of GUI message.
-
-    content : str
-        Content of GUI message.
-    """
-
-    # ───────────────────────────────────────────────────────────────────────────#
-    # General
-    # ───────────────────────────────────────────────────────────────────────────#
-    isProcessesRunning = pyqtSignal(bool)
-    """
-    Notify whether processes are running in a ThreadManager.
-
-    NOTE: Deprecated and scheduled for removal.
-
-    Parameters
-    ----------
-    isRunning : bool
     """
 
 
