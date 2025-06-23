@@ -1,12 +1,13 @@
 from re import sub
-from typing import Tuple
 
 from qfluentwidgets import TextWrap
 
 
 class AutoTextWrap(TextWrap):
     @classmethod
-    def text_format(cls, text: str, newline_repl: str = "/n") -> str:
+    def text_format(
+        cls, text: str, newline_repl: str = "/n", newline: str = "\n"
+    ) -> str:
         """
         Strip whitespace and newlines in strings.
 
@@ -16,12 +17,16 @@ class AutoTextWrap(TextWrap):
         ----------
         text : str
             Text to process.
-
         newline_repl : str, optional
             Character which represents a newline character.
             Use in text to force a linebreak, as the newline character `\\n`
             is removed during processing.
             By default "/n".
+        newline : str, optional
+            Character to insert when `newline_repl` is encountered.
+            By default "\\n".
+
+            NOTE: Use `<br>` to create a linebreak in the GUI.
 
         Returns
         -------
@@ -29,12 +34,12 @@ class AutoTextWrap(TextWrap):
             The string processed for whitespace characters and newlines.
         """
         clean_str = sub(pattern=r"\s+", repl=" ", string=text).strip()
-        return sub(pattern=newline_repl, repl="<br>", string=clean_str)
+        return sub(pattern=newline_repl, repl=newline, string=clean_str)
 
     @classmethod
     def _wrap_line(
         cls, text: str, width: int, wrap_with: str, once: bool = True
-    ) -> Tuple[str, bool]:
+    ) -> tuple[str, bool]:
         line_buffer = ""
         wrapped_lines = []
         current_width = 0
