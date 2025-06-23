@@ -32,13 +32,13 @@ class CardStackBase(ScrollArea):
     def __init__(
         self,
         generator: AnyCardGenerator,
-        Pivot: AnyPivot,
+        Pivot: type[AnyPivot],
         pivotAlignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft,
         labeltext: Optional[str] = None,
         parent: Optional[QWidget] = None,
     ) -> None:
         try:
-            self._logger = LoggingManager().applib_logger()
+            self._logger = LoggingManager()
             super().__init__(parent)
             self._cards = generator.getCards()
             self._generatorDefaultGroup = generator.getDefaultGroup()
@@ -110,13 +110,15 @@ class CardStackBase(ScrollArea):
             defaultGroup = self._generatorDefaultGroup
         else:
             self._logger.warning(
-                f"No official default group defined for '{self.titleLabel.text() if self.titleLabel else None}'"
+                f"No official default group defined for '{self.titleLabel.text() if self.titleLabel else None}'",
+                gui=True,
             )
             if self._cards:
                 defaultGroup = self._cards[0]
             else:
                 self._logger.error(
-                    "List has no card groups defined. Substitution impossible. Nothing will be shown"
+                    "List has no card groups defined. Substitution impossible. Nothing will be shown",
+                    gui=True,
                 )
                 defaultGroup = None
 
