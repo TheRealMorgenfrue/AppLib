@@ -1,12 +1,14 @@
 import traceback
-from typing import Any, Optional
+from typing import Any
 
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal
+from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import PrimaryPushButton, PushButton, ScrollArea
 
 from ....module.concurrency.process.process_generator import ProcessGenerator
-from ....module.concurrency.thread.thread_ui_streamer import ThreadUIStreamer
+from ....module.concurrency.thread.thread_manager import ThreadManager
+from ....module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from ....module.configuration.internal.core_args import CoreArgs
 from ....module.logging import LoggingManager
 from ....module.tools.types.config import AnyConfig
@@ -15,23 +17,33 @@ from ...common.core_signalbus import core_signalbus
 from ...common.core_stylesheet import CoreStyleSheet
 from ...components.console_view import ConsoleView
 from ...components.flow_area import FlowArea
-from ...components.infobar import InfoBar, InfoBarPosition
 from .process_subinterface import ProcessSubinterface
 
 
 class CoreProcessInterface(ScrollArea):
+    _proc_msg_signal = pyqtSignal(str, int, str)
+    """Send messages to the main thread (Process) from anywhere.\n
+    level: str, pid: int, msg: str
+    """
+
     def __init__(
         self,
         main_config: AnyConfig,
         process_template: AnyTemplate,
-        ProcessGenerator: ProcessGenerator,
-        ThreadManager: ThreadUIStreamer,
-        parent: Optional[QWidget] = None,
-    ) -> None:
+        ProcessGenerator: type[ProcessGenerator],
+        ThreadManager: type[ThreadManagerGui],
+        parent: QWidget | None = None,
+    ):
         try:
             super().__init__(parent)
-            self._view = QWidget(self)
+            self._logger = LoggingManager()
             self.main_config = main_config
+            self.max_threads = self.main_config.get_value("maxThreads")
+            self.process_running = False
+            self.terminal_size = self.main_config.get_value("terminalSize")
+            self.console_widgets = {}  # type: dict[int, ConsoleView | None]
+
+            self._view = QWidget(self)
             self.titleLabel = QLabel(
                 self.tr(f"{CoreArgs._core_app_name} Process Manager")
             )
@@ -41,44 +53,40 @@ class CoreProcessInterface(ScrollArea):
             self.processSubinterface = ProcessSubinterface(
                 config=self.main_config, template=process_template
             )
-
             self.vGeneralLayout = QVBoxLayout(self._view)
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
-            self.max_threads = self.main_config.get_value("maxThreads")
-            self.terminal_size = self.main_config.get_value("terminalSize")
-            self.console_widgets = {}  # type: dict[int, ConsoleView | None]
-
             self.threadManager = ThreadManager(
-                self.max_threads, self.console_widgets
-            )  # type: ThreadUIStreamer
-            self.process_generator = ProcessGenerator()
-            self.process_running = False
+                self.max_threads, ProcessGenerator, self.console_widgets
+            )
+            self.thread_for_manager = QThread()
+            self.threadManager.moveToThread(self.thread_for_manager)
+            self.thread_for_manager.started.connect(self.threadManager._start)
 
             self._initWidget()
             self._initLayout()
             self._initConsole()
-            self._connectSignalToSlot()
-            core_signalbus.isProcessesRunning.emit(False)  # Set inital state
+            self._setEnableTerminateButtons(False)
+            self.__connectSignalToSlot()
         except Exception:
             self.deleteLater()
             raise
 
-    def _initWidget(self) -> None:
+    def _initWidget(self):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.setViewportMargins(0, 0, 0, 0)
         self.setWidget(self._view)
         self.setWidgetResizable(True)
         self._setQss()
 
-    def _setQss(self) -> None:
+    def _setQss(self):
         self.setObjectName("processInterface")
         self._view.setObjectName("view")
         self.titleLabel.setObjectName("Label")
         CoreStyleSheet.PROCESS_INTERFACE.apply(self)
 
-    def _initLayout(self) -> None:
+    def _initLayout(self):
         self.terminateAllButton.setMaximumWidth(150)
         self.startButton.setMaximumWidth(150)
 
@@ -98,7 +106,7 @@ class CoreProcessInterface(ScrollArea):
         self.vGeneralLayout.addSpacing(20)
         self.vGeneralLayout.addLayout(self.hMainLayout)
 
-    def _addConsoles(self, amount: int) -> None:
+    def _addConsoles(self, amount: int):
         ids = []
         start = len(self.console_widgets)
         sizeHint = QSize(self.terminal_size, self.terminal_size)
@@ -123,7 +131,7 @@ class CoreProcessInterface(ScrollArea):
             ids.append(i)
         self.threadManager.consoleCountChanged.emit(ids)
 
-    def _removeConsoles(self, amount: int, indices: Optional[list[int]] = None) -> None:
+    def _removeConsoles(self, amount: int, indices: list[int] | None = None):
         iterator = indices if indices else reversed(self.console_widgets)
         for i in iterator:
             console = self.console_widgets[i]
@@ -134,7 +142,7 @@ class CoreProcessInterface(ScrollArea):
                 self.console_widgets[i] = None
         self.flowConsoles.flowLayout.update()
 
-    def _initConsole(self, allowRemoval: bool = True) -> None:
+    def _initConsole(self, allowRemoval: bool = True):
         if self.console_widgets:
             availableConsoles = len(
                 [console for console in self.console_widgets.values() if console]
@@ -146,10 +154,9 @@ class CoreProcessInterface(ScrollArea):
         else:
             self._addConsoles(self.max_threads)
 
-    def _connectSignalToSlot(self) -> None:
+    def __connectSignalToSlot(self) -> None:
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
-        core_signalbus.isProcessesRunning.connect(self._onProcessRunning)
-
+        self._proc_msg_signal.connect(self._onProcessMsgReceived)
         self.terminateAllButton.clicked.connect(self._onTerminateAllButtonClicked)
         self.startButton.clicked.connect(self._onStartButtonClicked)
 
@@ -161,12 +168,9 @@ class CoreProcessInterface(ScrollArea):
                 0, max
             )
         )
-        self.threadManager.threadsRemoved.connect(
-            lambda threadIDs: self._removeConsoles(len(threadIDs), threadIDs)
-        )
-        self.threadManager.finished.connect(self._onThreadManagerFinished)
-        self.threadManager.consoleTextStream.connect(self._onConsoleTextReceived)
+        self.threadManager.threadFinalized.connect(self._onThreadFinalized)
         self.threadManager.clearConsole.connect(self._onClearConsole)
+        self.threadManager.changeState.connect(self._onThreadManagerStateChange)
 
     def _onConfigUpdated(
         self,
@@ -187,45 +191,94 @@ class CoreProcessInterface(ScrollArea):
                     if console:
                         console.updateSizeHint(QSize(value, value))
 
-    def _onProcessRunning(self, is_running: bool) -> None:
-        self.terminateAllButton.setEnabled(is_running)
-        self.process_running = is_running
+    def _onThreadFinalized(self, thread_id: int):
+        count = 0
+        for console in self.console_widgets.values():
+            if console:
+                count += 1
+        if count > self.max_threads:
+            self._removeConsoles(1, [thread_id])
 
-    def _onTerminateAllButtonClicked(self) -> None:
-        self.threadManager.kill.emit(False)  # Include self: True/False
-        core_signalbus.isProcessesRunning.emit(False)
+    def _onThreadManagerStateChange(self, state: ThreadManager.State):
+        self.process_running = state == ThreadManager.State.Running
+        self._setEnableTerminateButtons(self.process_running)
+
+        if not self.process_running:
+            self._logger.set_proc_ready(False)
+
+    def _onTerminateAllButtonClicked(self):
+        self.threadManager.kill.emit()
         self.processSubinterface.getProgressCard().stop()
 
-    def _onMissingInput(self) -> None:
-        InfoBar.warning(
-            title=self.tr("No input!"),
-            content=self.tr("Please enter input before proceeding"),
-            isClosable=False,
-            duration=5000,
-            position=InfoBarPosition.TOP,
-            parent=self,
-        )
-
-    def _onStartButtonClicked(self) -> None:
+    def _onStartButtonClicked(self):
         try:
-            if self.process_generator.canStart():
-                self.processSubinterface.getProgressCard().start()
-                self.threadManager.setProcessGenerator(self.process_generator)
-                self.threadManager.start()
-                core_signalbus.isProcessesRunning.emit(True)
+            self._logger.set_proc_ready(True)
+            self.processSubinterface.getProgressCard().start()
+            if not self.thread_for_manager.isRunning():
+                self.thread_for_manager.start()
             else:
-                self._onMissingInput()
+                self.threadManager.start.emit()
         except Exception:
-            LoggingManager().applib_logger().error(
+            self._logger.set_proc_ready(False)
+            self._logger.error(
                 f"Process Manager failed\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                gui=True,
             )
 
-    def _onThreadManagerFinished(self) -> None:
-        core_signalbus.isProcessesRunning.emit(False)
+    def _setEnableTerminateButtons(self, value: bool):
+        if self.terminateAllButton.isEnabled() == value:
+            return
 
-    def _onConsoleTextReceived(self, process_id: int, text: str) -> None:
-        self.console_widgets[process_id].append(text)
+        self.terminateAllButton.setEnabled(value)
+        for console in self.console_widgets.values():
+            if console:
+                console.terminateButton.setEnabled(value)
 
-    def _onClearConsole(self, process_id: int) -> None:
-        self.console_widgets[process_id].clear()
+    def _onProcessMsgReceived(self, level: str, pid: int, msg: str):
+        match level.lower():
+            case "debug":
+                self._debug(pid, msg)
+            case "info":
+                self._info(pid, msg)
+            case "warning":
+                self._warning(pid, msg)
+            case "error":
+                self._error(pid, msg)
+            case "critical":
+                self._critical(pid, msg)
+
+    def _debug(self, process_id: int, text: str):
+        console = self.console_widgets[process_id]
+        if console:
+            color = QColor("#2abdc7")  # if isDarkTheme() else QColor("#2abdc7")
+            console.append(text, color=color)
+
+    def _info(self, process_id: int, text: str):
+        console = self.console_widgets[process_id]
+        if console:
+            color = QColor("white")  # if isDarkTheme() else QColor("black")
+            console.append(text, color=color)
+
+    def _warning(self, process_id: int, text: str):
+        console = self.console_widgets[process_id]
+        if console:
+            color = QColor("#ffe228")  # if isDarkTheme() else QColor("#a9941b")
+            console.append(text, color=color, bold=True)
+
+    def _error(self, process_id: int, text: str):
+        console = self.console_widgets[process_id]
+        if console:
+            color = QColor("#ff0000")  # if isDarkTheme() else QColor("#9e0000")
+            console.append(text, color=color, bold=True)
+
+    def _critical(self, process_id: int, text: str):
+        console = self.console_widgets[process_id]
+        if console:
+            color = QColor("#ff0000")  # if isDarkTheme() else QColor("#9e0000")
+            console.append(text, color=color, bold=True)
+
+    def _onClearConsole(self, process_id: int):
+        console = self.console_widgets[process_id]
+        if console:
+            console.clear()

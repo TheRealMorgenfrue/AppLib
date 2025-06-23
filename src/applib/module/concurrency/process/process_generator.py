@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 from ..process.process_base import ProcessBase
 
@@ -7,19 +8,43 @@ from ..process.process_base import ProcessBase
 class ProcessGenerator(ABC):
 
     @abstractmethod
-    def generator(self) -> Generator[ProcessBase, Any, Any]:
-        """Generator that creates new processes to be consumed by a thread/process manager.
+    def program(self) -> str:
+        """
+        Returns
+        -------
+        str
+            The absolute path of the program to run.
+        """
+        ...
+
+    @abstractmethod
+    def args(self) -> Generator[list[str], Any, Any]:
+        """Generator that creates arguments to be consumed by a process.
 
         Yields
         ------
-        Generator[ProcessBase]
-            All created processes must inherit the ProcessBase class
+        Generator[list[str], Any, Any]
+            All created arguments must be a list of strings.
+        """
+        ...
+
+    @abstractmethod
+    def process(self) -> type[ProcessBase]:
+        """The Process class in which the code is run.
+
+        Must be a subclass of `ProcessBase` in order
+        to be handled properly by the thread manager.
+
+        Returns
+        -------
+        type[ProcessBase]
+            A reference to the process class.
         """
         ...
 
     @abstractmethod
     def can_start(self) -> bool:
-        """Whether any processes can be created by the generator.
+        """Whether any arguments can be created by the generator.
 
         Returns
         -------
