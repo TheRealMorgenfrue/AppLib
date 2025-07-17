@@ -1,4 +1,5 @@
-from typing import Any, Callable, Hashable
+from collections.abc import Callable
+from typing import Any, Hashable, Self, TypeAlias, final
 
 from ....tools.types.general import floatOrInt
 from ...runners.converters.color_converter import ColorConverter
@@ -6,10 +7,15 @@ from ...runners.converters.converter import Converter
 from .template_enums import UIFlags, UIGroups, UITypes
 
 
-class _Undefined:
-    """Denotes an argument as undefined. Is used to allow None as an Option argument"""
+@final
+class AppLibUndefinedType:
+    """A type used as a sentinel for undefined values."""
 
-    pass
+    def __copy__(self) -> Self: ...
+    def __deepcopy__(self, memo: Any) -> Self: ...
+
+
+AppLibUndefined: TypeAlias = AppLibUndefinedType
 
 
 class GUIMessage:
@@ -33,12 +39,12 @@ class Option:
     def __init__(
         self,
         default,
-        actions: Callable | list[Callable] = _Undefined,
-        disable_self: bool = _Undefined,
-        max: floatOrInt = _Undefined,
-        min: floatOrInt = _Undefined,
-        type: type = _Undefined,
-        validators: Callable | list[Callable] = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        disable_self: bool = AppLibUndefined,
+        max: floatOrInt | None = AppLibUndefined,
+        min: floatOrInt | None = AppLibUndefined,
+        type: type = AppLibUndefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
     ):
         """
         Create an option instance usable in a non-GUI environment.
@@ -86,36 +92,36 @@ class Option:
         raises an AttributeError because `name` is not an instance attribute or an attribute in the class tree
         for self; or __get__() of a `name` property raises AttributeError)
         """
-        return _Undefined
+        return AppLibUndefined
 
     def defined(self, attr_value) -> bool:
         """Returns True if the given attribute is defined."""
-        return attr_value != _Undefined
+        return attr_value != AppLibUndefined
 
 
 class GUIOption(Option):
     def __init__(
         self,
         default,
-        actions: Callable | list[Callable] = _Undefined,
-        converter: Converter = _Undefined,
-        max: floatOrInt = _Undefined,
-        min: floatOrInt = _Undefined,
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
-        ui_file_filter: str | None = _Undefined,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Hashable | list[Hashable] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
-        ui_invalid_input: GUIMessage = _Undefined,
-        ui_show_dir_only: bool = _Undefined,
-        ui_type: UITypes = _Undefined,
-        ui_unit: str = _Undefined,
-        validators: Callable | list[Callable] = _Undefined,
-        values: list | dict = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        max: floatOrInt | None = AppLibUndefined,
+        min: floatOrInt | None = AppLibUndefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_file_filter: str | None = AppLibUndefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Hashable | list[Hashable] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
+        ui_invalid_input: GUIMessage = AppLibUndefined,
+        ui_show_dir_only: bool = AppLibUndefined,
+        ui_type: UITypes = AppLibUndefined,
+        ui_unit: str = AppLibUndefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
+        values: list | dict = AppLibUndefined,
         **kwargs,
     ):
         """
@@ -257,20 +263,20 @@ class FileSelectorOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = _Undefined,
-        converter: Converter = _Undefined,
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
         ui_file_filter: str | None = None,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Any | list[Any] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Any | list[Any] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
         ui_show_dir_only: bool = False,
         ui_type: UITypes = UITypes.FILE_SELECTION,
-        validators: Callable | list[Callable] = _Undefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -297,18 +303,18 @@ class ColorPickerOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = ColorConverter(),
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Hashable | list[Hashable] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Hashable | list[Hashable] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.COLOR_PICKER,
-        validators: Callable | list[Callable] = _Undefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -334,20 +340,20 @@ class ComboBoxOption(GUIOption):
         self,
         default,
         values: list | dict,
-        actions: Callable | list[Callable] = _Undefined,
-        converter: Converter = _Undefined,
-        max: floatOrInt = _Undefined,
-        min: floatOrInt = _Undefined,
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Any | list[Any] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        max: floatOrInt | None = AppLibUndefined,
+        min: floatOrInt | None = AppLibUndefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Any | list[Any] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.COMBOBOX,
-        validators: Callable | list[Callable] = _Undefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -375,19 +381,19 @@ class TextEditOption(GUIOption):
     def __init__(
         self,
         default: str,
-        actions: Callable | list[Callable] = _Undefined,
-        converter: Converter = _Undefined,
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Any | list[Any] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
-        ui_invalid_input: GUIMessage = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Any | list[Any] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
+        ui_invalid_input: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.LINE_EDIT,
-        validators: Callable | list[Callable] = _Undefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -413,21 +419,21 @@ class NumberOption(GUIOption):
     def __init__(
         self,
         default: floatOrInt,
-        actions: Callable | list[Callable] = _Undefined,
-        converter: Converter = _Undefined,
-        min: floatOrInt = _Undefined,
-        max: floatOrInt = _Undefined,
-        type: type = _Undefined,
-        ui_disable_button: bool = _Undefined,
-        ui_disable_other: Any = _Undefined,
-        ui_disable_self: Any = _Undefined,
-        ui_flags: UIFlags | list[UIFlags] = _Undefined,
-        ui_group: Any | list[Any] = _Undefined,
-        ui_group_parent: UIGroups | list[UIGroups] = _Undefined,
-        ui_info: GUIMessage = _Undefined,
-        ui_type: UITypes = _Undefined,
-        ui_unit: str = _Undefined,
-        validators: Callable | list[Callable] = _Undefined,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        min: floatOrInt | None = AppLibUndefined,
+        max: floatOrInt | None = AppLibUndefined,
+        type: type = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_other: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
+        ui_group: Any | list[Any] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
+        ui_type: UITypes = AppLibUndefined,
+        ui_unit: str = AppLibUndefined,
+        validators: Callable | list[Callable] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
