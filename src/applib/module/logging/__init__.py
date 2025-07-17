@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+from collections import deque
 from collections.abc import Callable
 from datetime import datetime
 from enum import Enum
@@ -27,22 +28,25 @@ class LoggingManager:
     _instance = None
     _loggers = {}
     _level = LogLevel.DEBUG
+    _cache_max_size = 50  # This many messages before the oldest get deleted
 
-    _gui_msg_cache = []  # type: list[Callable]
-    _proc_msg_cache = []  # type: list[Callable]
-    _gui_msg_signal = None  # type: pyqtBoundSignal
-    _proc_msg_signal = None  # type: pyqtBoundSignal
-
-    _gui_ready = False
-    """True if the GUI is ready to receive messages"""
-
-    _proc_ready = False
-    """True if the process interface is ready to receive messages"""
+    _gui_msg_cache = deque()  # type: deque[Callable]
+    _proc_msg_cache = deque()  # type: deque[Callable]
+    _gui_msg_signal = None  # type: pyqtBoundSignal | None
+    _proc_msg_signal = None  # type: pyqtBoundSignal | None
 
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    def _add_to_cache(self, cache_type: str, cache: deque[Callable], msg: Callable):
+        if len(cache) > self._cache_max_size:
+            self.warning(
+                f"{cache_type} message cache ({len(cache)}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
+            )
+            cache.popleft()
+        cache.append(msg)
 
     def _get_gui_orient(self, msg: str):
         return Qt.Orientation.Horizontal if len(msg) < 50 else Qt.Orientation.Vertical
@@ -50,25 +54,23 @@ class LoggingManager:
     def _process_text_for_gui(self, text: str):
         return re.sub(pattern="\n", repl="<br>", string=text)
 
-    def set_proc_signal(self, signal: pyqtBoundSignal):
+    def _display_gui_msg_cache(self):
+        for fn in self._gui_msg_cache:
+            fn()
+        self._gui_msg_cache.clear()
+
+    def _display_proc_msg_cache(self):
+        for fn in self._proc_msg_cache:
+            fn()
+        self._proc_msg_cache.clear()
+
+    def set_proc_signal(self, signal: pyqtBoundSignal | None):
         self._proc_msg_signal = signal
+        self._display_proc_msg_cache()
 
-    def set_gui_signal(self, signal: pyqtBoundSignal):
+    def set_gui_signal(self, signal: pyqtBoundSignal | None):
         self._gui_msg_signal = signal
-
-    def set_gui_ready(self, is_ready):
-        self._gui_ready = is_ready
-        if is_ready:
-            for fn in self._gui_msg_cache:
-                fn()
-            self._gui_msg_cache = []
-
-    def set_proc_ready(self, is_ready):
-        self._proc_ready = is_ready
-        if is_ready:
-            for fn in self._proc_msg_cache:
-                fn()
-            self._proc_msg_cache = []
+        self._display_gui_msg_cache()
 
     def set_level(self, level: LogLevel | int | str):
         error = False
@@ -134,7 +136,7 @@ class LoggingManager:
                 elif not isinstance(title, str):
                     title = f"{title}"
 
-                if self._gui_ready:
+                if self._gui_msg_signal:
                     self._gui_msg_signal.emit(
                         level,
                         self._process_text_for_gui(title),
@@ -145,22 +147,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.debug(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._gui_msg_cache.append(func)
+                    self._add_to_cache("gui", self._gui_msg_cache, func)
             if pid is not None:
                 if self._proc_msg_signal is not None:
-                    if self._proc_ready:
-                        self._proc_msg_signal.emit(level, pid, msg)
-                    else:
-                        func = (
-                            lambda msg=msg, log=False, gui=False, pid=pid: self.debug(
-                                msg=msg, log=log, gui=gui, pid=pid
-                            )
-                        )
-                        self._proc_msg_cache.append(func)
+                    self._proc_msg_signal.emit(level, pid, msg)
                 else:
-                    self.applib_logger().warning(
-                        f"Cannot send process signal: signal is {self._proc_msg_signal}"
+                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.debug(
+                        msg=msg, log=log, gui=gui, pid=pid
                     )
+                    self._add_to_cache("process", self._proc_msg_cache, func)
 
     def info(
         self,
@@ -200,7 +195,7 @@ class LoggingManager:
                 elif not isinstance(title, str):
                     title = f"{title}"
 
-                if self._gui_ready:
+                if self._gui_msg_signal:
                     self._gui_msg_signal.emit(
                         level,
                         self._process_text_for_gui(title),
@@ -211,20 +206,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.info(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._gui_msg_cache.append(func)
+                    self._add_to_cache("gui", self._gui_msg_cache, func)
             if pid is not None:
                 if self._proc_msg_signal is not None:
-                    if self._proc_ready:
-                        self._proc_msg_signal.emit(level, pid, msg)
-                    else:
-                        func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
-                            msg=msg, log=log, gui=gui, pid=pid
-                        )
-                        self._proc_msg_cache.append(func)
+                    self._proc_msg_signal.emit(level, pid, msg)
                 else:
-                    self.applib_logger().warning(
-                        f"Cannot send process signal: signal is {self._proc_msg_signal}"
+                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
+                        msg=msg, log=log, gui=gui, pid=pid
                     )
+                    self._add_to_cache("process", self._proc_msg_cache, func)
 
     def warning(
         self,
@@ -264,7 +254,7 @@ class LoggingManager:
                 elif not isinstance(title, str):
                     title = f"{title}"
 
-                if self._gui_ready:
+                if self._gui_msg_signal:
                     self._gui_msg_signal.emit(
                         level,
                         self._process_text_for_gui(title),
@@ -275,22 +265,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.warning(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._gui_msg_cache.append(func)
+                    self._add_to_cache("gui", self._gui_msg_cache, func)
             if pid is not None:
                 if self._proc_msg_signal is not None:
-                    if self._proc_ready:
-                        self._proc_msg_signal.emit(level, pid, msg)
-                    else:
-                        func = (
-                            lambda msg=msg, log=False, gui=False, pid=pid: self.warning(
-                                msg=msg, log=log, gui=gui, pid=pid
-                            )
-                        )
-                        self._proc_msg_cache.append(func)
+                    self._proc_msg_signal.emit(level, pid, msg)
                 else:
-                    self.applib_logger().warning(
-                        f"Cannot send process signal: signal is {self._proc_msg_signal}"
+                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.warning(
+                        msg=msg, log=log, gui=gui, pid=pid
                     )
+                    self._add_to_cache("process", self._proc_msg_cache, func)
 
     def error(
         self,
@@ -330,7 +313,7 @@ class LoggingManager:
                 elif not isinstance(title, str):
                     title = f"{title}"
 
-                if self._gui_ready:
+                if self._gui_msg_signal:
                     self._gui_msg_signal.emit(
                         level,
                         self._process_text_for_gui(title),
@@ -341,20 +324,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.error(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._gui_msg_cache.append(func)
+                    self._add_to_cache("gui", self._gui_msg_cache, func)
             if pid is not None:
                 if self._proc_msg_signal is not None:
-                    if self._proc_ready:
-                        self._proc_msg_signal.emit(level, pid, msg)
-                    else:
-                        func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
-                            msg=msg, log=log, gui=gui, pid=pid
-                        )
-                        self._proc_msg_cache.append(func)
+                    self._proc_msg_signal.emit(level, pid, msg)
                 else:
-                    self.applib_logger().warning(
-                        f"Cannot send process signal: signal is {self._proc_msg_signal}"
+                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
+                        msg=msg, log=log, gui=gui, pid=pid
                     )
+                    self._add_to_cache("process", self._proc_msg_cache, func)
 
     def critical(
         self,
@@ -394,7 +372,7 @@ class LoggingManager:
                 elif not isinstance(title, str):
                     title = f"{title}"
 
-                if self._gui_ready:
+                if self._gui_msg_signal:
                     self._gui_msg_signal.emit(
                         level,
                         self._process_text_for_gui(title),
@@ -405,20 +383,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.critical(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._gui_msg_cache.append(func)
+                    self._add_to_cache("gui", self._gui_msg_cache, func)
             if pid is not None:
                 if self._proc_msg_signal is not None:
-                    if self._proc_ready:
-                        self._proc_msg_signal.emit(level, pid, msg)
-                    else:
-                        func = lambda msg=msg, log=False, gui=False, pid=pid: self.critical(
-                            msg=msg, log=log, gui=gui, pid=pid
-                        )
-                        self._proc_msg_cache.append(func)
+                    self._proc_msg_signal.emit(level, pid, msg)
                 else:
-                    self.applib_logger().warning(
-                        f"Cannot send process signal: signal is {self._proc_msg_signal}"
+                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.critical(
+                        msg=msg, log=log, gui=gui, pid=pid
                     )
+                    self._add_to_cache("process", self._proc_msg_cache, func)
 
     def applib_logger(self) -> logging.Logger:
         """Get the library logger"""

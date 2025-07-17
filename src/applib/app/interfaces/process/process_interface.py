@@ -177,7 +177,7 @@ class CoreProcessInterface(ScrollArea):
         names: tuple[str, str],
         config_key: str,
         value_tuple: tuple[Any,],
-        parent_keys: list[str],
+        path: str,
     ) -> None:
         if names[0] == self.main_config.name:
             (value,) = value_tuple
@@ -204,7 +204,7 @@ class CoreProcessInterface(ScrollArea):
         self._setEnableTerminateButtons(self.process_running)
 
         if not self.process_running:
-            self._logger.set_proc_ready(False)
+            self._logger.set_proc_signal(None)
 
     def _onTerminateAllButtonClicked(self):
         self.threadManager.kill.emit()
@@ -212,14 +212,14 @@ class CoreProcessInterface(ScrollArea):
 
     def _onStartButtonClicked(self):
         try:
-            self._logger.set_proc_ready(True)
+            self._logger.set_proc_signal(self._proc_msg_signal)
             self.processSubinterface.getProgressCard().start()
             if not self.thread_for_manager.isRunning():
                 self.thread_for_manager.start()
             else:
                 self.threadManager.start.emit()
         except Exception:
-            self._logger.set_proc_ready(False)
+            self._logger.set_proc_signal(None)
             self._logger.error(
                 f"Process Manager failed\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit),

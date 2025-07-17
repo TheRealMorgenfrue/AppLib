@@ -91,7 +91,7 @@ class CoreMainWindow(MSFluentWindow):
             self._log_error(traceback.format_exc(limit=CoreArgs._core_traceback_limit))
         CoreStyleSheet.MAIN_WINDOW.apply(self)
         self.splashScreen.finish()
-        self._logger.set_gui_ready(True)
+        self._connect_gui_logging()
 
     def _validate_background(self, image_path):
         return image_path and os.path.isfile(image_path)
@@ -176,16 +176,18 @@ class CoreMainWindow(MSFluentWindow):
         QApplication.processEvents()
 
     def _connectSignalToSlot(self):
-        self._logger.set_gui_signal(self.gui_msg_signal)
-        self.gui_msg_signal.connect(self._on_gui_msg_received)
         core_signalbus.configUpdated.connect(self._on_config_updated)
+
+    def _connect_gui_logging(self):
+        self.gui_msg_signal.connect(self._on_gui_msg_received)
+        self._logger.set_gui_signal(self.gui_msg_signal)
 
     def _on_config_updated(
         self,
         names: tuple[str, str],
         config_key: str,
         value_tuple: tuple[Any,],
-        parent_keys: list[str],
+        path: str,
     ):
         if names[0] == self.main_config.name:
             (value,) = value_tuple
@@ -282,7 +284,7 @@ class CoreMainWindow(MSFluentWindow):
             content=content,
             orient=orient,
             isClosable=True,
-            duration=10000,
+            duration=-1,
             position=InfoBarPosition.TOP,
             parent=self,
         )
