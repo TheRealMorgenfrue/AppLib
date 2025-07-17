@@ -154,7 +154,10 @@ class NestedDictSearch:
         try:
             d = cls._search(d, key, search_path, idx, mode)
         except IndexError as err:
-            return kwargs["default"]  # KeyError
+            try:
+                return kwargs["default"]
+            except KeyError:
+                raise err from None
         return d[key]
 
     @classmethod
