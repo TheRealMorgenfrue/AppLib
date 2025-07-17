@@ -3,6 +3,8 @@ from abc import abstractmethod
 
 from PyQt6.QtWidgets import QWidget
 
+from applib.module.configuration.tools.search import SEARCH_SEP
+
 from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_parser import TemplateParser
@@ -13,7 +15,7 @@ from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import LoggingManager
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
-from ...module.tools.types.gui_cards import AnyCard, AnySettingCard
+from ...module.tools.types.gui_cards import AnyCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
 from ...module.tools.utilities import iter_to_str
@@ -64,10 +66,10 @@ class GeneratorBase:
     @abstractmethod
     def _create_card(
         self,
-        card_type: UITypes,
+        card_type: UITypes | None,
         setting: str,
         option: GUIOption,
-        parent_keys: list[str],
+        path: str,
         group: Group | None,
         parent: QWidget | None = None,
     ) -> AnyCard | None:
@@ -78,6 +80,7 @@ class GeneratorBase:
         ----------
         card_type : UITypes
             The type of the card. See `UITypes` for card types.
+            If None, the card type is treated as undefined.
 
         setting : str
             The setting this card represent.
@@ -87,8 +90,8 @@ class GeneratorBase:
             Options detailing how the card should look and behave.
             That is, the value of `setting` in the template.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         content : str
             The description of the card.
@@ -113,7 +116,7 @@ class GeneratorBase:
         card_type: UITypes,
         key: str,
         option: GUIOption,
-        parent_keys: list[str],
+        path: str,
         parent: QWidget | None = None,
     ) -> AnySetting | None:
         """
@@ -130,8 +133,8 @@ class GeneratorBase:
         option : GUIOption
             The options available for this setting, e.g., its default value.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             The parent widget of this setting.
@@ -149,7 +152,7 @@ class GeneratorBase:
                 config_key=key,
                 option=option,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.COLOR_PICKER:
@@ -158,7 +161,7 @@ class GeneratorBase:
                 config_key=key,
                 option=option,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.COMBOBOX:
@@ -168,7 +171,7 @@ class GeneratorBase:
                 option=option,
                 texts=option.values,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.FILE_SELECTION:
@@ -182,7 +185,7 @@ class GeneratorBase:
                 filter=option.ui_file_filter,
                 selected_filter=option.ui_file_filter,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.LINE_EDIT:
@@ -193,7 +196,7 @@ class GeneratorBase:
                 is_tight=self._is_tight,
                 ui_invalid_input=option.ui_invalid_input,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.SLIDER:
@@ -201,11 +204,11 @@ class GeneratorBase:
                 config=self._config,
                 config_key=key,
                 option=option,
-                num_range=(int(option.min), int(option.max)),
+                num_range=(option.min, option.max),
                 is_tight=self._is_tight,
                 baseunit=GeneratorUtils.parse_unit(key, option, self._config_name),
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.SPINBOX:
@@ -215,7 +218,7 @@ class GeneratorBase:
                 option=option,
                 num_range=(option.min, option.max),
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         elif card_type == UITypes.SWITCH:
@@ -224,7 +227,7 @@ class GeneratorBase:
                 config_key=key,
                 option=option,
                 converter=converter,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
         else:
@@ -236,7 +239,7 @@ class GeneratorBase:
         return widget
 
     def _exclude_setting(self, setting: str, option: GUIOption) -> bool:
-        exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags
+        exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore # option.ui_flags is a list after being parsed.
         if exclude:
             self._logger.debug(
                 f"{self._prefix_msg()} Excluding setting '{setting}' from GUI"
@@ -248,19 +251,22 @@ class GeneratorBase:
     ) -> list[AnyCardGroup]:
         template_parser = TemplateParser()
         template_parser.parse(self._template)
-        card_groups = {}  # type: dict[str, AnyCardGroup]
+        card_groups = {}  # type: dict[str, AnyCardGroup | None]
         failed_cards = 0
 
-        for k, v, pos, ps in self._template.get_settings():
-            item = next(iter(v.items()))  # type: tuple[str, GUIOption]
-            setting, option = item
+        for setting, option, path in self._template.options():
+            if not isinstance(option, GUIOption):
+                self._logger.error(
+                    f"TypeError: setting '{setting}' has option of type '{type(option)}' which is invalid for card generation."
+                )
+                continue
 
             if self._exclude_setting(setting, option):
                 continue
 
             # Create a card group a tie it to a section name if it does not exist already
             try:
-                section_name = ps[-1]
+                section_name = path.split(SEARCH_SEP)[-1]
                 card_group = card_groups[section_name]
             except KeyError:
                 card_group = (
@@ -302,13 +308,13 @@ class GeneratorBase:
                     ),
                     setting=setting,
                     option=option,
-                    parent_keys=ps,
+                    path=path,
                     group=main_group,
                     parent=card_group,
                 )
             except Exception:
                 self._logger.error(
-                    f"{self._prefix_msg()} Error creating setting card for setting '{setting}'\n"
+                    f"{self._prefix_msg()} Error creating card for setting '{setting}'\n"
                     + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                 )
                 card = None
@@ -373,14 +379,15 @@ class GeneratorBase:
         return self._card_list
 
     def _updateCardSortOrder(
-        self, card: AnySettingCard, cardGroup: AnyCardGroup | None
+        self, card: AnyCard, cardGroup: AnyCardGroup | None
     ) -> None:
         if cardGroup is None:
             return
         card_group_name = f"{cardGroup}"
-        if card_group_name not in self._card_sort_order:
-            self._card_sort_order[card_group_name] = []
-        self._card_sort_order.get(card_group_name).append(card)
+        try:
+            self._card_sort_order[card_group_name].append(card)
+        except KeyError:
+            self._card_sort_order[card_group_name] = [card]
 
     def _addCardsBySortOrder(self) -> None:
         for card_or_group in list(self._getCardList()):

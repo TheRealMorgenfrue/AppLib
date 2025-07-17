@@ -1,22 +1,17 @@
 from abc import abstractmethod
-from typing import Mapping, Optional, Self, override
 
-from ...datastructures.redblacktree_mapping import (
-    RedBlackTreeMapping,
-    _rbtm_item,
-    _supports_rbtm_iter,
-)
+from applib.module.configuration.tools.search.nested_dict_search import NestedDictSearch
+
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
-from ..tools.template_utils.options import Option
 
 
 class BaseTemplate(MappingBase):
     def __init__(
         self,
         name: str,
-        template: Mapping,
-        icons: Optional[iconDict] = None,
+        template: dict,
+        icons: iconDict | None = None,
     ) -> None:
         """
         Base class for all templates.
@@ -27,49 +22,64 @@ class BaseTemplate(MappingBase):
             Template name.
             Uniquely identifies this template.
 
-        template : Mapping
-            A mapping of key-value pairs.
+        template : dict
+            The dict representing the template.
 
-        icons : Optional[icon_dict], optional
+        icons : icon_dict, optional
             A mapping of icons to keys in `template`.
             By default None.
         """
+        super().__init__(template)
         self.icons = icons  # TODO: Add full icon support to templates in AppLib
-        super().__init__([template], name)
+        self.name = name
 
     def __or__(self, other):
-        if not isinstance(other, (Mapping, RedBlackTreeMapping)):
+        if not isinstance(other, (BaseTemplate)):
             return NotImplemented
-        return self.new(f"{self.name}-union", [self, other], None)
+        d = {}
+        for instance in [self, other]:
+            for k, v, path in instance.options():
+                NestedDictSearch.insert(d, k, v, path, create_missing=True)
+
+        # TODO: Reimplement when icon support is added
+        if self.icons:
+            if other.icons:
+                icons = self.icons | other.icons
+            icons = self.icons
+        else:
+            icons = other.icons  # Maybe None
+
+        template = super().__new__(BaseTemplate)  # type: ignore
+        template.__init__(f"{self.name}-union", d, icons)
+        return template
 
     def __ror__(self, other):
-        if not isinstance(other, Mapping):
+        if not isinstance(other, BaseTemplate):
             return NotImplemented
-        return self.new(f"{self.name}-union", [other, self], None)
+        d = {}
+        for instance in [other, self]:
+            for k, v, path in instance.options():
+                NestedDictSearch.insert(d, k, v, path, create_missing=True)
 
-    @classmethod
-    def new(
-        cls, name: str, iterable: list[_supports_rbtm_iter], icons: iconDict | None
-    ) -> Self:
-        """Let direct singleton subclasses create a new instance of their class"""
-        new = super().__new__(cls)
-        # This is called in a direct subclass. Thus, super() is actually calling this class
-        super(type(new), new).__init__(name, [], icons)
-        new.add_all(iterable)
-        return new
+        # TODO: Reimplement when icon support is added
+        if other.icons:
+            if self.icons:
+                icons = other.icons | self.icons
+            icons = other.icons
+        else:
+            icons = self.icons  # Maybe None
 
-    @override
-    def _is_setting(self, item: _rbtm_item) -> bool:
-        check = False
-        k, v, pos, ps = item
-        try:
-            check = isinstance(v, Option)
-            check = check or isinstance(v.x[0][0], Option)
-        except Exception:
-            pass
-        return check
+        template = super().__new__(BaseTemplate)  # type: ignore
+        template.__init__(f"{other.name}-union", d, icons)
+        return template
 
-    @override
+    def __ior__(self, other):
+        if not isinstance(other, (BaseTemplate)):
+            return NotImplemented
+        for k, v, path in other.options():
+            NestedDictSearch.insert(self._dict, k, v, path, create_missing=True)
+        return self
+
     def _prefix_msg(self) -> str:
         return f"Template '{self.name}':"
 

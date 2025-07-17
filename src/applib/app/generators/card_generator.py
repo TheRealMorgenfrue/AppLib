@@ -1,4 +1,4 @@
-from typing import Optional, Union, override
+from typing import override
 
 from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QWidget
@@ -39,11 +39,11 @@ class CardGenerator(GeneratorBase):
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        default_group: Optional[str] = None,
+        default_group: str | None = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        icons: Optional[list[Union[str, QIcon, FluentIconBase]]] = None,
-        parent: Optional[QWidget] = None,
+        icons: list[str | QIcon | FluentIconBase] | None = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Generate a Setting Card for each setting in the supplied template.
@@ -99,9 +99,9 @@ class CardGenerator(GeneratorBase):
         card_type: UITypes,
         setting: str,
         option: GUIOption,
-        parent_keys: list[str],
+        path: str,
         group: Group | None,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> AnySettingCard | None:
         widget = None
         try:
@@ -126,11 +126,11 @@ class CardGenerator(GeneratorBase):
                 card_type=card_type,
                 key=setting,
                 option=option,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
             # Create Setting Card
-            if is_nesting_group and setting == group.get_parent_name():
+            if is_nesting_group and setting == group.get_parent_name():  # type: ignore
                 card = ExpandingSettingCard(
                     card_name=setting,
                     icon=icon,
@@ -139,7 +139,7 @@ class CardGenerator(GeneratorBase):
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
-            elif is_clustered_group and setting == group.get_parent_name():
+            elif is_clustered_group and setting == group.get_parent_name():  # type: ignore
                 card = ClusteredSettingCard(
                     card_name=setting,
                     icon=icon,
@@ -155,7 +155,7 @@ class CardGenerator(GeneratorBase):
                     title=option.ui_info.title,
                     content=option.ui_info.description,
                     has_disable_button=has_disable_button,
-                    is_frameless=is_nesting_group,
+                    is_frameless=bool(is_nesting_group),
                     parent=parent,
                 )
             card.enable_tight_mode(self._is_tight)

@@ -1,4 +1,4 @@
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtWidgets import QWidget
 
@@ -36,10 +36,10 @@ class CardWidgetGenerator(GeneratorBase):
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        default_group: Optional[str] = None,
+        default_group: str | None = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Generate a Setting Card Widget for each setting in the supplied template.
@@ -89,9 +89,9 @@ class CardWidgetGenerator(GeneratorBase):
         card_type: UITypes,
         setting: str,
         option: GUIOption,
-        parent_keys: list[str],
+        path: str,
         group: Group | None,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> AnySettingWidget | None:
         widget = None
         try:
@@ -117,7 +117,7 @@ class CardWidgetGenerator(GeneratorBase):
                 card_type=card_type,
                 key=setting,
                 option=option,
-                parent_keys=parent_keys,
+                path=path,
                 parent=parent,
             )
             # Create Setting Card Widget
