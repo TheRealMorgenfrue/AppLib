@@ -15,7 +15,7 @@ class ConfigUtils:
     @classmethod
     def writeConfig(
         cls,
-        config: dict | Model,
+        config: dict,
         dst_path: StrPath,
     ) -> None:
         """
@@ -24,7 +24,7 @@ class ConfigUtils:
 
         Parameters
         ----------
-        config : dict | Model
+        config : dict
             The Python config object to convert and write to a file.
             Can be an instance of a validation model.
 
@@ -37,9 +37,6 @@ class ConfigUtils:
         extension = os.path.splitext(dst_path)[1].strip(".")
         try:
             dst_dir.mkdir(parents=True, exist_ok=True)
-
-            if isinstance(config, Model):
-                config = config.model_dump()
 
             if extension.lower() == "toml":
                 cls._generateTOMLconfig(config, dst_path)
