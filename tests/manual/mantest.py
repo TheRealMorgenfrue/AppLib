@@ -18,15 +18,6 @@
 # nuitka-project: --enable-plugin=anti-bloat
 
 
-# Automatic testing
-import sys
-
-import pytest
-
-sys.exit(pytest.main(["-ra -q"]))  # , plugins=[MyPlugin()]))
-
-
-# Manual testing
 from interfaces.mainwindow import TestMainWindow
 
 from applib.app.core_app import CoreApp
