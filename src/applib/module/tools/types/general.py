@@ -14,5 +14,5 @@ floatOrInt: TypeAlias = float | int
 Model: TypeAlias = BaseModel
 """A Pydantic validation model (not constructed)"""
 
-iconDict: TypeAlias = dict[str, Union[str, QIcon, FluentIconBase]]
+iconDict: TypeAlias = dict[str, str | QIcon | FluentIconBase]
 """Maps a template section name to an icon"""

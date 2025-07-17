@@ -1,4 +1,5 @@
-from typing import Callable, Hashable, Optional, Union
+from collections.abc import Callable
+from typing import Hashable
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon
@@ -13,11 +14,11 @@ class SampleCard(CardWidget):
 
     def __init__(
         self,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
         widget_id: Hashable,
-        onClick: Optional[Callable],
-        parent: Optional[QWidget] = None,
+        onClick: Callable | None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent=parent)
         self.widget_id = widget_id
@@ -98,9 +99,7 @@ class SampleCard(CardWidget):
 
 
 class SampleCardView(QWidget):
-    def __init__(
-        self, title: Optional[str] = None, parent: Optional[QWidget] = None
-    ) -> None:
+    def __init__(self, title: str | None = None, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._cards = {}  # type: dict[int, SampleCard]
         self.titleLabel = QLabel(title, self) if title else None
@@ -123,10 +122,10 @@ class SampleCardView(QWidget):
 
     def addSampleCard(
         self,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
         widget_id: Hashable,
-        onClick: Optional[Callable] = None,
+        onClick: Callable | None = None,
     ) -> None:
         if self._cards.get(widget_id, None):
             err_msg = f"ID '{widget_id}' already exists"

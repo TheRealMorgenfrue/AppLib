@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Optional, Union, override
+from typing import Any, override
 
 from PyQt6.QtCore import QEvent, QObject, QSize, Qt
 from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
@@ -30,11 +30,11 @@ class SettingCardBase(CardBase, QFrame):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(card_name=card_name, parent=parent)
         self.iconLabel = SettingIconWidget(icon)
@@ -277,12 +277,12 @@ class GenericSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
         is_frameless: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             super().__init__(
@@ -324,12 +324,12 @@ class FluentSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
         is_frameless: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             super().__init__(
@@ -357,12 +357,12 @@ class FormSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
         is_frameless: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             super().__init__(
@@ -416,12 +416,12 @@ class FlowSettingCard(SettingCardMixin, SettingCardBase):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
         is_frameless: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             super().__init__(

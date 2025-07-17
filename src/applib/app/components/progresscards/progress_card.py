@@ -1,16 +1,14 @@
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
+from PyQt6.QtWidgets import QLabel, QWidget
 from qfluentwidgets import (
     CardWidget,
-    ProgressBar,
-    ProgressRing,
     IndeterminateProgressBar,
     IndeterminateProgressRing,
+    ProgressBar,
+    ProgressRing,
     themeColor,
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QLabel
-from PyQt6.QtGui import QColor
-
-from typing import Optional, Union
 
 from ...common.core_stylesheet import CoreStyleSheet
 
@@ -19,13 +17,13 @@ class ProgressCard(CardWidget):
     def __init__(
         self,
         title: str,
-        progressWidget: Union[
-            ProgressBar,
-            ProgressRing,
-            IndeterminateProgressBar,
-            IndeterminateProgressRing,
-        ],
-        parent: Optional[QWidget] = None,
+        progressWidget: (
+            ProgressBar
+            | ProgressRing
+            | IndeterminateProgressBar
+            | IndeterminateProgressRing
+        ),
+        parent: QWidget | None = None,
     ):
         super().__init__(parent)
         self.titleLabel = QLabel(title)
@@ -53,7 +51,7 @@ class ProgressCard(CardWidget):
         barColor = themeColor()
         self.progressWidget.setCustomBarColor(barColor, barColor)
 
-    def stop(self, barColor: Union[str, Qt.GlobalColor, QColor] = "#2dc2c7") -> None:
+    def stop(self, barColor: str | Qt.GlobalColor | QColor = "#2dc2c7") -> None:
         """Put progress card in stopped mode.
 
         Parameters

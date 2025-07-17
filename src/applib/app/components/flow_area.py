@@ -1,15 +1,11 @@
-from typing import Optional
-from qfluentwidgets import (
-    ScrollArea,
-    FlowLayout,
-)
 from PyQt6.QtWidgets import QWidget
+from qfluentwidgets import FlowLayout, ScrollArea
 
 from ..common.core_stylesheet import CoreStyleSheet
 
 
 class FlowArea(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._view = QWidget(self)
         self.flowLayout = FlowLayout(self._view, needAni=True)

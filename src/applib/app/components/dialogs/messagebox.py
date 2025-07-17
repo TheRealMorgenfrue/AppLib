@@ -1,7 +1,5 @@
 from PyQt6.QtWidgets import QWidget
 
-from typing import Optional
-
 from .messagebox_base import MessageBoxBase
 
 
@@ -10,9 +8,9 @@ class TextMessageBox(MessageBoxBase):
         self,
         title: str,
         content: str,
-        yesButtonText: Optional[str] = None,
-        noButtonText: Optional[str] = None,
-        parent: Optional[QWidget] = None,
+        yesButtonText: str | None = None,
+        noButtonText: str | None = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(
             title=title,

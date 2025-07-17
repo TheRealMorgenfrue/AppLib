@@ -1,4 +1,4 @@
-from typing import Any, Optional, override
+from typing import Any, override
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
@@ -10,7 +10,7 @@ from .settingwidget import SettingWidget, SettingWidgetBase
 
 
 class WidgetFrame(CardWidget):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.vCardLayout = QVBoxLayout(self)
 
@@ -28,9 +28,9 @@ class ParentSettingWidget(ParentCardBase, SettingWidgetBase):
         self,
         card_name: str,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(
             card_name=card_name,
@@ -79,9 +79,9 @@ class NestedSettingWidget(ParentSettingWidget):
         self,
         card_name: str,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(
             card_name=card_name,
@@ -120,9 +120,9 @@ class ClusteredSettingWidget(ParentSettingWidget):
         self,
         card_name: str,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(
             card_name=card_name,

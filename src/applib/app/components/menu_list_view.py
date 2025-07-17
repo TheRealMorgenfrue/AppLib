@@ -1,13 +1,11 @@
-from qfluentwidgets import ListView, RoundMenu
-from PyQt6.QtCore import Qt, QModelIndex
-from PyQt6.QtWidgets import QWidget, QMenu, QListView
+from PyQt6.QtCore import QModelIndex, Qt
 from PyQt6.QtGui import QMouseEvent
-
-from typing import Optional
+from PyQt6.QtWidgets import QListView, QMenu, QWidget
+from qfluentwidgets import ListView, RoundMenu
 
 
 class MenuListView(ListView):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._menu = None  # type: RoundMenu
         self.rightClickIndex = None  # type: QModelIndex

@@ -1,14 +1,12 @@
-from qfluentwidgets import PushButton, TextEdit
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTextEdit
 from PyQt6.QtCore import Qt
-
-from typing import Optional
+from PyQt6.QtWidgets import QHBoxLayout, QLabel, QTextEdit, QVBoxLayout, QWidget
+from qfluentwidgets import PushButton, TextEdit
 
 from ..common.core_stylesheet import CoreStyleSheet
 
 
 class InputView(QWidget):
-    def __init__(self, label: str, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, label: str, parent: QWidget | None = None) -> None:
         """Text editor where user can input multi-line text.
 
         Parameters
@@ -16,7 +14,7 @@ class InputView(QWidget):
         label : str
             Title label
 
-        parent : Optional[QWidget], optional
+        parent : QWidget | None, optional
             Parent widget. By default None
         """
         super().__init__(parent)

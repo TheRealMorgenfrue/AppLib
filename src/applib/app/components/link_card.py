@@ -1,15 +1,13 @@
-from qfluentwidgets import (
-    IconWidget,
-    FluentIcon,
-    FluentIconBase,
-    TextWrap,
-    SingleDirectionScrollArea,
-)
 from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtGui import QDesktopServices, QIcon
-from PyQt6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget, QHBoxLayout
-
-from typing import Optional, Union
+from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
+from qfluentwidgets import (
+    FluentIcon,
+    FluentIconBase,
+    IconWidget,
+    SingleDirectionScrollArea,
+    TextWrap,
+)
 
 from ..common.core_stylesheet import CoreStyleSheet
 
@@ -18,11 +16,11 @@ class LinkCard(QFrame):
 
     def __init__(
         self,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
         content: str,
         url: QUrl,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent=parent)
         self.url = QUrl(url)
@@ -65,7 +63,7 @@ class LinkCard(QFrame):
 class LinkCardView(SingleDirectionScrollArea):
     """Link card view"""
 
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent, Qt.Orientation.Horizontal)
         self._view = QWidget(self)
         self.hBoxLayout = QHBoxLayout(self._view)
@@ -84,7 +82,7 @@ class LinkCardView(SingleDirectionScrollArea):
 
     def addCard(
         self,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
         content: str,
         url: QUrl,

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union, override
+from typing import Any, override
 
 from PyQt6.QtCore import (
     QEasingCurve,
@@ -74,11 +74,11 @@ class HeaderSettingCard(FluentSettingCard):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(
             card_name=card_name,
@@ -168,11 +168,11 @@ class ExpandSettingCard(CardBase, QScrollArea):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(card_name=card_name, parent=parent)
         self.scrollWidget = QFrame(self)
@@ -311,11 +311,11 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Expanding setting card which holds child cards.
@@ -325,7 +325,7 @@ class ExpandingSettingCard(ParentSettingCardBase, ExpandSettingCard):
         card_name : str
             The name of the template key which this card represents.
 
-        icon : Union[str, QIcon, FluentIconBase]
+        icon :str | QIcon | FluentIconBase
             Display icon.
 
         title : str

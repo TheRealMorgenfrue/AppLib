@@ -1,5 +1,3 @@
-from typing import Optional
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
 from qfluentwidgets import ScrollArea
@@ -13,7 +11,7 @@ from ...generators.cardwidget_generator import CardWidgetGenerator
 
 class CoreProcessSettings(ScrollArea):
     def __init__(
-        self, config: AnyConfig, template: AnyTemplate, parent: Optional[QWidget] = None
+        self, config: AnyConfig, template: AnyTemplate, parent: QWidget | None = None
     ) -> None:
         """
         The default process settings panel for the process interface.
@@ -26,7 +24,7 @@ class CoreProcessSettings(ScrollArea):
         template : AnyTemplate
             Specification which defines the creation of GUI elements.
 
-        parent : Optional[QWidget], optional
+        parent : QWidget | None, optional
             The parent widget of the process settings panel.
             By default None.
         """
@@ -65,13 +63,13 @@ class CoreProcessSettings(ScrollArea):
 
 
 class CoreProcessStatus(ScrollArea):
-    def __init__(self, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         """
         The default process status card.
 
         Parameters
         ----------
-        parent : Optional[QWidget], optional
+        parent : QWidget | None, optional
             The parent widget of the process status card.
             By default None.
         """
@@ -105,7 +103,7 @@ class CoreProcessStatus(ScrollArea):
 
 class ProcessSubinterface(QWidget):
     def __init__(
-        self, config: AnyConfig, template: AnyTemplate, parent: Optional[QWidget] = None
+        self, config: AnyConfig, template: AnyTemplate, parent: QWidget | None = None
     ) -> None:
         """
         The default subinterface for the process interface.
@@ -122,7 +120,7 @@ class ProcessSubinterface(QWidget):
             Specification which defines the creation of GUI elements.
             Used by the process settings panel.
 
-        parent : Optional[QWidget], optional
+        parent : QWidget | None, optional
             The parent widget of the process subinterface.
             By default None.
         """

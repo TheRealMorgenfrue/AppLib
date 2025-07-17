@@ -1,18 +1,16 @@
-from qfluentwidgets import FluentStyleSheet, PrimaryPushButton, TextWrap, BodyLabel
-from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
-from PyQt6.QtCore import Qt, pyqtSignal, QEvent
-from PyQt6.QtGui import QColor, QAction
+from PyQt6.QtCore import QEvent, Qt, pyqtSignal
+from PyQt6.QtGui import QAction, QColor
 from PyQt6.QtWidgets import (
-    QWidget,
-    QLabel,
     QFrame,
-    QVBoxLayout,
     QHBoxLayout,
+    QLabel,
     QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
+from qfluentwidgets import BodyLabel, FluentStyleSheet, PrimaryPushButton, TextWrap
+from qfluentwidgets.components.dialog_box.mask_dialog_base import MaskDialogBase
 from qframelesswindow import FramelessDialog
-
-from typing import Optional
 
 
 class Ui_MessageBox:
@@ -21,7 +19,7 @@ class Ui_MessageBox:
     yesSignal = pyqtSignal()
     cancelSignal = pyqtSignal()
 
-    def _setUpUI(self, title: str, content: str, parent: Optional[QWidget] = None):
+    def _setUpUI(self, title: str, content: str, parent: QWidget | None = None):
         self.content = content
         self.titleLabel = QLabel(title, parent)
         self.contentLabel = BodyLabel(content, parent)
@@ -120,9 +118,9 @@ class Ui_MessageBox:
 
     def addWidget(
         self,
-        widget: Optional[QWidget],
-        stretch: Optional[int] = None,
-        alignment: Optional[Qt.AlignmentFlag] = None,
+        widget: QWidget | None,
+        stretch: int | None = None,
+        alignment: Qt.AlignmentFlag | None = None,
     ) -> None:
         if not self.widgetLayout.children():
             self.widgetLayout.setSpacing(12)
@@ -144,7 +142,7 @@ class Dialog(FramelessDialog, Ui_MessageBox):
     yesSignal = pyqtSignal()
     cancelSignal = pyqtSignal()
 
-    def __init__(self, title: str, content: str, parent: Optional[QWidget] = None):
+    def __init__(self, title: str, content: str, parent: QWidget | None = None):
         super().__init__(parent=parent)
         self._setUpUI(title, content, self)
 
@@ -175,9 +173,9 @@ class MessageBoxBase(MaskDialogBase, Ui_MessageBox):
         self,
         title: str,
         content: str,
-        yesButtonText: Optional[str] = None,
-        noButtonText: Optional[str] = None,
-        parent: Optional[QWidget] = None,
+        yesButtonText: str | None = None,
+        noButtonText: str | None = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent=parent)
         self._setUpUI(title, content, self.widget)

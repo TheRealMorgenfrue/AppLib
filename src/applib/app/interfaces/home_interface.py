@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QBrush, QPainter, QPainterPath, QPixmap
@@ -18,7 +18,7 @@ class BannerWidget(QWidget):
         self,
         main_config: AnyConfig,
         banner_path: StrPath,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent=parent)
         self.banner = QPixmap(banner_path)
@@ -70,7 +70,7 @@ class BannerWidget(QWidget):
         names: tuple[str, str],
         config_key: str,
         value_tuple: tuple[Any,],
-        parent_keys: list[str],
+        path: str,
     ) -> None:
         if names[0] == self.main_config.name:
             (value,) = value_tuple
@@ -112,7 +112,7 @@ class BannerWidget(QWidget):
 
 
 class CoreHomeInterface(ScrollArea):
-    def __init__(self, main_config: AnyConfig, parent: Optional[QWidget] = None):
+    def __init__(self, main_config: AnyConfig, parent: QWidget | None = None):
         super().__init__(parent=parent)
         self._view = QWidget(self)
         self.banner = BannerWidget(

@@ -1,4 +1,4 @@
-from typing import Any, Optional, override
+from typing import Any, override
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QResizeEvent
@@ -15,10 +15,10 @@ class SettingWidgetBase(CardBase, QWidget):
     def __init__(
         self,
         card_name: str,
-        title: Optional[str],
-        content: Optional[str],
+        title: str | None,
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(card_name=card_name, parent=parent)
         self._title = title
@@ -33,9 +33,9 @@ class SettingWidget(SettingWidgetBase):
         self,
         card_name: str,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             super().__init__(

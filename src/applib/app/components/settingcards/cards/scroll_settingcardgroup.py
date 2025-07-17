@@ -1,12 +1,10 @@
-from typing import Optional
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import ScrollArea, SettingCardGroup
 
 
 class ScrollSettingCardGroup(ScrollArea):
-    def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._cardGroup = SettingCardGroup(title, self)
         self.vGeneralLayout = QVBoxLayout(self)

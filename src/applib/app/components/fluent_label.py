@@ -1,14 +1,12 @@
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtWidgets import QLabel, QWidget, QSizePolicy
-
-from typing import Optional
+from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtWidgets import QLabel, QSizePolicy, QWidget
 
 
 class FluentLabel(QLabel):
     def __init__(
         self,
-        text: Optional[str],
-        parent: Optional[QWidget] = None,
+        text: str | None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(text, parent)
         self.setSizePolicy(

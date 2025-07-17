@@ -1,6 +1,6 @@
-from typing import Optional, Union, override
+from typing import override
 
-from PyQt6.QtCore import QEvent, QObject, Qt
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QIcon, QPainter, QPaintEvent, QResizeEvent
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QWidget
 from qfluentwidgets import FluentIconBase, isDarkTheme
@@ -16,12 +16,12 @@ class ClusterHeaderSettingCard(FluentSettingCard):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
         is_frameless: bool = False,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(
             card_name, icon, title, content, has_disable_button, is_frameless, parent
@@ -44,11 +44,11 @@ class ClusteredSettingCard(ParentSettingCardBase, QFrame):
     def __init__(
         self,
         card_name: str,
-        icon: Union[str, QIcon, FluentIconBase],
+        icon: str | QIcon | FluentIconBase,
         title: str,
-        content: Optional[str],
+        content: str | None,
         has_disable_button: bool,
-        parent: Optional[QWidget] = None,
+        parent: QWidget | None = None,
     ) -> None:
         super().__init__(card_name=card_name, parent=parent)
         self.viewLayout = QVBoxLayout(self)

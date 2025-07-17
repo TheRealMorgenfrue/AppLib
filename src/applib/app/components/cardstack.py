@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional, TypeAlias, Union, override
+from typing import TypeAlias, Union, override
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -34,8 +34,8 @@ class CardStackBase(ScrollArea):
         generator: AnyCardGenerator,
         Pivot: type[AnyPivot],
         pivotAlignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft,
-        labeltext: Optional[str] = None,
-        parent: Optional[QWidget] = None,
+        labeltext: str | None = None,
+        parent: QWidget | None = None,
     ) -> None:
         try:
             self._logger = LoggingManager()
@@ -143,8 +143,8 @@ class PivotCardStack(CardStackBase):
     def __init__(
         self,
         generator: AnyCardGenerator,
-        labeltext: Optional[str] = None,
-        parent: Optional[QWidget] = None,
+        labeltext: str | None = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Create a standard settings interface.
@@ -198,9 +198,9 @@ class SegmentedPivotCardStack(CardStackBase):
     def __init__(
         self,
         generator: AnyCardGenerator,
-        icons: dict[str, Union[str, QIcon, FluentIconBase]],
-        labeltext: Optional[str] = None,
-        parent: Optional[QWidget] = None,
+        icons: dict[str, str | QIcon | FluentIconBase],
+        labeltext: str | None = None,
+        parent: QWidget | None = None,
     ) -> None:
         """
         Create a standard settings interface.
@@ -256,7 +256,7 @@ class SegmentedPivotCardStack(CardStackBase):
         widget: QWidget,
         object_name: str,
         title: str,
-        icon: Optional[Union[str, QIcon, FluentIconBase]],
+        icon: str | QIcon | FluentIconBase | None,
     ):
         widget.setObjectName(object_name)
         self.stackedWidget.addWidget(widget)

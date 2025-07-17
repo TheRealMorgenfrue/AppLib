@@ -105,7 +105,7 @@ class CoreSettingsInterface(ScrollArea):
 
         Parameters
         ----------
-        icon : Union[str, QIcon, FluentIconBase]
+        icon :str | QIcon | FluentIconBase
             Icon for the subinterface.
 
         title : str

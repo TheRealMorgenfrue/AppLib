@@ -1,17 +1,15 @@
 from math import ceil
-from qfluentwidgets import ProgressRing, IndeterminateProgressRing, setFont
-from PyQt6.QtGui import QResizeEvent
+
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QWidget, QVBoxLayout
-
-from typing import Optional
-
+from PyQt6.QtGui import QResizeEvent
+from PyQt6.QtWidgets import QVBoxLayout, QWidget
+from qfluentwidgets import IndeterminateProgressRing, ProgressRing, setFont
 
 from .progress_card import ProgressCard
 
 
 class ProgressRingCard(ProgressCard):
-    def __init__(self, title: str, parent: Optional[QWidget] = None):
+    def __init__(self, title: str, parent: QWidget | None = None):
         super().__init__(title, ProgressRing(), parent)
         self.vBoxLayout = QVBoxLayout(self)
 
@@ -52,5 +50,5 @@ class ProgressRingCard(ProgressCard):
 
 
 class IndeterminateProgressRingCard(ProgressRingCard):
-    def __init__(self, title: str, parent: Optional[QWidget] = None):
+    def __init__(self, title: str, parent: QWidget | None = None):
         super().__init__(title, IndeterminateProgressRing(), parent)

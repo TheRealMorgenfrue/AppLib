@@ -1,5 +1,3 @@
-from typing import Optional
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
@@ -7,7 +5,7 @@ from ....common.core_stylesheet import CoreStyleSheet
 
 
 class CardWidgetGroup(QWidget):
-    def __init__(self, title: str, parent: Optional[QWidget] = None) -> None:
+    def __init__(self, title: str, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.titleLabel = QLabel(title)
         self.vBoxLayout = QVBoxLayout(self)

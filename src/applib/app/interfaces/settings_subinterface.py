@@ -1,4 +1,4 @@
-from typing import Literal, Optional, Union
+from typing import Literal
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -20,8 +20,8 @@ class CoreSettingsSubInterface(ScrollArea):
         Generator: AnyCardGenerator,
         CardStack: AnyCardStack,
         title: str | Literal["DEFAULT"] | None = "DEFAULT",
-        icons: dict[str, Union[str, QIcon, FluentIconBase]] = None,
-        parent: Optional[QWidget] = None,
+        icons: dict[str, str | QIcon | FluentIconBase] = None,
+        parent: QWidget | None = None,
         **generator_kwargs,
     ):
         """
@@ -48,7 +48,7 @@ class CoreSettingsSubInterface(ScrollArea):
             The display title of the interface.
             By default `DEFAULT`, which sets the title to `f"{config.name} Settings"`.
 
-        icons : dict[str, Union[str, QIcon, FluentIconBase]]
+        icons : dict[str,str | QIcon | FluentIconBase]
             The icons shown in the pivot for each GUI element section, if supported by the `CardStack`.
             Must be a dict mapping a GUI element section, as defined in `template`, to an icon.
             By default None.
