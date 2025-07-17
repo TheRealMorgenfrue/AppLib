@@ -45,10 +45,10 @@ def validate_theme(theme: str) -> str:
 
     Raises
     ------
-    AssertionError
+    ValueError
         The theme is invalid.
     """
     if not theme in CoreArgs._core_template_themes:
         err_msg = f"Invalid theme '{theme}'. Expected one of '{CoreArgs._core_template_themes}'"
-        raise AssertionError(err_msg)
+        raise ValueError(err_msg)
     return theme

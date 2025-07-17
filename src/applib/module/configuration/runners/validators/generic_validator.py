@@ -16,12 +16,12 @@ def validate_path(path: str) -> str:
 
     Raises
     ------
-    AssertionError
+    ValueError
         The path does not exist.
     """
     if not Path(path).exists() and not Path(path).resolve().exists():
         err_msg = f"'{path}' does not exist on the filesystem"
-        raise AssertionError(err_msg)
+        raise ValueError(err_msg)
     return path
 
 
@@ -39,7 +39,7 @@ def validate_proxy_address(proxy_address: str) -> str:
 
     Raises
     ------
-    AssertionError
+    ValueError
         The proxy address is invalid.
     """
     if proxy_address != "":
@@ -47,7 +47,7 @@ def validate_proxy_address(proxy_address: str) -> str:
             r"^(?:(https?|socks[45]h?)://)?([\w.-]+)(:\d+)?$", proxy_address
         ):
             err_msg = f"Invalid proxy address: '{proxy_address}'"
-            raise AssertionError(err_msg)
+            raise ValueError(err_msg)
     return proxy_address
 
 
@@ -65,7 +65,7 @@ def validate_ip_address(ip_address: str) -> str:
 
     Raises
     ------
-    AssertionError
+    ValueError
         The IP address is invalid.
     """
     if ip_address != "":
@@ -83,5 +83,5 @@ def validate_ip_address(ip_address: str) -> str:
             pass
         else:
             err_msg = f"Invalid IP address: '{ip_address}'"
-            raise AssertionError(err_msg)
+            raise ValueError(err_msg)
     return ip_address
