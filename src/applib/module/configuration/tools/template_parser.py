@@ -1,7 +1,9 @@
 from copy import deepcopy
-from typing import Any, Hashable, Iterable, Self, Union
+from typing import Any, Hashable, Self
 
 from pydantic import Field
+
+from applib.module.configuration.tools.search import SEARCH_SEP
 
 from ...exceptions import OrphanGroupWarning
 from ...logging import LoggingManager
@@ -40,7 +42,7 @@ class TemplateParser:
     def _group_is_included(self, option: GUIOption) -> bool:
         # option.ui_flags is a list after parsing flags
         return not (
-            option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags
+            option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore
         )
 
     def _parse_group(self, setting: str, option: GUIOption, template_name: str) -> None:
@@ -169,16 +171,17 @@ class TemplateParser:
         self,
         setting: str,
         option: Option,
-        parents: list[str],
+        path: str,
         template_name: str,
     ):
         if option.defined(option.actions):
             if not isinstance(option.actions, list):
                 option.actions = [option.actions]
 
+            split_path = path.split(SEARCH_SEP)
             for i, action in enumerate(option.actions):
                 if callable(action):
-                    self.actions.add_action(setting, action, parents, template_name)
+                    self.actions.add_action(setting, action, split_path, template_name)
                 else:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid action '{action}'. "
@@ -224,20 +227,17 @@ class TemplateParser:
             )
         return field_type
 
-    def _parse_validation_info(
+    def _parse_validation(
         self,
         setting: str,
         option: Option | GUIOption,
-        position: list[int],
-        parents: Iterable[Hashable],
+        path: str,
         validation_info: ValidationInfo,
     ):
         if option.defined(option.validators):
             if not isinstance(option.validators, list):
                 option.validators = [option.validators]
-            validation_info.add_setting_validation(
-                setting, position, parents, option.validators
-            )
+            validation_info.add_setting_validation(setting, path, option.validators)
         field_type = self._get_field_type(setting, option)
         field_default = (
             option.default
@@ -260,13 +260,11 @@ class TemplateParser:
 
         field_min = min(min_values, default=None)
         field_max = option.max if option.defined(option.max) else None
-        field = {
-            setting: (
-                field_type,
-                Field(default=field_default, ge=field_min, le=field_max, required=True),
-            )
-        }
-        validation_info.add_field(setting, field, position, parents)
+        field = (
+            field_type,
+            Field(default=field_default, ge=field_min, le=field_max),
+        )
+        validation_info.add_field(setting, field, path)
 
     def parse(self, template: AnyTemplate, force: bool = False):
         """Parse the supplied template.
@@ -284,8 +282,7 @@ class TemplateParser:
         if template_name not in self._parsed_templates or force:
             self._orphan_groups[template_name] = []
             validation_info = ValidationInfo()
-            for k, v, i, ps in template.get_settings():
-                setting, option = next(iter(v.items()))
+            for setting, option, path in template.options():
                 if isinstance(option, GUIOption):
                     self._parse_flags(setting=setting, option=option)
 
@@ -293,25 +290,24 @@ class TemplateParser:
                         self._parse_group(
                             setting=setting, option=option, template_name=template_name
                         )
-                self._parse_validation_info(
-                    setting=setting,
-                    option=option,
-                    position=i,
-                    parents=ps,
-                    validation_info=validation_info,
+                self._parse_validation(
+                    setting,
+                    option,
+                    path,
+                    validation_info,
                 )
                 self._parse_actions(
-                    setting=setting,
-                    option=option,
-                    parents=ps,
-                    template_name=template_name,
+                    setting,
+                    option,
+                    path,
+                    template_name,
                 )
             self._check_groups(template_name)
             self._validation_infos[template_name] = validation_info
             self._parsed_templates.add(template_name)
 
     def format_raw_group(
-        self, template_name: str, raw_ui_group: Union[Hashable, list[Hashable]]
+        self, template_name: str, raw_ui_group: Hashable | list[Hashable]
     ) -> list[Hashable]:
         """
         Format a raw template Group.
@@ -349,7 +345,7 @@ class TemplateParser:
                     raise OrphanGroupWarning(
                         f"{self._prefix_msg()} Group '{group}' is an orphan"
                     )
-        return group_list
+        return group_list  # type: ignore
 
     def get_validation_info(self, template_name: str) -> ValidationInfo:
         return self._validation_infos[template_name]
