@@ -1,10 +1,13 @@
-from typing import Literal, Self
+from collections.abc import Callable
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, Field, create_model, field_validator
 
+from applib.module.configuration.tools.search import SEARCH_SEP
+
 from ...tools.types.templates import AnyTemplate
 from .template_parser import TemplateParser
-from .template_utils.validation_info import FieldTree, ValidationInfo
+from .template_utils.validation_info import ValidationInfo
 
 
 class CoreValidationModelGenerator:
@@ -22,7 +25,7 @@ class CoreValidationModelGenerator:
         validation_info: ValidationInfo,
         mode: Literal["before", "after", "plain"] = "after",
         check_fields: bool = True,
-    ) -> dict[str, dict[str, field_validator]]:
+    ):
         """
         Create field validators for all settings that have a validator callable attached to them.
 
@@ -30,65 +33,105 @@ class CoreValidationModelGenerator:
         ----------
         validation_info : ValidationInfo
             The object containing all the information necessary to create field validators.
-
         mode : Literal['before', 'after', 'plain'], optional
             Specify the order the field_validator is applied in relation to standard Pydantic validation.
             By default 'after'.
-
         check_fields : bool, optional
             Whether to check that the fields actually exist on the model.
             By default True.
 
         Returns
         -------
-        dict[str, field_validator]
+        dict[str, dict[str, Callable]]
             The field validators.
-        """
-        field_validators = {}
-        for node in validation_info.validators:
-            validator = node.validator
-            section_id = f"{node.parents[0]}"
-            if section_id not in field_validators:
-                field_validators[section_id] = {}
 
-            # Creating a field validator requires a separate first field
-            first_field = node.keys[0]
-            subsequent_fields = node.keys[1:] if len(node.keys) > 1 else []
-            fv = field_validator(
-                first_field,
-                *subsequent_fields,
-                mode=mode,
-                check_fields=check_fields,
-            )(validator)
-            field_validators[section_id][f"{validator}"] = fv
+            Structure:
+            ```
+            {path: {
+                validator_name: field_validator
+                }
+            }
+            ```
+        """
+        field_validators: dict[str, dict[str, Callable]] = {}
+        for path, pre_validators in validation_info.raw_validators.items():
+            for validator_name, pre_validator in pre_validators.items():
+                # Creating a field validator requires a separate first field
+                fv = field_validator(
+                    pre_validator.get_first_field(),
+                    *pre_validator.get_other_fields(),
+                    mode=mode,
+                    check_fields=check_fields,
+                )(pre_validator.validator)
+
+                try:
+                    field_validators[path][validator_name] = fv
+                except KeyError:
+                    field_validators[path] = {validator_name: fv}
+
         return field_validators
 
     def _generate_model(
         self,
         model_name: str,
-        field_tree: FieldTree,
-        field_validators: dict[str, dict[str, field_validator]],
+        fields: dict[str, Any],
+        field_validators: dict[str, dict[str, Callable]],
     ) -> type[BaseModel]:
-        for setting, fields, position, parents in reversed(field_tree):
-            section_id = f"{parents}"
-            validators = (
-                field_validators[section_id] if section_id in field_validators else None
-            )
-            if not parents:
-                # Do not merge root node of tree
-                # But we still want the validators for the root node
-                break
-            model = create_model(
-                section_id, __validators__=validators, **fields
-            ).model_construct()
-            field = {parents[-1]: (type(model), Field(default=model))}
-            field_tree.merge(setting, field, position, parents)
-        else:
-            # Clear any leftover validator values from for-loop
-            # (But only if break wasn't encountered)
-            validators = None
+        """Generate a Pydantic validation model.
+
+         Recursively constructs submodels for each nested dict in `fields`.
+
+        Parameters
+        ----------
+        model_name : str
+            The name of the model.
+        fields : dict[str, Any]
+            The fields of the model.
+        field_validators : dict[str, dict[str, Callable]]
+            The validators of the fields.
+
+        Returns
+        -------
+        type[BaseModel]
+            A Pydantic validation model.
+        """
+        stack = [(fields, [])]
+        visited = set()
+        path = []
+        while stack:
+            current_path = stack[-1][1]
+            str_path = f"{SEARCH_SEP}".join(current_path)
+            if current_path:
+                str_path += SEARCH_SEP
+            # Depth-first search until we reach the innermost dict
+            for k, v in stack[-1][0].items():
+                if visited and f"{str_path}{k}" in visited:
+                    continue
+
+                if isinstance(v, dict):
+                    stack.append((v, [*current_path, k]))
+                    break
+            # We've reached the innermost dict. A submodel is created
+            else:
+                submodel_fields, path = stack.pop()
+                if not path:
+                    break
+
+                parent_key = path[-1]
+                model = create_model(
+                    parent_key,
+                    __validators__=field_validators.get(
+                        f"{SEARCH_SEP}".join(path), None
+                    ),
+                    **submodel_fields,
+                ).model_construct()
+                field = (type(model), Field(default=model))
+                stack[-1][0][parent_key] = field  # Mutate the input
+                visited.add(f"{SEARCH_SEP}".join(path))
         return create_model(
-            model_name, __validators__=validators, **field_tree.dump_fields()
+            model_name,
+            __validators__=field_validators.get(f"{SEARCH_SEP}".join(path), None),
+            **fields,
         )
 
     def get_generic_model(
@@ -120,7 +163,7 @@ class CoreValidationModelGenerator:
             validation_info = self.template_parser.get_validation_info(model_name)
             model = self._generate_model(
                 model_name=model_name,
-                field_tree=validation_info.fields,
+                fields=validation_info.fields,
                 field_validators=self._create_field_validators(
                     validation_info=validation_info
                 ),

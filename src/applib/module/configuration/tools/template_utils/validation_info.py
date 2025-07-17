@@ -1,168 +1,51 @@
-from typing import Any, Callable, Generator, Hashable, Iterable, override
+from collections.abc import Callable
+from typing import Any
 
-from ....datastructures.pure.meldableheap import MeldableHeap
-from ....datastructures.pure.redblacktree import RedBlackTree
-from ....datastructures.redblacktree_mapping import RedBlackTreeMapping
-from ....logging import LoggingManager
+from applib.module.configuration.tools.search.nested_dict_search import NestedDictSearch
 
 
-class ValidationTree(RedBlackTreeMapping):
-    class ValidationNode(RedBlackTreeMapping.TreeNode):
-        def __init__(
-            self,
-            setting: Hashable,
-            value: Any,
-            position: list[int],
-            parents: list[Hashable],
-            validator: Callable,
-        ):
-            super().__init__(setting, value, position, parents)
-            self._idx = f"{parents}{validator}".encode(errors="replace")
-            self.validator = validator
+class ValidatorContainer:
+    def __init__(self, setting: str, validator: Callable) -> None:
+        self.settings = [setting]
+        self.validator = validator
 
-    def __init__(self, iterable=[], name=""):
-        super().__init__(iterable, name)
+    def add(self, setting: str):
+        self.settings.append(setting)
 
-    def __iter__(self) -> Generator[ValidationNode, Any, None]:
-        return super(RedBlackTree, self).__iter__()
+    def get_first_field(self) -> str:
+        return self.settings[0]
 
-    @override
-    def _create_node(self, *args, **kwargs):
-        return ValidationTree.ValidationNode(*args, **kwargs)
-
-
-class FieldTree(RedBlackTreeMapping):
-    class FieldNode(RedBlackTreeMapping.TreeNode):
-        def __init__(
-            self,
-            setting: Hashable,
-            value: Any,
-            position: list[int],
-            parents: Iterable[Hashable],
-        ):
-            super().__init__(setting, value, position, parents)
-            self._idx = f"{parents if parents else setting}".encode(errors="replace")
-            try:
-                self.fields = dict(value)
-            except TypeError:
-                self.fields = {}
-
-        @override
-        def add(self, k, v, pos, ps):
-            self.fields |= v
-            return super().add(k, v, pos, ps)
-
-        @override
-        def remove(self, i):
-            k, v, pos, ps = super().remove(i)
-            try:
-                self.fields.pop(next(iter(v.keys())))
-            except KeyError:
-                pass
-            return k, v, pos, ps
-
-    _logger = None
-
-    def __init__(self, iterable=[], name=""):
-        if self._logger is None:
-            # Lazy load the logger
-            self._logger = LoggingManager()
-
-        super().__init__(iterable, name)
-
-    def __iter__(self) -> Generator[FieldNode, Any, None]:
-        return super(RedBlackTree, self).__iter__()
-
-    def __reversed__(
-        self,
-    ) -> Generator[tuple[Hashable, dict, list[int], list[Hashable]], Any, None]:
-        heap = MeldableHeap(
-            [
-                RedBlackTreeMapping.ReversedHeapNode(
-                    k=node.keys[0], v=node, pos=node.positions[0], ps=node.parents[0]
-                )
-                for node in self
-            ]
-        )
-        while heap:
-            h_node = heap.remove()  # type: RedBlackTreeMapping.ReversedHeapNode
-            k, v, pos, ps = h_node.get()
-            f_node = v  # type: FieldTree.FieldNode
-            yield k, f_node.fields, pos, ps
-
-    @override
-    def _create_node(self, *args, **kwargs):
-        return FieldTree.FieldNode(*args, **kwargs)
-
-    @override
-    def _normalize_position(self, key, position, parents):
-        pass
-
-    def dump_fields(self) -> dict:
-        """Generate a dictionary representation of fields"""
-        dump = {}
-        heap = MeldableHeap(
-            [
-                RedBlackTreeMapping.HeapNode(
-                    node.keys[0], node.fields, node.positions[0], node.parents[0]
-                )
-                for node in self
-            ]
-        )
-        while heap:
-            node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
-            k, v, i, ps = node.get()
-            dump |= v
-        return dump
-
-    def merge(
-        self,
-        setting: Hashable,
-        value: Any,
-        position: list[int],
-        parents: list[Hashable],
-    ):
-        """
-        Merge `setting`'s node with its parent node and remove `setting`'s node.
-
-        `value` is the value of `setting` which is retained in the parent of `setting`.
-        """
-        if parents:
-            key = parents[-1]
-            try:
-                ps = parents[:-1]
-            except IndexError:
-                ps = []
-            try:
-                pos = position[:-1]
-            except IndexError:
-                pos = [position[-1]]
-            self.remove(setting, parents)
-            self.add(key, value, pos, ps)
-        else:
-            self._logger.warning(f"Cannot merge node '{setting}' with no parents")
+    def get_other_fields(self) -> list[str]:
+        return self.settings[1:] if len(self.settings) > 1 else []
 
 
 class ValidationInfo:
     def __init__(self) -> None:
-        self.fields = FieldTree()
-        self.validators = ValidationTree()
+        self.fields: dict[str, Any] = {}
+        self.raw_validators: dict[str, dict[str, ValidatorContainer]] = {}
 
     def add_field(
         self,
-        setting: Hashable,
-        field: dict,
-        position: list[int],
-        parents: list[Hashable],
+        setting: str,
+        field: tuple[Any, Callable],
+        path: str,
     ):
-        self.fields.add(setting, field, position, parents)
+        NestedDictSearch.insert(
+            d=self.fields, key=setting, value=field, path=path, create_missing=True
+        )
 
     def add_setting_validation(
         self,
-        setting: Hashable,
-        position: list[int],
-        parents: list[Hashable],
+        setting: str,
+        path: str,
         validators: list[Callable],
     ):
+        if path not in self.raw_validators:
+            self.raw_validators[path] = {}
         for validator in validators:
-            self.validators.add(setting, None, position, parents, validator=validator)
+            try:
+                self.raw_validators[path][f"{validator}"].add(setting)
+            except KeyError:
+                self.raw_validators[path][f"{validator}"] = ValidatorContainer(
+                    setting, validator
+                )
