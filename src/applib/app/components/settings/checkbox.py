@@ -1,4 +1,4 @@
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtCore import pyqtBoundSignal
 from PyQt6.QtWidgets import QWidget
@@ -17,9 +17,9 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        converter: Optional[Converter] = None,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        converter: Converter | None = None,
+        path="",
+        parent: QWidget | None = None,
     ) -> None:
         """
         Check box widget connected to a config key.
@@ -38,8 +38,8 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -50,7 +50,7 @@ class CoreCheckBox(BaseSetting, BoolSettingMixin):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         try:

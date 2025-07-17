@@ -1,4 +1,4 @@
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
@@ -17,10 +17,10 @@ class CoreLineEdit(BaseSetting):
         config_key: str,
         option: GUIOption,
         is_tight: bool = False,
-        ui_invalid_input: Optional[GUIMessage] = None,
-        converter: Optional[Converter] = None,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        ui_invalid_input: GUIMessage | None = None,
+        converter: Converter | None = None,
+        path="",
+        parent: QWidget | None = None,
     ) -> None:
         """
         LineEdit widget connected to a config key.
@@ -48,9 +48,8 @@ class CoreLineEdit(BaseSetting):
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str], optional
-            The parents of `key`. Used for lookup in the config.
-            By default [].
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -61,7 +60,7 @@ class CoreLineEdit(BaseSetting):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         self.minWidth = 100
@@ -109,9 +108,10 @@ class CoreLineEdit(BaseSetting):
             if not self.is_disabled:
                 self.setWidgetValue(value)
         else:
-            LoggingManager().warning(
-                msg=self.ui_invalid_input.description,
-                title=self.ui_invalid_input.title,
-                gui=True,
-            )
+            if self.ui_invalid_input:
+                LoggingManager().warning(
+                    msg=self.ui_invalid_input.description,
+                    title=self.ui_invalid_input.title,
+                    gui=True,
+                )
             self.setWidgetValue(value)

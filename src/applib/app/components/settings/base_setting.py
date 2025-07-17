@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 from PyQt6.QtCore import pyqtSignal
 from PyQt6.QtGui import QHideEvent
@@ -22,10 +22,10 @@ class BaseSetting(QWidget):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        converter: Optional[Converter] = None,
+        converter: Converter | None = None,
         notify_disabled: bool = True,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        path="",
+        parent: QWidget | None = None,
     ):
         """
         The base class for all GUI settings.
@@ -55,8 +55,8 @@ class BaseSetting(QWidget):
             Notify the associated Setting Card if this setting is disabled.
             By default True.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this class.
@@ -65,13 +65,13 @@ class BaseSetting(QWidget):
         super().__init__(parent=parent)
         self.config = config
         self.config_key = config_key
-        self.current_value = config.get_value(key=config_key, parents=parent_keys)
+        self.current_value = config.get_value(key=config_key, parents=path)
         self.default_value = option.default
         self.backup_value = None
         self.converter = converter
         self.is_disabled = False
         self.notify_disabled = notify_disabled
-        self.parent_keys = parent_keys
+        self.path = path
 
         # The value which disables this setting.
         self.disable_self_value = option.ui_disable_self
@@ -83,7 +83,7 @@ class BaseSetting(QWidget):
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
             option.defined(option.ui_flags)
-            and UIFlags.REQUIRES_RELOAD in option.ui_flags
+            and UIFlags.REQUIRES_RELOAD in option.ui_flags  # type: ignore # option.ui_flags is a list after parsing
         )
 
         self.buttonlayout = QHBoxLayout(self)
@@ -99,16 +99,17 @@ class BaseSetting(QWidget):
         core_signalbus.updateConfigSettings.connect(self._onUpdateConfigSettings)
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
 
-    def _validateKey(self, name: str, key: str, parent_keys: list[str]) -> bool:
+    def _validateKey(self, name: str, key: str, path: str) -> bool:
         if self.config.name == name and self.config_key == key:
-            if self.parent_keys == parent_keys:
+            if self.path == path:
                 return True
             else:
                 try:
-                    self.config.get_value(self.config_key, parent_keys, errors="raise")
+                    self.config.get_value(self.config_key, path)
                     return True
                 except Exception:
-                    return False
+                    pass
+        return False
 
     def _convert_value(self, value, to_gui: bool = False) -> Any:
         if self.converter:
@@ -120,9 +121,9 @@ class BaseSetting(QWidget):
         names: tuple[str, str],
         key: str,
         value_tuple: tuple[Any,],
-        parent_keys: list[str],
+        path: str,
     ):
-        if self._validateKey(names[0], key, parent_keys):
+        if self._validateKey(names[0], key, path):
             self.setWidgetValue(value_tuple[0])
 
     def _onUpdateConfigSettings(
@@ -130,9 +131,9 @@ class BaseSetting(QWidget):
         name: str,
         key: str,
         value_tuple: tuple[Any,],
-        parent_keys: list[str],
+        path: str,
     ):
-        if self._validateKey(name, key, parent_keys):
+        if self._validateKey(name, key, path):
             self.setConfigValue(value_tuple[0])
 
     def _onParentNotification(self, values: tuple):
@@ -178,7 +179,7 @@ class BaseSetting(QWidget):
     def _setDisableWidget(self, is_disabled: bool, save: bool):
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            self.setting.setDisabled(self.is_disabled)
+            self.setting.setDisabled(self.is_disabled)  # type: ignore # Is defined in subclasses
 
             if self.is_disabled:
                 self.backup_value = self.current_value
@@ -206,9 +207,9 @@ class BaseSetting(QWidget):
     def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
             error = self.config.set_value(
-                key=self.config_key,
-                value=self._convert_value(value),
-                parents=self.parent_keys,
+                self.config_key,
+                self._convert_value(value),
+                self.path,
             )
             success = not error
         else:

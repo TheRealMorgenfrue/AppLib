@@ -5,7 +5,7 @@ class CoreSignalBus(QObject):
     # ───────────────────────────────────────────────────────────────────────────#
     # Config updates
     # ───────────────────────────────────────────────────────────────────────────#
-    configUpdated = pyqtSignal(tuple, str, tuple, list)
+    configUpdated = pyqtSignal(tuple, str, tuple, str)
     """
     Notify that a value in a config is updated.
 
@@ -21,7 +21,7 @@ class CoreSignalBus(QObject):
     value : tuple[Any]
         The updated value mapped to `config_key`.
 
-    path : list[str]
+    path : str
         The path of `config_key`
         May be relative or absolute.
         Paths are separated by forward slash, e.g. `Path/to/some/place`.
@@ -60,7 +60,7 @@ class CoreSignalBus(QObject):
     value : tuple[Any]
         The updated value mapped to `config_key`.
 
-    parent_keys : list[str]
+    path : str
         The parent keys of `config_key`.
     """
 

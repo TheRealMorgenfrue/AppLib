@@ -19,7 +19,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         option: GUIOption,
         num_range: tuple[floatOrInt | None, floatOrInt | None],
         converter: Converter | None = None,
-        parent_keys: list[str] = [],
+        path="",
         parent: QWidget | None = None,
     ) -> None:
         """
@@ -45,8 +45,8 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -57,7 +57,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         self._defineRange(num_range)
@@ -72,7 +72,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             # Configure spinbox
             self.setting.setAccelerated(True)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.min_value, self.max_value)
+            self.setting.setRange(self.min_value, self.max_value)  # type: ignore
 
             # Ensure value cannot be invalid in the GUI
             self.setWidgetValue(self.current_value)
@@ -92,5 +92,5 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         if self.notify_disabled:
             self.notify_disabled = False
             # Do not update GUI with disable values
-            self.setting.setValue(self._ensureValidGUIValue(value))
+            self.setting.setValue(self._ensureValidGUIValue(value))  # type: ignore
             self.notify_disabled = True

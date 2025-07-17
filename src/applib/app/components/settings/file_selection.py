@@ -1,5 +1,5 @@
 import os
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import PushButton
@@ -7,7 +7,6 @@ from qfluentwidgets import PushButton
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
-from ....module.tools.types.general import StrPath
 from .base_setting import BaseSetting
 
 
@@ -18,13 +17,13 @@ class CoreFileSelect(BaseSetting):
         config_key: str,
         option: GUIOption,
         caption: str,
-        directory: StrPath,
+        directory: str,
         show_dir_only: bool = False,
-        filter: Optional[str] = None,
-        selected_filter: Optional[str] = None,
-        converter: Optional[Converter] = None,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        filter: str | None = None,
+        selected_filter: str | None = None,
+        converter: Converter | None = None,
+        path="",
+        parent: QWidget | None = None,
     ) -> None:
         """
         File Select widget connected to a config key.
@@ -43,7 +42,7 @@ class CoreFileSelect(BaseSetting):
         caption : str
             Title of the file dialog.
 
-        directory : StrPath
+        directory : str
             Open file dialog in this directory.
             If a value for `config_key` exists, it overrides this directory parameter.
 
@@ -74,8 +73,8 @@ class CoreFileSelect(BaseSetting):
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str], optional
-            The parents of `key`. Used for lookup in the config.
+        path : str, optional
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -86,7 +85,7 @@ class CoreFileSelect(BaseSetting):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         self.show_dir_only = show_dir_only
@@ -139,5 +138,5 @@ class CoreFileSelect(BaseSetting):
             self.directory = os.path.split(value)[0]
 
     @override
-    def _setWidgetValue(self, value: StrPath) -> None:
+    def _setWidgetValue(self, value: str) -> None:
         self.notifyParent.emit(("content", value))

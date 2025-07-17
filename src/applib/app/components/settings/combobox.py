@@ -1,4 +1,4 @@
-from typing import Optional, Union, override
+from typing import override
 
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
@@ -15,10 +15,10 @@ class CoreComboBox(BaseSetting):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        texts: Union[list[str], dict[str, str]],
-        converter: Optional[Converter] = None,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        texts: list[str] | dict[str, str],
+        converter: Converter | None = None,
+        path="",
+        parent: QWidget | None = None,
     ) -> None:
         """
         Combobox widget connected to a config key.
@@ -40,8 +40,8 @@ class CoreComboBox(BaseSetting):
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -52,7 +52,7 @@ class CoreComboBox(BaseSetting):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         try:
