@@ -1,191 +1,147 @@
-from abc import abstractmethod
-from typing import Any, Hashable, Iterable, Literal, Union, override
+from collections import deque
+from typing import Any
 
-from ..datastructures.pure.meldableheap import MeldableHeap
-from ..datastructures.redblacktree_mapping import RedBlackTreeMapping, _rbtm_item
-from ..exceptions import TreeLookupError
-from ..logging import LoggingManager
+from .tools.search import SEARCH_SEP, SearchMode
+from .tools.search.nested_dict_search import NestedDictSearch
+from .tools.search.search_index import SearchIndex
 
 
-class MappingBase(RedBlackTreeMapping):
-    _logger = None
+class MappingBase:
 
-    def __init__(self, iterable=[], name=""):
-        if self._logger is None:
-            # Lazy load the logger
-            self._logger = LoggingManager()
-        self._settings_cache = None
-        super().__init__(iterable, name)
+    def __init__(self, d: dict):
+        self._idx = SearchIndex(d)
+        self._dict: dict[str, Any] = d
 
-    @abstractmethod
-    def _prefix_msg(self) -> str:
-        """Prefix log messages with this string. Should include self.name."""
-        ...
+    def __iter__(self):
+        # Breath-first search
+        queue = deque([self._dict])
+        while queue:
+            for k, v in queue.popleft().items():
+                if isinstance(v, dict):
+                    queue.append(v)
+                yield k, v
 
-    @abstractmethod
-    def _is_setting(self, item: _rbtm_item) -> bool: ...
+    def __str__(self):
+        return f"{self._dict}"
 
-    @override
-    def update(self, key, value, parents=[]):
-        super().update(key, value, parents)
-        self._settings_cache = None
+    def options(self):
+        """Returns the Options of the mapping.
 
-    def get_settings(self) -> list[_rbtm_item]:
+        Yields
+        ------
+        tuple[str, Option | GUIOption, str]
+            A key and its associated Option or GUIOption, and its path in the mapping.
         """
-        Get settings with corresponding options as specified in the template documentation.
-
-        Returns
-        -------
-        list[dict[Hashable, Any]]
-            A position-prioritised list of settings.
-        """
-        if self._settings_cache is None:
-            heap = MeldableHeap(
-                [
-                    RedBlackTreeMapping.HeapNode(*item)
-                    for item in self
-                    if self._is_setting(item)
-                ]
-            )
-            d_settings = []
-            while heap:
-                h_node = heap.remove()  # type: RedBlackTreeMapping.HeapNode
-                key, value, pos, ps = h_node.get()
-                dump = {key: {}}
-                if self._check_value(value):
-                    v = (
-                        value.x
-                    )  # type: list[tuple[RedBlackTreeMapping.TreeNode, Iterable[Hashable]]]
-                    for tn, tn_ps in v:
-                        c_k, c_v, c_i, c_ps = tn.get(tn.index(tn_ps))
-                        dump[key][c_k] = c_v
-                else:
-                    dump[key] = value
-                d_settings.append((key, dump, pos, ps))
-            self._settings_cache = d_settings
-        return self._settings_cache
+        path = []
+        stack = [self._dict]
+        visited = set()
+        while stack:
+            _dict = stack[-1]
+            for k, v in _dict.items():
+                str_path = f"{f"{SEARCH_SEP}".join([*path, k])}"
+                if str_path not in visited:
+                    if isinstance(v, dict):
+                        path.append(k)
+                        stack.append(v)
+                        break
+                    yield k, v, f"{SEARCH_SEP}".join(path)
+            else:
+                visited.add(f"{SEARCH_SEP}".join(path))
+                stack.pop()
+                if path:
+                    path.pop()
 
     def get_value(
         self,
-        key: Hashable,
-        parents: Union[Hashable, list[Hashable]] = [],
-        default=None,
-        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
-        errors: Literal["ignore", "raise"] = "ignore",
+        key: str,
+        path: str = "",
+        mode=SearchMode.FUZZY,
+        **kwargs,
     ) -> Any:
-        """
-        Return the value for `key`.
+        """Return the value of `key`.
 
         If `key` does not exist, return `default`.
 
         Parameters
         ----------
-        key : Hashable
+        key : str
             The key to look for.
+        path : str, optional
+            The path used to guide search in case of duplicate keys.
+            May be relative or absolute depending on `search_mode`.
+            Paths are separated by forward slash, e.g. `Path/to/some/place`.
+        mode : SearchMode, optional
+            How to search the dict. By default SearchMode.FUZZY.
+        default : Any
+            The default value, if supplied, is returned instead of raising a
+            KeyError if `key` isn't found.
 
-        parents : Hashable | list[Hashable], optional
-            The parents of `key`.
-            By default [].
+        Returns
+        -------
+        Any
+            The value of `key`.
 
-        default : Any, optional
-            Return `default` if key does not exist.
-            By default None.
-
-        search_mode : Literal["strict", "smart", "immediate", "any"], optional
-            How to search for `key`.
-            - "strict"
-                &ensp; Requires `parents` to match exactly.
-                I.e. ["a", "b"] == ["a", "b"]
-            - "smart"
-                &ensp; Tries to find the key using different heuristics.
-                Note that it can result in the wrong key under certain conditions.
-            - "immediate"
-                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
-                I.e. "b" == ["a", "b"]
-            - "any"
-                &ensp; Requires `parents` to be a Hashable that matches any parent.
-                I.e. "a" == ["a", "b"]
-
-            By default "smart".
-
-        errors : Literal["ignore", "raise"]
-            Action to take if `key` does not exist.
-                "ignore"
-                    Ignores errors and returns `default`.
-                "raise"
-                    Raises any error that may occur.
-
-            By default "ignore".
+        Raises
+        ------
+        KeyError
+            If `key` isn't found and no `default` value is given.
         """
-        try:
-            return self.find(key, parents, search_mode)
-        except KeyError as e:
-            if errors == "raise":
-                raise e from None
-        except TreeLookupError as e:
-            if errors == "raise":
-                raise e from None
-            self._logger.error(
-                f"{e.args[0]}.  \n{"\n  ".join(e.__notes__)}\nReturning default '{default}'\n"
-            )
-        return default
+        return NestedDictSearch.find(self._dict, key, path, self._idx, mode, **kwargs)
 
     def set_value(
         self,
-        key: Hashable,
+        key: str,
         value: Any,
-        parents: Union[Hashable, list[Hashable]] = [],
-        search_mode: Literal["strict", "smart", "immediate", "any"] = "smart",
-        errors: Literal["ignore", "raise"] = "ignore",
+        path: str,
+        create_missing=False,
     ):
-        """
-        Update value of `key` with `value`.
+        """Insert a new key/value pair or update an existing.
 
         Parameters
         ----------
-        key : Hashable
-            The key to look for.
-
+        key : str
+            The key to search for.
         value : Any
-            Map value to `key`.
-
-        parents : Hashable | list[Hashable], optional
-            The parents of `key`.
-            By default [].
-
-        search_mode : Literal["strict", "smart", "immediate", "any"], optional
-            How to search for `key`.
-            - "strict"
-                &ensp; Requires `parents` to match exactly.
-                I.e. ["a", "b"] == ["a", "b"]
-            - "smart"
-                &ensp; Tries to find the key using different heuristics.
-                Note that it can result in the wrong key under certain conditions.
-            - "immediate"
-                &ensp; Requires `parents` to be a Hashable that matches the closest parent.
-                I.e. "b" == ["a", "b"]
-            - "any"
-                &ensp; Requires `parents` to be a Hashable that matches any parent.
-                I.e. "a" == ["a", "b"]
-
-            By default "smart".
-
-        errors : Literal["ignore", "raise"]
-            Action to take if `key` does not exist.
-                "ignore"
-                    Ignores errors and returns `default`.
-                "raise"
-                    Raises any error that may occur.
-
-            By default "ignore".
+            The value to insert.
+        path : str, optional
+            The path used to guide search in case of duplicate keys.
+            May be relative or absolute depending on `search_mode`. However, if
+            inserting a new key/value pair the path must be absolute.
+            Paths are separated by forward slash, e.g. `Path/to/some/place`.
+        create_missing : bool, optional
+            Whether to create key/value pairs for keys in `p` which are not found in `d`.
+            By default False.
         """
         try:
-            self.update(key, value, parents)
+            abs_path = self._idx.find(key, path)
         except KeyError as e:
-            if errors == "raise":
-                raise e from None
-            self._logger.warning(e.args[0])
-        except TreeLookupError as e:
-            if errors == "raise":
-                raise e from None
-            self._logger.warning(f"{e.args[0]}\n  {"\n  ".join(e.__notes__)}")
+            if create_missing:
+                NestedDictSearch.insert(self._dict, key, value, path, create_missing)
+                self._idx.add(key, path)
+            else:
+                raise
+        NestedDictSearch.update(self._dict, key, value, abs_path, self._idx)
+
+    def remove_value(
+        self,
+        key: str,
+        path: str,
+        mode=SearchMode.FUZZY,
+    ):
+        """Remove a key/value pair.
+
+        Parameters
+        ----------
+        key : str
+            The key to look for.
+        path : str, optional
+            The path used to guide search in case of duplicate keys.
+            May be relative or absolute depending on `search_mode`.
+            Paths are separated by forward slash, e.g. `Path/to/some/place`.
+        mode : SearchMode, optional
+            How to search the dict. By default SearchMode.FUZZY.
+        """
+        NestedDictSearch.remove(self._dict, key, path, self._idx, mode)
+        if mode == SearchMode.FUZZY:
+            path = self._idx.find(key, path)
+        self._idx.remove(key, path)
