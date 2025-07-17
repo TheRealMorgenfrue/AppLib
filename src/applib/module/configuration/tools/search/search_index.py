@@ -1,10 +1,17 @@
 from applib.module.configuration.tools.search import SEARCH_SEP
+from applib.module.logging import LoggingManager
 
 
 class SearchIndex:
     def __init__(self, d: dict = {}) -> None:
         self._index: dict[str, list[str]] = {}
         self.build(d)
+
+    def _log_ambiguity(self, key: str, candidates: list[str]):
+        LoggingManager().warning(
+            f"Cannot uniquely identify a path for key `{key}`. "
+            + f"Picking the first of possible candidates {candidates}"
+        )
 
     def build(self, d: dict):
         """Build the search index of `d`. Any previous index is overwritten."""
@@ -40,18 +47,43 @@ class SearchIndex:
             If no absolute path could be found. Can be caused by an ambigious `search_path`.
         """
         try:
-            paths = self._index[key]
+            idx_paths = self._index[key]
         except KeyError:
-            paths = []
+            idx_paths = []
 
-        for key_path in paths:
-            substring_idx = key_path.find(path)
-            if substring_idx != -1:
-                if (
-                    len(key_path) != substring_idx
-                    and key_path[substring_idx + 1] == SEARCH_SEP
-                ) or key_path == path:
-                    return key_path
+        if not path and len(idx_paths) == 1:
+            # If no path and only one index path matching key, it's uniquely identified.
+            return idx_paths[0]
+
+        matches: dict[float, list[str]] = {}
+        for idx_path in idx_paths:
+            path_len, idx_len = len(path), len(idx_path)
+            # A path larger than the index path is irrelevant
+            if path_len > idx_len:
+                continue
+            # The path is already absolute
+            elif idx_path == path:
+                return idx_path
+            elif path_len == 0 and idx_len > 1:
+                # Ambigious search path
+                self._log_ambiguity(key, idx_paths)
+                return idx_paths[0]
+
+            # Check if the path is actually part of the index path
+            if idx_path.find(path) != -1:
+                accuracy = path_len / idx_len
+                try:
+                    matches[accuracy].append(path)
+                except KeyError:
+                    matches[accuracy] = [path]
+
+        if matches:
+            accuracies = sorted(matches.keys(), reverse=True)
+            # Check if multiple paths have equal accuracy
+            if len(matches[accuracies[0]]) > 1:
+                self._log_ambiguity(key, matches[accuracies[0]])
+            return matches[accuracies[0]][0]
+
         raise IndexError(f"Key '{key}' is not in the index")
 
     def add(self, key: str, path: str):
