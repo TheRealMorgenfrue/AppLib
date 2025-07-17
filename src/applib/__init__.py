@@ -134,10 +134,7 @@ from .module.configuration.tools.template_utils.validation_info import Validatio
 from .module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
-from .module.datastructures.pure.meldableheap import MeldableHeap
-from .module.datastructures.pure.redblacktree import RedBlackTree
-from .module.datastructures.pure.trie import Trie
-from .module.datastructures.redblacktree_mapping import RedBlackTreeMapping
+from .module.datastructures.trie import Trie
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from .module.logging import LoggingManager
 from .module.tools.types.config import AnyConfig
@@ -154,13 +151,10 @@ from .module.tools.types.gui_generators import AnyCardGenerator
 from .module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 from .module.tools.types.templates import AnyTemplate
 from .module.tools.utilities import (
-    check_dict_nestingLevel,
     dict_lookup,
     format_list_for_display,
     format_validation_error,
-    insert_dict_value,
     iter_to_str,
-    retrieve_dict_value,
 )
 from .module.tools.version import VERSION
 
@@ -242,7 +236,6 @@ __all__ = [
     "LinkCardView",
     "LoggingManager",
     "MenuListView",
-    "MeldableHeap",
     "MessageBoxBase",
     "MissingFieldError",
     "Model",
@@ -256,8 +249,6 @@ __all__ = [
     "ProgressBarCard",
     "ProgressCard",
     "ProgressRingCard",
-    "RedBlackTree",
-    "RedBlackTreeMapping",
     "SampleCard",
     "SampleCardView",
     "SegmentedPivotCardStack",
@@ -278,13 +269,10 @@ __all__ = [
     "core_signalbus",
     "change_theme",
     "change_theme_color",
-    "check_dict_nestingLevel",
     "dict_lookup",
     "format_list_for_display",
     "format_validation_error",
-    "insert_dict_value",
     "iter_to_str",
-    "retrieve_dict_value",
     "validate_ip_address",
     "validate_loglevel",
     "validate_path",
