@@ -7,6 +7,7 @@ SEARCH_SEP: Final = "/"
 
 class SearchMode(Enum):
     STRICT = 0
-    """The search path must be absolute"""
+    """The search path must be absolute. Always returns the correct result."""
     FUZZY = 2
-    """The search path may be relative"""
+    """The search path may be relative. May return an incorrect result in certain situations.\n
+    E.g. duplicate keys with an empty search_path parameter."""
