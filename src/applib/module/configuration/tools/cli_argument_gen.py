@@ -1,4 +1,6 @@
-from ...datastructures.redblacktree_mapping import _rbtm_item
+from collections.abc import Iterable
+from typing import Any
+
 from ...tools.types.config import AnyConfig
 from ...tools.types.templates import AnyTemplate
 from ..runners.converters.cmd_converter import CMDConverter
@@ -30,15 +32,16 @@ class CLIArgumentGenerator:
             A list of command line arguments.
             E.g. ["--a", "--b"]
         """
-        return self.create_arguments_from_list(
-            config.get_settings(), template, arg_prefix
-        )
+        return self.create_arguments_from_iter(config.options(), template, arg_prefix)
 
-    def create_arguments_from_list(
-        self, arg_list: list[_rbtm_item], template: AnyTemplate, arg_prefix: str = "--"
+    def create_arguments_from_iter(
+        self,
+        args: Iterable[tuple[str, Any, str]],
+        template: AnyTemplate,
+        arg_prefix: str = "--",
     ) -> list[str]:
         """
-        Create command line arguments from `arg_list` and its associated `template`.
+        Create command line arguments from `args` and its associated `template`.
 
         Parameters
         ----------
@@ -57,10 +60,10 @@ class CLIArgumentGenerator:
             A list of command line arguments.
             E.g. ["--a", "--b"]
         """
-        args = []
-        for k, v, pos, ps in arg_list:
-            option = template.find(
-                k, ps, search_mode="strict"
+        out_args = []
+        for k, v, path in args:
+            option = template.get_value(
+                k, path, search_mode="strict"
             )  # type: Option | GUIOption
             if not (
                 (option.defined(option.disable_self) and option.disable_self != v)
@@ -77,5 +80,5 @@ class CLIArgumentGenerator:
                 # Convert value to the correct CLI argument
                 v = option.converter.getArgument(v)
 
-            args.append(f"{arg_prefix}{v}")
-        return args
+            out_args.append(f"{arg_prefix}{v}")
+        return out_args
