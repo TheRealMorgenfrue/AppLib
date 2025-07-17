@@ -178,10 +178,9 @@ class TemplateParser:
             if not isinstance(option.actions, list):
                 option.actions = [option.actions]
 
-            split_path = path.split(SEARCH_SEP)
             for i, action in enumerate(option.actions):
                 if callable(action):
-                    self.actions.add_action(setting, action, split_path, template_name)
+                    self.actions.add_action(setting, action, path, template_name)
                 else:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid action '{action}'. "
