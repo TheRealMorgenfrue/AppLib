@@ -16,7 +16,7 @@ class RangeSettingMixin:
         return value if value > self.min_value else self.min_value
 
     @override
-    def _setDisableWidget(self, is_disabled: bool, save_value: bool) -> None:
+    def _setDisableWidget(self, is_disabled: bool, save_value: bool) -> None:  # type: ignore
         if self.backup_value is not None:
             self.backup_value = self._ensureValidGUIValue(self.backup_value)
-        super()._setDisableWidget(is_disabled, save_value)
+        super()._setDisableWidget(is_disabled, save_value)  # type: ignore
