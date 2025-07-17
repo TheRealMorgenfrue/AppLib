@@ -407,6 +407,7 @@ class ConfigBase(MappingBase):
         path: str,
         create_missing=False,
     ):
+        is_error = False
         try:
             old_value = self.get_value(key, path, SearchMode.FUZZY)
             super().set_value(key, value, path, create_missing)
