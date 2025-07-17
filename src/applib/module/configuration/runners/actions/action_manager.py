@@ -26,7 +26,7 @@ class Actions:
             action(value_tuple[0])
 
     def add_action(
-        self, setting: str, action: Callable, parents: list[str], template_name: str
+        self, setting: str, action: Callable, path: list[str], template_name: str
     ):
         core_signalbus.configUpdated.connect(
             lambda names, key, value_tuple, parent_keys: self._onConfigUpdated(
@@ -36,7 +36,7 @@ class Actions:
                 parent_keys,
                 setting,
                 action,
-                parents,
+                path,
                 template_name,
             )
         )
