@@ -1,4 +1,5 @@
-from typing import Iterable, Self
+from collections.abc import Hashable
+from typing import Self
 
 from applib.app.common.auto_wrap import AutoTextWrap
 
@@ -9,7 +10,7 @@ from .template_enums import UIGroups
 
 
 class Group:
-    _instances = {}  # type: dict[str, dict[str, Self]]
+    _instances = {}  # type: dict[str, dict[Hashable, Self]]
     _logger = None
 
     def __new__(cls, template_name: str, group_name: str) -> Self:
@@ -51,7 +52,7 @@ class Group:
             self._group_name = group_name
             self._parent = {}  # type: dict[str, AnyParentCard]
             self._children = {}  # type: dict[str, AnyCard]
-            self._ui_group_parent = None
+            self._ui_group_parent: set[UIGroups] = set()
 
             # The card group which this parent could be a child of - if its nesting level is 0
             self._parent_card_group = None
@@ -69,7 +70,7 @@ class Group:
             self._created = True
 
     @classmethod
-    def get_group(cls, template_name: str, ui_group: str) -> Self | None:
+    def get_group(cls, template_name: str, ui_group: Hashable) -> Self | None:
         """
         Get the Group instance with name `ui_group`.
 
@@ -78,7 +79,7 @@ class Group:
         template_name : str
             The template in which to search for `ui_group`.
 
-        ui_group : str
+        ui_group : Hashable
             The ID of the Group to search for.
 
         Returns
@@ -87,7 +88,7 @@ class Group:
              Returns Group instance if an instance with `ui_group` exists, otherwise None.
         """
         try:
-            return cls._instances.get(template_name, None).get(ui_group, None)
+            return cls._instances.get(template_name, None).get(ui_group, None)  # type: ignore
         except AttributeError as err:
             err.add_note(
                 f"Cause: Failed to get group '{ui_group}' because template '{template_name}' has no Group instance"
@@ -95,10 +96,10 @@ class Group:
             raise
 
     @classmethod
-    def get_all_groups(cls, template_name: str) -> Iterable[Self] | None:
+    def get_all_groups(cls, template_name: str):
         """Get all Group instances in `template_name`."""
         groups = cls._instances.get(template_name, None)
-        return groups.values() if groups else groups
+        return groups.values() if groups else None
 
     @classmethod
     def remove_group(cls, template_name: str, ui_group: str) -> None:
@@ -124,10 +125,14 @@ class Group:
 
             # Ask all parent groups of this group if they want to nest this group
             for parent_group_name in self._parent_group_names:
-                if self.get_group(
-                    self._template_name, parent_group_name
-                ).get_parent_nesting_policy():
-                    self._nesting_level += 1
+                parent_group = self.get_group(self._template_name, parent_group_name)
+                if parent_group:
+                    if parent_group.get_parent_nesting_policy():
+                        self._nesting_level += 1
+                else:
+                    self._logger.warning(
+                        f"Group '{self.get_group_name()}': Failed to find parent group '{parent_group_name}'. This will likely cause issues"
+                    )
 
             # A nesting_level above 1 indicates a problem; multiple parents want to nest this child.
             if self._nesting_level > 1:
@@ -150,6 +155,11 @@ class Group:
                 group_name = self.get_group_name()
                 for child_name in self.get_parent_group_names():
                     child = self.get_group(self._template_name, child_name)
+                    if child is None:
+                        self._logger.warning(
+                            f"Group '{self.get_group_name()}': Failed to find child group '{parent_group_name}'. This will likely cause issues"
+                        )
+                        continue
                     if (
                         child.get_parent_nesting_policy()
                         and group_name in child.get_parent_group_names()
@@ -230,7 +240,9 @@ class Group:
                 f"Group '{self.get_group_name()}': Cannot add card with non-existing name '{card_name}' to the child list"
             )
 
-    def remove_child(self, child: str | AnyCard) -> None:
+    def remove_child(self, child: str | AnyCard | None) -> None:
+        if child == None:
+            return
         if isinstance(child, str):
             self._children.pop(child)
         else:
@@ -239,10 +251,10 @@ class Group:
                     self._children.pop(name)
                     break
 
-    def get_child_names(self) -> Iterable[str]:
+    def get_child_names(self):
         return self._children.keys()
 
-    def get_child_cards(self) -> Iterable[AnyCard]:
+    def get_child_cards(self):
         return self._children.values()
 
     def set_ui_group_parent(self, ui_group_parent: list[UIGroups]):
@@ -252,6 +264,6 @@ class Group:
             or UIGroups.CLUSTERED in ui_group_parent
         )
 
-    def get_ui_group_parent(self) -> set[UIGroups] | None:
+    def get_ui_group_parent(self):
         """Returns None if UI group parent has not been set - this indicates an error"""
         return self._ui_group_parent
