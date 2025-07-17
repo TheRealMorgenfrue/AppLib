@@ -1,4 +1,4 @@
-from typing import Optional, override
+from typing import override
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QWidget
@@ -8,6 +8,7 @@ from ....module.configuration.internal.core_args import CoreArgs
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIOption
 from ....module.tools.types.config import AnyConfig
+from ....module.tools.types.general import floatOrInt
 from ....module.tools.utilities import dict_lookup
 from .base_setting import BaseSetting
 from .range_setting import RangeSettingMixin
@@ -19,12 +20,12 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         config: AnyConfig,
         config_key: str,
         option: GUIOption,
-        num_range: tuple[int, int],
+        num_range: tuple[floatOrInt | None, floatOrInt | None],
         is_tight: bool = False,
-        baseunit: Optional[str] = None,
-        converter: Optional[Converter] = None,
-        parent_keys: list[str] = [],
-        parent: Optional[QWidget] = None,
+        baseunit: str | None = None,
+        converter: Converter | None = None,
+        path="",
+        parent: QWidget | None = None,
     ) -> None:
         """
         Slider widget connected to a config key.
@@ -40,10 +41,10 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
         option : GUIOption
             The options associated with `config_key`.
 
-        num_range : tuple[Number | None, Number | None]
+        num_range : tuple[floatOrInt | None, floatOrInt | None]
             - num_range[0] == min
             - num_range[1] == max
-            If min is None, it defaults to 0.
+            If min is None, it defaults to -999999.
             If max is None, it defaults to 999999.
 
         is_tight : bool, optional
@@ -54,11 +55,11 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             The unit of the setting, e.g. "day".
             By default None.
 
-        converter : Converter | None, optional
+        converter : Converter, optional
             The value converter used to convert values between config and GUI representation.
 
-        parent_keys : list[str]
-            The parents of `key`. Used for lookup in the config.
+        path : str
+            The path of `key`. Used for lookup in the config.
 
         parent : QWidget, optional
             Parent of this setting.
@@ -69,7 +70,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             config_key=config_key,
             option=option,
             converter=converter,
-            parent_keys=parent_keys,
+            path=path,
             parent=parent,
         )
         self.baseunit = baseunit
@@ -86,7 +87,7 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
                 w = int(w * 0.67) if self.max_value > 40 else w // 2
             self.setting.setMinimumWidth(w)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.min_value, self.max_value)
+            self.setting.setRange(int(self.min_value), int(self.max_value))
             self.setWidgetValue(self.current_value)
             self.valueLabel.setObjectName("valueLabel")
 
@@ -121,11 +122,11 @@ class CoreSlider(BaseSetting, RangeSettingMixin):
             self.valueLabel.setNum(value)
 
     @override
-    def _setWidgetValue(self, value: str) -> None:
+    def _setWidgetValue(self, value: int) -> None:
         if self.notify_disabled:
             self.notify_disabled = False
             # Do not update GUI with disable values
-            gui_value = self._ensureValidGUIValue(value)
+            gui_value = int(self._ensureValidGUIValue(value))
             self.setting.setValue(gui_value)
             self._setLabelText(gui_value)
             self.notify_disabled = True
