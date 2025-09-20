@@ -247,7 +247,11 @@ class SegmentedPivotCardStack(CardStackBase):
                 widget=group,
                 object_name=name,
                 title=name,
-                icon=self.icons.get(name.lower(), FIF.CANCEL_MEDIUM),
+                icon=(
+                    self.icons.get(name.lower(), FIF.CANCEL_MEDIUM)
+                    if self.icons
+                    else None
+                ),
             )
 
     @override
