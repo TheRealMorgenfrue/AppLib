@@ -147,6 +147,7 @@ from .module.tools.types.gui_cards import (
     AnySettingCard,
     AnySettingWidget,
 )
+from .module.tools.types.gui_cardstacks import AnyCardStack
 from .module.tools.types.gui_generators import AnyCardGenerator
 from .module.tools.types.gui_settings import AnyBoolSetting, AnySetting
 from .module.tools.types.templates import AnyTemplate
@@ -165,6 +166,7 @@ __all__ = [
     "AnyCard",
     "AnyCardGenerator",
     "AnyCardGroup",
+    "AnyCardStack",
     "AnyConfig",
     "AnyNestingCard",
     "AnyParentCard",
