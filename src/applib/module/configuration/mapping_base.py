@@ -54,6 +54,10 @@ class MappingBase:
                 if path:
                     path.pop()
 
+    def get_raw(self) -> dict:
+        """Get raw access to the underlying dict"""
+        return self._dict
+
     def get_path(self, key, base_path="", **kwargs) -> str:
         """Return the path of `key`.
 

@@ -85,6 +85,3 @@ class BaseTemplate(MappingBase):
 
     @abstractmethod
     def _create_template(self) -> dict: ...
-
-    def get_template(self) -> dict:
-        return self._dict
