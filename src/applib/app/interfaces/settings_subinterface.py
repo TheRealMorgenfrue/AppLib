@@ -1,11 +1,11 @@
 from typing import Literal
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon
 from PyQt6.QtWidgets import QVBoxLayout, QWidget
-from qfluentwidgets import FluentIconBase, ScrollArea
+from qfluentwidgets import ScrollArea
 
 from ...module.tools.types.config import AnyConfig
+from ...module.tools.types.general import iconDict
 from ...module.tools.types.gui_cardstacks import AnyCardStack
 from ...module.tools.types.gui_generators import AnyCardGenerator
 from ...module.tools.types.templates import AnyTemplate
@@ -17,10 +17,10 @@ class CoreSettingsSubInterface(ScrollArea):
         self,
         config: AnyConfig,
         template: AnyTemplate,
-        Generator: AnyCardGenerator,
-        CardStack: AnyCardStack,
+        Generator: type[AnyCardGenerator],
+        CardStack: type[AnyCardStack],
         title: str | Literal["DEFAULT"] | None = "DEFAULT",
-        icons: dict[str, str | QIcon | FluentIconBase] = None,
+        icons: iconDict | None = None,
         parent: QWidget | None = None,
         **generator_kwargs,
     ):
