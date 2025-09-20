@@ -254,6 +254,12 @@ class ThreadManager(QObject):
         # TODO: Track process' download progress and save upon failure, to allow easy recovery
         process = self._process_pool[process_id]
         self._argument_buffer.append(process.args)
+        self._logger.warning(
+            f"Process {process_id} failed",
+            title="Process failure",
+            gui=True,
+            pid=process_id,
+        )
         self._on_process_finished(process_id)
 
     def _create_process(self, process_id: int) -> ProcessBase | None:
@@ -276,6 +282,7 @@ class ThreadManager(QObject):
             args = next(self._argument_generator, None)
 
         if args is not None:
+            is_running = False
             try:
                 process = self._process_pool[process_id]
             except KeyError:
@@ -286,12 +293,13 @@ class ThreadManager(QObject):
                 thread = self._thread_pool[process_id]
                 process.moveToThread(thread)
                 thread.started.connect(process._start)
+                is_running = not thread.isRunning()
 
             process.setProgram(self._process_generator.program())
             process.setArguments(args)
             process.process_id = process_id
 
-            if len(self._process_pool) == 1 and not thread.isRunning():
+            if len(self._process_pool) == 1 and is_running:
                 self.changeState.emit(ThreadManager.State.Running)
             return process
 

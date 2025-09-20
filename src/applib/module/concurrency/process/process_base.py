@@ -154,7 +154,9 @@ class ProcessBase(QObject):
                 self._logger.error(
                     f"Process exited with error code {exitCode}", pid=self.process_id
                 )
-        self.failed.emit(self.process_id)
+                # TODO: Temporary until process failure is handled properly in thread_manager
+                # When that happens, move it outside of if-statement
+                self.failed.emit(self.process_id)
 
     def _killProcess(self):
         self._logger.info(f"Killing process {self.process_id}")
@@ -196,7 +198,10 @@ class ProcessBase(QObject):
                 self._setup()
 
             self._logger.info(
-                f"Starting process", log=True, gui=False, pid=self.process_id
+                f"Starting process",
+                log=True,
+                gui=False,
+                pid=self.process_id,
             )
             self.process.start(self.program, self.args)
         except Exception:
