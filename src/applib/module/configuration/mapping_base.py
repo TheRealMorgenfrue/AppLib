@@ -54,6 +54,40 @@ class MappingBase:
                 if path:
                     path.pop()
 
+    def get_path(self, key, base_path="", **kwargs) -> str:
+        """Return the path of `key`.
+
+        If `key` does not exist, return `default`.
+
+        The search is fuzzy and may return an incorrect result under certain conditions,
+        e.g., duplicate keys with an empty `base_path` parameter.
+
+        Parameters
+        ----------
+        key : str
+            The key whose path to look for.
+        default : Any
+            The default value, if supplied, is returned instead of raising a
+            KeyError if `key` isn't found.
+
+        Returns
+        -------
+        str
+            The path of `key`.
+
+        Raises
+        ------
+        KeyError
+            If `key` isn't found and no `default` value is given.
+        """
+        try:
+            return self._idx.find(key, base_path)
+        except KeyError as err:
+            try:
+                return kwargs["default"]
+            except KeyError:
+                raise err from None
+
     def get_value(
         self,
         key: str,
