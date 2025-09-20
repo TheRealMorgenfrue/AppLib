@@ -113,6 +113,7 @@ from .module.configuration.tools.cli_argument_gen import CLIArgumentGenerator
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.config_utils.config_enums import ConfigLoadOptions
 from .module.configuration.tools.ini_file_parser import IniFileParser
+from .module.configuration.tools.search import SearchMode
 from .module.configuration.tools.template_parser import TemplateParser
 from .module.configuration.tools.template_utils.groups import Group
 from .module.configuration.tools.template_utils.options import (
@@ -254,6 +255,7 @@ __all__ = [
     "SampleCard",
     "SampleCardView",
     "SegmentedPivotCardStack",
+    "SearchMode",
     "SettingCardBase",
     "SettingCardMixin",
     "SettingWidget",
