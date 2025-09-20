@@ -21,7 +21,7 @@ class TestProcessGenerator(ProcessGenerator):
     def args(self) -> Generator[list[str], Any, Any]:
         for i in range(self.test_size):
             yield [
-                f"{Path(r"src\test\modules\concurrency\test_file_program.py").resolve()}"
+                f"{Path(r"tests\manual\modules\concurrency\test_file_program.py").resolve()}"
             ]
 
     @override
