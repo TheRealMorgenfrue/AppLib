@@ -86,11 +86,8 @@ class MappingBase:
         """
         try:
             return self._idx.find(key, base_path)
-        except KeyError as err:
-            try:
-                return kwargs["default"]
-            except KeyError:
-                raise err from None
+        except IndexError:
+            return kwargs["default"]
 
     def get_value(
         self,
@@ -152,15 +149,21 @@ class MappingBase:
         create_missing : bool, optional
             Whether to create key/value pairs for keys in `p` which are not found in `d`.
             By default False.
+
+        Raises
+        ------
+        KeyError
+            If `key` isn't found and `create_missing` is False.
+
         """
         try:
             abs_path = self._idx.find(key, path)
-        except KeyError as e:
+        except IndexError:
             if create_missing:
                 NestedDictSearch.insert(self._dict, key, value, path, create_missing)
                 self._idx.add(key, path)
             else:
-                raise
+                raise KeyError from None
         NestedDictSearch.update(self._dict, key, value, abs_path, self._idx)
 
     def remove_value(
@@ -181,8 +184,16 @@ class MappingBase:
             Paths are separated by forward slash, e.g. `Path/to/some/place`.
         mode : SearchMode, optional
             How to search the dict. By default SearchMode.FUZZY.
+
+        Raises
+        ------
+        KeyError
+            If `key` isn't found.
         """
         NestedDictSearch.remove(self._dict, key, path, self._idx, mode)
         if mode == SearchMode.FUZZY:
-            path = self._idx.find(key, path)
+            try:
+                path = self._idx.find(key, path)
+            except IndexError:
+                raise KeyError from None
         self._idx.remove(key, path)
