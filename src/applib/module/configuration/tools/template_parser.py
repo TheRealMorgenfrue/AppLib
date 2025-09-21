@@ -215,7 +215,7 @@ class TemplateParser:
         type_in = option.defined(option.type)
         if type_in:
             if default_in:
-                field_type = Union[option.type, type(option.default)]
+                field_type = option.type | type(option.default)
             else:
                 field_type = option.type
         elif default_in:
