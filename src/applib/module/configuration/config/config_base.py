@@ -409,7 +409,11 @@ class ConfigBase(MappingBase):
     ):
         is_error = False
         try:
-            old_value = self.get_value(key, path, SearchMode.FUZZY)
+            try:
+                old_value = self.get_value(key, path)
+            except KeyError as e:
+                if not create_missing:
+                    raise e
             super().set_value(key, value, path, create_missing)
             if self.validation_model:
                 self.validation_model.model_validate(self._dict)

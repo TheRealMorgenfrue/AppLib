@@ -1,5 +1,5 @@
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 class TestArgs:
@@ -27,7 +27,6 @@ class TestArgs:
 
     ## Main template
     main_template_name = "test_template"
-    main_loglevels = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
     main_themes = ["Light", "Dark", "System"]
 
     ## Process template
@@ -54,7 +53,6 @@ class TestArgs:
     # Templates
     _core_main_template_name = main_template_name
     _core_config_units = config_units
-    _core_template_loglevels = main_loglevels
     _core_template_themes = main_themes
 
     # Configs
