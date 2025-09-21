@@ -65,7 +65,7 @@ class BaseSetting(QWidget):
         super().__init__(parent=parent)
         self.config = config
         self.config_key = config_key
-        self.current_value = config.get_value(key=config_key, parents=path)
+        self.current_value = config.get_value(config_key, path)
         self.default_value = option.default
         self.backup_value = None
         self.converter = converter
