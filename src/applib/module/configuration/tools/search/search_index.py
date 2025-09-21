@@ -1,3 +1,5 @@
+import re
+
 from applib.module.configuration.tools.search import SEARCH_SEP
 from applib.module.logging import LoggingManager
 
@@ -43,7 +45,7 @@ class SearchIndex:
 
         Raises
         ------
-        KeyError
+        IndexError
             If no absolute path could be found. Can be caused by an ambigious `search_path`.
         """
         try:
@@ -70,12 +72,13 @@ class SearchIndex:
                 return idx_paths[0]
 
             # Check if the path is actually part of the index path
-            if idx_path.find(path) != -1:
+            path_escaped = path.replace(SEARCH_SEP, r"\/")
+            if re.search(rf"({path_escaped})\/|({path_escaped})$", idx_path):
                 accuracy = path_len / idx_len
                 try:
-                    matches[accuracy].append(path)
+                    matches[accuracy].append(idx_path)
                 except KeyError:
-                    matches[accuracy] = [path]
+                    matches[accuracy] = [idx_path]
 
         if matches:
             accuracies = sorted(matches.keys(), reverse=True)
