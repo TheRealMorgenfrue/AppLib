@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QApplication, QWidget
 
 
 class CoreApp:
-    def __init__(self, MainWindow: QWidget) -> None:
+    def __init__(self, MainWindow: type[QWidget]) -> None:
         """
         The main class from which all other code is executed.
 
