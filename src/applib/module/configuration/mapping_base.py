@@ -159,11 +159,9 @@ class MappingBase:
         try:
             abs_path = self._idx.find(key, path)
         except IndexError:
-            if create_missing:
-                NestedDictSearch.insert(self._dict, key, value, path, create_missing)
-                self._idx.add(key, path)
-            else:
-                raise KeyError from None
+            NestedDictSearch.insert(self._dict, key, value, path, create_missing)
+            self._idx.add(key, path)
+            return
         NestedDictSearch.update(self._dict, key, value, abs_path, self._idx)
 
     def remove_value(
