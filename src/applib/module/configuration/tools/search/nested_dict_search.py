@@ -6,7 +6,7 @@ from .search_index import SearchIndex
 
 class NestedDictSearch:
     @classmethod
-    def _split(cls, path: str) -> list[str]:
+    def split(cls, path: str) -> list[str]:
         return path.split(SEARCH_SEP) if path else []
 
     @classmethod
@@ -38,7 +38,7 @@ class NestedDictSearch:
         cls, d: dict, key: str, search_path: str, idx: SearchIndex
     ) -> dict:
         abs_path = idx.find(key, search_path)
-        return cls._search_strict(d, key, cls._split(abs_path))
+        return cls._search_strict(d, key, cls.split(abs_path))
 
     @classmethod
     def _search(
@@ -47,7 +47,7 @@ class NestedDictSearch:
         if mode == SearchMode.FUZZY:
             return cls._search_fuzzy(d, key, search_path, idx)
         elif mode == SearchMode.STRICT:
-            return cls._search_strict(d, key, cls._split(search_path))
+            return cls._search_strict(d, key, cls.split(search_path))
         else:
             raise ValueError(
                 f"Invalid value for SearchMode. Got '{mode}', expected one of {SearchMode._member_names_}"
@@ -189,7 +189,7 @@ class NestedDictSearch:
             Whether to create key/value pairs for keys in `p` which are not found in `d`.
             By default False.
         """
-        p = cls._split(path)
+        p = cls.split(path)
         if create_missing:
             d_ = cls._generate(d, key, p)
         else:

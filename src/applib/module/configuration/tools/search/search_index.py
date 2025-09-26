@@ -18,7 +18,12 @@ class SearchIndex:
     def build(self, d: dict):
         """Build the search index of `d`. Any previous index is overwritten."""
         self._index = {}
-        stack = [(d, [])]
+        self.update(d, [])
+
+    def update(self, d: dict, path_root: list[str]):
+        """Update the search index with `d`, overwriting keys in the
+        index if they exists in both `d` and the index"""
+        stack = [(d, path_root)]
         while stack:
             d_, p = stack.pop()
             for k, v in d_.items():

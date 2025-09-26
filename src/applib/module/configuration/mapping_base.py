@@ -161,6 +161,8 @@ class MappingBase:
             abs_path = self._idx.find(key, path)
         except IndexError:
             NestedDictSearch.insert(self._dict, key, value, path, create_missing)
+            if isinstance(value, dict):
+                self._idx.update(value, [*NestedDictSearch.split(path), key])
             self._idx.add(key, path)
             return
         NestedDictSearch.update(self._dict, key, value, abs_path, self._idx)
