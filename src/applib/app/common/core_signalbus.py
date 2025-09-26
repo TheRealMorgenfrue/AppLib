@@ -43,7 +43,7 @@ class CoreSignalBus(QObject):
     # ───────────────────────────────────────────────────────────────────────────#
     # Setting updates
     # ───────────────────────────────────────────────────────────────────────────#
-    updateConfigSettings = pyqtSignal(str, str, tuple, list)
+    updateConfigSettings = pyqtSignal(str, str, tuple, tuple, str)
     """
     Update a key's value programmatically both in config and GUI.
 
@@ -59,6 +59,9 @@ class CoreSignalBus(QObject):
 
     value : tuple[Any]
         The updated value mapped to `config_key`.
+
+    disable_flags : tuple[UIFlags]
+        Do not trigger actions for these flags when saving the config value.
 
     path : str
         The parent keys of `config_key`.
