@@ -59,7 +59,7 @@ class TestTemplate(BaseTemplate):
                     actions=[LoggingManager().set_level],
                     ui_info=GUIMessage(f"Set log level for {CoreArgs._core_app_name}"),
                     validators=[validate_loglevel],
-                    values=TestArgs.main_loglevels,
+                    values=LoggingManager.LogLevel._member_names_,
                 )
             },
             "Appearance": {
