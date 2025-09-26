@@ -42,7 +42,7 @@ class CardGenerator(GeneratorBase):
         default_group: str | None = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
-        blank_path=False,
+        path_override: str | None = None,
         icons: list[str | QIcon | FluentIconBase] | None = None,
         parent: QWidget | None = None,
     ) -> None:
@@ -75,10 +75,9 @@ class CardGenerator(GeneratorBase):
             Use a smaller version of the setting widgets, if available.
             By default False.
 
-        blank_path : bool, optional
-            Do not use paths when getting values from the config.
-            This allows the config paths to differ from the template's.
-            By default False.
+        path_override : str, optional
+            Custom search path for getting values from the config.
+            By default None.
 
         icons : list[str | QIcon | FluentIconBase], optional
             Add an icon to each card generated.
@@ -94,7 +93,7 @@ class CardGenerator(GeneratorBase):
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
-            blank_path=blank_path,
+            path_override=path_override,
             parent=parent,
         )
         self._icons = icons if icons else FIF.LEAF

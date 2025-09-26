@@ -38,7 +38,7 @@ class GeneratorBase:
         default_group: str | None = None,
         hide_group_label=True,
         is_tight=False,
-        blank_path=False,
+        path_override: str | None = None,
         parent: QWidget | None = None,
     ) -> None:
         if config.failure:
@@ -52,7 +52,7 @@ class GeneratorBase:
         self._default_group = default_group
         self._hide_group_label = hide_group_label
         self._is_tight = is_tight
-        self.blank_path = blank_path
+        self.path_override = path_override
         self._parent = parent
 
         # type: dict[str, list] # Mapping of the correct card sort order.
@@ -310,7 +310,7 @@ class GeneratorBase:
                     ),
                     setting=setting,
                     option=option,
-                    path=path if not self.blank_path else "",
+                    path=path if self.path_override is None else self.path_override,
                     group=main_group,
                     parent=card_group,
                 )
