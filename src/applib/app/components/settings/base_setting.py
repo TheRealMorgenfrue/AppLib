@@ -131,11 +131,10 @@ class BaseSetting(QWidget):
         name: str,
         key: str,
         value_tuple: tuple[Any,],
-        disable_flags: tuple[UIFlags],
         path: str,
     ):
         if self._validateKey(name, key, path):
-            self.setConfigValue(value_tuple[0], disable_flags=disable_flags)
+            self.setConfigValue(value_tuple[0])
 
     def _onParentNotification(self, values: tuple):
         type, value = values
@@ -205,9 +204,7 @@ class BaseSetting(QWidget):
                     ("disable_other", (self.disable_other_value == value, save))
                 )
 
-    def setConfigValue(
-        self, value: Any, disable_flags: tuple[UIFlags] | None = None
-    ) -> bool:
+    def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
             error = self.config.set_value(
                 self.config_key,
@@ -222,11 +219,7 @@ class BaseSetting(QWidget):
             self.current_value = value
             self.setWidgetValue(value)
             self.maybeDisableParent(value)
-            if (
-                self.reload_required
-                and disable_flags
-                and UIFlags.REQUIRES_RELOAD not in disable_flags
-            ):
+            if self.reload_required:
                 self._onReloadRequired()
         return success
 
