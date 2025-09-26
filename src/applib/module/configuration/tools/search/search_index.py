@@ -87,7 +87,7 @@ class SearchIndex:
                 self._log_ambiguity(key, matches[accuracies[0]])
             return matches[accuracies[0]][0]
 
-        raise IndexError(f"Key '{key}' is not in the index using path {path}")
+        raise IndexError(f"Key '{key}' is not in the index using path '{path}'")
 
     def add(self, key: str, path: str):
         """Add a new key/path pair or add a new path to an existing key.
