@@ -47,6 +47,7 @@ class MappingBase:
                         path.append(k)
                         stack.append(v)
                         break
+                    visited.add(str_path)
                     yield k, v, f"{SEARCH_SEP}".join(path)
             else:
                 visited.add(f"{SEARCH_SEP}".join(path))
