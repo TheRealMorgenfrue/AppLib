@@ -39,6 +39,7 @@ class CardWidgetGenerator(GeneratorBase):
         default_group: str | None = None,
         hide_group_label: bool = True,
         is_tight: bool = False,
+        blank_path=False,
         parent: QWidget | None = None,
     ) -> None:
         """
@@ -69,6 +70,11 @@ class CardWidgetGenerator(GeneratorBase):
             Use a smaller version of the setting widgets, if available.
             By default False.
 
+        blank_path : bool, optional
+            Do not use paths when getting values from the config.
+            This allows the config paths to differ from the template's.
+            By default False.
+
         parent : QWidget, optional
             The parent of all card groups generated.
             By default None.
@@ -79,6 +85,7 @@ class CardWidgetGenerator(GeneratorBase):
             default_group=default_group,
             hide_group_label=hide_group_label,
             is_tight=is_tight,
+            blank_path=blank_path,
             parent=parent,
         )
         self._cards = self._generate_cards(CardWidgetGroup)
