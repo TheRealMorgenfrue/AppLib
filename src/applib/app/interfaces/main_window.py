@@ -292,7 +292,7 @@ class CoreMainWindow(MSFluentWindow):
     def toggleTheme(self):
         theme = Theme.LIGHT if isDarkTheme() else Theme.DARK
         core_signalbus.updateConfigSettings.emit(
-            self.main_config.name, "appTheme", (theme.value,), (), []
+            self.main_config.name, "appTheme", (theme.value,), (), ""
         )
         self.main_config.save_config()
 
