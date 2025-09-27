@@ -140,6 +140,10 @@ class SettingWidget(SettingWidgetBase):
             # Hide bool option as the disable button does the same thing
             if isinstance(self.option, AnyBoolSetting):
                 self.option.setHidden(True)
+                # Forward changes in disableButton to the option
+                self.disableButton.checkStateChanged.connect(
+                    lambda: self.option.setConfigValue(self.disableButton.isChecked())
+                )
 
         self._createToolTip(self.titleLabel, self._content)
         self._createToolTip(self.option, self._content)
