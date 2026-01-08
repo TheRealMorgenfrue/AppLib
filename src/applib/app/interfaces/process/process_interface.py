@@ -116,7 +116,10 @@ class CoreProcessInterface(ScrollArea):
                 if console is None and amount > 0:
                     amount -= 1
                     console = ConsoleView(
-                        process_id=i, sizeHint=sizeHint, parent=self._view
+                        process_id=i,
+                        label=f"Process {i}",
+                        sizeHint=sizeHint,
+                        parent=self._view,
                     )
                     self.console_widgets[i] = console
                     self.flowConsoles.flowLayout.addWidget(console)
@@ -125,7 +128,9 @@ class CoreProcessInterface(ScrollArea):
         stop = start + amount
         # Add *amount* new consoles (minus those re-added)
         for i in range(start, stop):
-            console = ConsoleView(process_id=i, sizeHint=sizeHint, parent=self._view)
+            console = ConsoleView(
+                process_id=i, label=f"Process {i}", sizeHint=sizeHint, parent=self._view
+            )
             self.console_widgets[i] = console
             self.flowConsoles.flowLayout.addWidget(console)
             ids.append(i)
