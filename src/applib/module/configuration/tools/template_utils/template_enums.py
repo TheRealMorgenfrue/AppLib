@@ -12,6 +12,8 @@ class UIGroups(Enum):
 
     NOTE: CLUSTERED and NESTED_CHILDREN are mutually exclusive!
     #### Applies to: All
+    
+    #### Note: Is unstable when children of a CLUSTERED parent have the NESTED_CHILDREN attribute.
     """
 
     NESTED_CHILDREN = 1
