@@ -14,13 +14,14 @@ class ConsoleView(QWidget):
     def __init__(
         self,
         process_id: int,
+        label: str = None,
         sizeHint: QSize | None = None,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
         self._sizeHint = sizeHint if sizeHint is not None else QSize(400, 400)
         self.process_id = process_id
-        self.consoleLabel = QLabel(self.tr(f"Thread {process_id}"))
+        self.consoleLabel = QLabel(self.tr(label)) if label is not None else None
         self.textEdit = SmartTextEdit(self)
         self.terminateButton = PrimaryPushButton(self.tr("Terminate"), self)
         self.vBoxLayout = QVBoxLayout(self)
@@ -43,14 +44,16 @@ class ConsoleView(QWidget):
         self.buttonLayout.setSpacing(20)
         self.buttonLayout.addWidget(self.terminateButton)
 
-        self.vBoxLayout.addWidget(
-            self.consoleLabel, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        if self.consoleLabel is not None:
+            self.vBoxLayout.addWidget(
+                self.consoleLabel, alignment=Qt.AlignmentFlag.AlignCenter
+            )
         self.vBoxLayout.addWidget(self.textEdit, stretch=1)
         self.vBoxLayout.addLayout(self.buttonLayout)
 
     def _setQss(self) -> None:
-        self.consoleLabel.setObjectName("Label")
+        if self.consoleLabel is not None:
+            self.consoleLabel.setObjectName("Label")
         self.setObjectName("console")
         CoreStyleSheet.CONSOLE_VIEW.apply(self)
 
