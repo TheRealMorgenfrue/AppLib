@@ -191,10 +191,19 @@ class MappingBase:
         KeyError
             If `key` isn't found.
         """
-        NestedDictSearch.remove(self._dict, key, path, self._idx, mode)
+
+        def remove_children(elem, p):
+            if isinstance(elem, dict):
+                for k, v in elem.items():
+                    self._idx.remove(k, p)
+                    remove_children(v, f"{p}/{k}")
+
+        v = NestedDictSearch.remove(self._dict, key, path, self._idx, mode)
         if mode == SearchMode.FUZZY:
             try:
                 path = self._idx.find(key, path)
             except IndexError:
                 raise KeyError from None
+
+        remove_children(v, f"{path}/{key}")
         self._idx.remove(key, path)
