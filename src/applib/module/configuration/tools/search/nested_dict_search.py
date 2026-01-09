@@ -238,7 +238,7 @@ class NestedDictSearch:
         search_path: str,
         idx: SearchIndex,
         mode=SearchMode.FUZZY,
-    ):
+    ) -> Any:
         """Remove a key/value pair.
 
         Works on dicts of arbitrary depth.
@@ -260,6 +260,6 @@ class NestedDictSearch:
         """
         try:
             d_ = cls._search(d, key, search_path, idx, mode)
-            d_.pop(key)
+            return d_.pop(key)
         except IndexError as e:
             raise KeyError from e
