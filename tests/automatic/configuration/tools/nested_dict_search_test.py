@@ -14,6 +14,7 @@ class TestNestedDictSearch:
         return SearchIndex(self.get_test_dict())
 
     def test_find_I1_1(self):
+        """Find value 3 layers down"""
         d = self.get_test_dict()
         k = "I1"
         p = f"L1{SEARCH_SEP}L2"
@@ -21,6 +22,7 @@ class TestNestedDictSearch:
         assert v == 1
 
     def test_find_I1_2(self):
+        """Find value 3 layers down with two branches on second layer"""
         d = self.get_test_dict()
         k = "I1"
         p = f"L1{SEARCH_SEP}L2_1{SEARCH_SEP}I2"
@@ -28,6 +30,7 @@ class TestNestedDictSearch:
         assert v == 46
 
     def test_find_I2(self):
+        """Find value two layers down with a branch on second layer"""
         d = self.get_test_dict()
         k = "I2"
         p = "L1"
@@ -35,6 +38,7 @@ class TestNestedDictSearch:
         assert v == 2
 
     def test_find_I3(self):
+        """Find last value in layer 1"""
         d = self.get_test_dict()
         k = "I3"
         p = ""
@@ -42,6 +46,7 @@ class TestNestedDictSearch:
         assert v == 3
 
     def test_find_L1(self):
+        """Find first value in layer 1"""
         d = self.get_test_dict()
         k = "L1"
         p = ""
@@ -49,6 +54,7 @@ class TestNestedDictSearch:
         assert d[k] == v
 
     def test_find_L2(self):
+        """Find value on layer 2 containing other key/value pairs"""
         d = self.get_test_dict()
         k = "L2"
         p = "L1"
@@ -56,6 +62,7 @@ class TestNestedDictSearch:
         assert d[p][k] == v
 
     def test_find_L2_1(self):
+        """Find value on layer 2 containing other key/value pairs with a branch on the second layer"""
         d = self.get_test_dict()
         k = "L2_1"
         p = "L1"
@@ -63,6 +70,7 @@ class TestNestedDictSearch:
         assert d[p][k] == v
 
     def test_find_nonexisting(self):
+        """Find key that doesn't exist"""
         d = self.get_test_dict()
         k = "K1"
         p = "L1"
@@ -70,6 +78,7 @@ class TestNestedDictSearch:
             NestedDictSearch.find(d, k, p, self.get_search_index())
 
     def test_find_default(self):
+        """Find key that doesn't exist but return a default value"""
         d = self.get_test_dict()
         k = "K1"
         default = 10
@@ -78,6 +87,7 @@ class TestNestedDictSearch:
         assert default == v
 
     def test_insert(self):
+        """Insert a key/value pair into first existing layer"""
         d = self.get_test_dict()
         k = "U1"
         v = 98
@@ -89,6 +99,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_insert_L1(self):
+        """Insert a key/value pair into second existing layer"""
         d = self.get_test_dict()
         k = "U1"
         v = 98
@@ -100,6 +111,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_insert_L2(self):
+        """Insert a key/value pair into third existing layer"""
         d = self.get_test_dict()
         k = "U1"
         v = 98
@@ -111,6 +123,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_insert_I2_nested(self):
+        """Insert a key/value pair into fourth existing layer, where the same key exists on layer 2"""
         d = self.get_test_dict()
         k = "U1"
         v = 98
@@ -122,6 +135,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_insert_generate(self):
+        """Insert a key/value pair into fourth layer, creating three layers along the way"""
         d = self.get_test_dict()
         k = "U1"
         v = 98
@@ -133,6 +147,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_update(self):
+        """Update the value of a key"""
         d = self.get_test_dict()
         k = "I1"
         v = 98
@@ -143,6 +158,7 @@ class TestNestedDictSearch:
         assert o == v
 
     def test_remove_nonexisting(self):
+        """Remove a key that doesn't exist"""
         d = self.get_test_dict()
         k = "U1"
         p = ""
@@ -151,6 +167,7 @@ class TestNestedDictSearch:
             NestedDictSearch.remove(d, k, p, idx)
 
     def test_remove_I3(self):
+        """Remove last value in layer 1"""
         d = self.get_test_dict()
         k = "I3"
         p = ""
@@ -161,6 +178,7 @@ class TestNestedDictSearch:
             NestedDictSearch.find(d, k, p, idx)
 
     def test_remove_L1(self):
+        """Remove a value containing other key/value pairs"""
         d = self.get_test_dict()
         k = "L1"
         p = ""
@@ -171,6 +189,7 @@ class TestNestedDictSearch:
             NestedDictSearch.find(d, k, p, idx)
 
     def test_remove_I1(self):
+        """Remove a value on layer 3"""
         d = self.get_test_dict()
         k = "I1"
         p = f"L1{SEARCH_SEP}L2"
@@ -181,6 +200,7 @@ class TestNestedDictSearch:
             NestedDictSearch.find(d, k, p, idx)
 
     def test_remove_I2_nested(self):
+        """Remove a key from fourth existing layer, where the same key exists on layer 3"""
         d = self.get_test_dict()
         k = "I2"
         p = f"L1{SEARCH_SEP}L2_1"
