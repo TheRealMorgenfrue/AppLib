@@ -1,4 +1,4 @@
-import re
+import traceback
 
 from applib.module.configuration.tools.search import SEARCH_SEP
 from applib.module.logging import LoggingManager
@@ -77,13 +77,14 @@ class SearchIndex:
                 return idx_paths[0]
 
             # Check if the path is actually part of the index path
-            path_escaped = path.replace(SEARCH_SEP, r"\/")
-            if re.search(rf"({path_escaped})\/|({path_escaped})$", idx_path):
-                accuracy = path_len / idx_len
-                try:
-                    matches[accuracy].append(idx_path)
-                except KeyError:
-                    matches[accuracy] = [idx_path]
+            for p in idx_path.split(SEARCH_SEP):
+                if path == p:
+                    accuracy = path_len / idx_len
+                    try:
+                        matches[accuracy].append(idx_path)
+                    except KeyError:
+                        matches[accuracy] = [idx_path]
+                    break
 
         if matches:
             accuracies = sorted(matches.keys(), reverse=True)
