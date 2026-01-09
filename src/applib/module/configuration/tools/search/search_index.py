@@ -129,4 +129,10 @@ class SearchIndex:
         if len(paths) == 1:
             self._index.pop(key)
         else:
-            paths.remove(path)
+            try:
+                paths.remove(path)
+            except ValueError:
+                LoggingManager().error(
+                    f"Failed to remove path '{path}' from key '{key}'\n"
+                    + traceback.format_exc()
+                )
