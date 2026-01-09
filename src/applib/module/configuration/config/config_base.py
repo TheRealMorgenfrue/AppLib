@@ -414,6 +414,7 @@ class ConfigBase(MappingBase):
             except KeyError as e:
                 if not create_missing:
                     raise e
+                no_old_value = True
             super().set_value(key, value, path, create_missing)
             if self.validation_model:
                 self.validation_model.model_validate(self._dict)
@@ -423,7 +424,10 @@ class ConfigBase(MappingBase):
                 f"{self._prefix_msg()} Unable to validate value '{value}' for key '{key}': "
                 + format_validation_error(err)
             )
-            super().set_value(key, old_value, path, False)
+            if no_old_value:
+                self.remove_value(key, path)
+            else:
+                super().set_value(key, old_value, path, False)
         except Exception:
             success = False
             self._logger.error(
