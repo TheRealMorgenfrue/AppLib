@@ -407,7 +407,7 @@ class ConfigBase(MappingBase):
         path: str,
         create_missing=False,
     ):
-        is_error = False
+        success, no_old_value = True, False
         try:
             try:
                 old_value = self.get_value(key, path)
@@ -418,26 +418,26 @@ class ConfigBase(MappingBase):
             if self.validation_model:
                 self.validation_model.model_validate(self._dict)
         except ValidationError as err:
-            is_error = True
+            success = False
             self._logger.warning(
                 f"{self._prefix_msg()} Unable to validate value '{value}' for key '{key}': "
                 + format_validation_error(err)
             )
             super().set_value(key, old_value, path, False)
         except Exception:
-            is_error = True
+            success = False
             self._logger.error(
                 f"{self._prefix_msg()} An unexpected error occurred while validating value '{value}' using key '{key}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
                 gui=True,
             )
         finally:
-            if not is_error:
+            if success:
                 core_signalbus.configUpdated.emit(
                     (self.name, self.template.name), key, (value,), path
                 )
                 self._is_modified = True
-            return is_error
+            return success
 
     def save_config(self) -> None:
         """Write config to disk"""

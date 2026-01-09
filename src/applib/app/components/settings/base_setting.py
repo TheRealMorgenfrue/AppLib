@@ -206,12 +206,11 @@ class BaseSetting(QWidget):
 
     def setConfigValue(self, value: Any) -> bool:
         if self.current_value != value or self.backup_value == value:
-            error = self.config.set_value(
+            success = self.config.set_value(
                 self.config_key,
                 self._convert_value(value),
                 self.path,
             )
-            success = not error
         else:
             success = True  # The value is already present in the config
 
