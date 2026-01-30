@@ -1,12 +1,12 @@
 import traceback
 from typing import Any
 
-from PyQt6.QtCore import QSize, Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QSize, Qt, pyqtSignal
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QVBoxLayout, QWidget
 from qfluentwidgets import PrimaryPushButton, PushButton, ScrollArea
 
-from ....module.concurrency.process.process_generator import ProcessGenerator
+from ....module.concurrency.process.process_generator import ProcessGeneratorBase
 from ....module.concurrency.thread.thread_manager import ThreadManager
 from ....module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from ....module.configuration.internal.core_args import CoreArgs
@@ -21,7 +21,7 @@ from .process_subinterface import ProcessSubinterface
 
 
 class CoreProcessInterface(ScrollArea):
-    _proc_msg_signal = pyqtSignal(str, int, str)
+    _process_msg_signal = pyqtSignal(str, int, str)
     """Send messages to the main thread (Process) from anywhere.\n
     level: str, pid: int, msg: str
     """
@@ -30,7 +30,7 @@ class CoreProcessInterface(ScrollArea):
         self,
         main_config: AnyConfig,
         process_template: AnyTemplate,
-        ProcessGenerator: type[ProcessGenerator],
+        ProcessGenerator: type[ProcessGeneratorBase],
         ThreadManager: type[ThreadManagerGui],
         parent: QWidget | None = None,
     ):
@@ -57,12 +57,9 @@ class CoreProcessInterface(ScrollArea):
             self.hButtonLayout = QHBoxLayout()
             self.hMainLayout = QHBoxLayout()
 
-            self.threadManager = ThreadManager(
+            self.thread_manager = ThreadManager(
                 self.max_threads, ProcessGenerator, self.console_widgets
             )
-            self.thread_for_manager = QThread()
-            self.threadManager.moveToThread(self.thread_for_manager)
-            self.thread_for_manager.started.connect(self.threadManager._start)
 
             self._initWidget()
             self._initLayout()
@@ -134,7 +131,7 @@ class CoreProcessInterface(ScrollArea):
             self.console_widgets[i] = console
             self.flowConsoles.flowLayout.addWidget(console)
             ids.append(i)
-        self.threadManager.consoleCountChanged.emit(ids)
+        self.thread_manager.console_count_changed.emit(ids)
 
     def _removeConsoles(self, amount: int, indices: list[int] | None = None):
         iterator = indices if indices else reversed(self.console_widgets)
@@ -147,35 +144,35 @@ class CoreProcessInterface(ScrollArea):
                 self.console_widgets[i] = None
         self.flowConsoles.flowLayout.update()
 
-    def _initConsole(self, allowRemoval: bool = True):
+    def _initConsole(self, allow_removal: bool = True):
         if self.console_widgets:
             availableConsoles = len(
                 [console for console in self.console_widgets.values() if console]
             )
             if availableConsoles < self.max_threads:
                 self._addConsoles(self.max_threads - availableConsoles)
-            elif allowRemoval and availableConsoles > self.max_threads:
+            elif allow_removal and availableConsoles > self.max_threads:
                 self._removeConsoles(availableConsoles - self.max_threads)
         else:
             self._addConsoles(self.max_threads)
 
     def __connectSignalToSlot(self) -> None:
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
-        self._proc_msg_signal.connect(self._onProcessMsgReceived)
-        self.terminateAllButton.clicked.connect(self._onTerminateAllButtonClicked)
+        self._process_msg_signal.connect(self._onProcessMsgReceived)
+        self.terminateAllButton.clicked.connect(self.thread_manager.terminate_all.emit)
         self.startButton.clicked.connect(self._onStartButtonClicked)
 
-        self.threadManager.currentProgress.connect(
+        self.thread_manager.current_progress.connect(
             self.processSubinterface.getProgressCard().progressWidget.setValue
         )
-        self.threadManager.totalProgress.connect(
+        self.thread_manager.total_progress.connect(
             lambda max: self.processSubinterface.getProgressCard().progressWidget.setRange(
                 0, max
             )
         )
-        self.threadManager.threadFinalized.connect(self._onThreadFinalized)
-        self.threadManager.clearConsole.connect(self._onClearConsole)
-        self.threadManager.changeState.connect(self._onThreadManagerStateChange)
+        self.thread_manager.thread_removed.connect(self._onThreadRemoved)
+        self.thread_manager.clear_console.connect(self._onClearConsole)
+        self.thread_manager.change_state.connect(self._onThreadManagerStateChange)
 
     def _onConfigUpdated(
         self,
@@ -188,15 +185,15 @@ class CoreProcessInterface(ScrollArea):
             (value,) = value_tuple
             if config_key == "maxThreads":
                 self.max_threads = value
-                self._initConsole(allowRemoval=not self.process_running)
-                self.threadManager.updateMaxThreads.emit(self.max_threads)
+                self._initConsole(allow_removal=not self.process_running)
+                self.thread_manager.max_threads = self.max_threads
             elif config_key == "terminalSize":
                 self.terminal_size = value
                 for console in self.console_widgets.values():
                     if console:
                         console.updateSizeHint(QSize(value, value))
 
-    def _onThreadFinalized(self, thread_id: int):
+    def _onThreadRemoved(self, thread_id: int):
         count = 0
         for console in self.console_widgets.values():
             if console:
@@ -205,26 +202,25 @@ class CoreProcessInterface(ScrollArea):
             self._removeConsoles(1, [thread_id])
 
     def _onThreadManagerStateChange(self, state: ThreadManager.State):
-        self.process_running = state == ThreadManager.State.Running
+        process_running = False
+        match state:
+            case ThreadManager.State.Stopped:
+                self.processSubinterface.getProgressCard().stop()
+                self.startButton.setDisabled(False)
+            case ThreadManager.State.Running:
+                self._logger.set_process_signal(self._process_msg_signal)
+                self.startButton.setDisabled(True)
+                process_running = True
+        self.process_running = process_running
+
         self._setEnableTerminateButtons(self.process_running)
-
-        if not self.process_running:
-            self._logger.set_proc_signal(None)
-
-    def _onTerminateAllButtonClicked(self):
-        self.threadManager.kill.emit()
-        self.processSubinterface.getProgressCard().stop()
 
     def _onStartButtonClicked(self):
         try:
-            self._logger.set_proc_signal(self._proc_msg_signal)
             self.processSubinterface.getProgressCard().start()
-            if not self.thread_for_manager.isRunning():
-                self.thread_for_manager.start()
-            else:
-                self.threadManager.start.emit()
+            self.thread_manager.start()
         except Exception:
-            self._logger.set_proc_signal(None)
+            self._logger.set_process_signal(None)
             self._logger.error(
                 f"Process Manager failed\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit),

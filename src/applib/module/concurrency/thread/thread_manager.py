@@ -1,54 +1,54 @@
 import traceback
 from enum import Enum
+from typing import Iterator, override
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import LoggingManager
-from ..process.process_base import ProcessBase
-from ..process.process_generator import ProcessGenerator
+from ..process.process_base import ProcessGUI
+from ..process.process_generator import ProcessGeneratorBase
 
 
 class ThreadManager(QObject):
+    """
+    ## Thread Classes
+
+    - Max threads
+        The total amount of threads managed.
+
+    - Available threads
+        Threads currently idle.
+
+    - Running threads
+        Threads busy doing work.
+
+    - Deallocated threads
+        Threads scheduled for removal once their work is done.
+    """
+
     class State(Enum):
+        Starting = 0
         Running = 10
         Stopped = 20
+        Terminated = 30
+        Killed = 40
 
     ## Thread Pool Control ##
-    updateMaxThreads = pyqtSignal(int)
-    """Updates the maximum size of the thread pool.
-
-    Parameters
-    ----------
-    max_threads : int
-    """
-
-    removeUnreservedThreads = pyqtSignal()
-    """Removes unreserved thread IDs. Is related to `unreservedThreads`"""
-
-    unreservedThreads = pyqtSignal(set)
-    """Emits when a signal from `requestUnreservedThreads` is received.
-
-    Parameters
-    ----------
-    thread_ids : list[int]
-        The IDs of the unreserved threads.
-    """
-
-    threadFinalized = pyqtSignal(int)
+    thread_removed = pyqtSignal(int)
     """Emits when a thread is no longer in use.
 
     Parameters
     ----------
-    thread_id : int
-        The ID of the finalized thread.
+    id : int
+        The ID of the thread.
     """
 
-    allThreadsFinalized = pyqtSignal()
+    all_threads_removed = pyqtSignal()
     """Emits when all threads in the thread pool are finalized."""
 
     ## Process Control ##
-    updateProcessGenerator = pyqtSignal(ProcessGenerator)
+    update_process_generator = pyqtSignal(ProcessGeneratorBase)
     """Updates the process generator
 
     Parameters
@@ -58,7 +58,7 @@ class ThreadManager(QObject):
     """
 
     ## Execution Progress ##
-    currentProgress = pyqtSignal(int)
+    current_progress = pyqtSignal(int)
     """Emits when current progress of the thread manager is changed.
 
     Parameters
@@ -67,7 +67,7 @@ class ThreadManager(QObject):
         The value of the progress.
     """
 
-    totalProgress = pyqtSignal(int)
+    total_progress = pyqtSignal(int)
     """Emits when the total progress of the thread manager is changed.
 
     Parameters
@@ -77,16 +77,13 @@ class ThreadManager(QObject):
     """
 
     ## Execution Control ##
-    kill = pyqtSignal()
+    kill_all = pyqtSignal()
     """Emits when the thread manager should kill every process and thread immediately."""
 
-    terminate = pyqtSignal()
+    terminate_all = pyqtSignal()
     """Emits when the thread manager should terminate every process and thread gracefully."""
 
-    start = pyqtSignal()
-    """Start the thread manager"""
-
-    changeState = pyqtSignal(State)
+    change_state = pyqtSignal(State)
     """Emits whenever the thread manager changes state
 
     Parameters
@@ -95,12 +92,9 @@ class ThreadManager(QObject):
         The new state of the thread manager.
     """
 
-    def __init__(self, max_threads: int, ProcessGenerator: type[ProcessGenerator]):
+    def __init__(self, max_threads: int, ProcessGenerator: type[ProcessGeneratorBase]):
         """
         Base class for thread managers.
-
-        The thread manager itself is running in a separate thread with its own QEvent loop.
-        As such, all communication must be done using the signal/slot system.
 
         Parameters
         ----------
@@ -109,18 +103,18 @@ class ThreadManager(QObject):
         """
         super().__init__()
         self._logger = LoggingManager()
-        self._init = False
+        self._connected = False
 
         # Threads
         self._thread_pool = {}  # type: dict[int, QThread]
-        self._max_threads = max_threads
-        self._threads_pending_removal = set()
-        self._available_threads = set()
+        self._max_threads = abs(max_threads)
+        self._deallocated_threads = set()  # type: set[int]
+        self._available_threads = set()  # type: set[int]
 
         # Processes
-        self._process_pool = {}  # type: dict[int, ProcessBase]
+        self._process_pool = {}  # type: dict[int, ProcessGUI]
         self._process_generator = ProcessGenerator()
-        self._argument_generator = self._process_generator.args()
+        self._process_args = None  # type: Iterator[str]
         self._argument_buffer = []  # type: list[list[str]]
 
         # Progress
@@ -128,72 +122,88 @@ class ThreadManager(QObject):
         self._total_progress = 0  # The total amount of processes which will be executed
 
         # Execution Control
-        self._killed = False
-        self._terminated = False
+        self._state = ThreadManager.State.Starting
 
-    def __connect_signal_to_slot(self) -> None:
-        # TODO: Implement by intercepting a user pressing the close button.
-        # signalBus.appShutdown.connect(self._onAppShutdown)
+    @property
+    def max_threads(self):
+        """The maximum size of the thread pool"""
+        return self._max_threads
 
-        # Data Access
-        self.removeUnreservedThreads.connect(self._on_remove_unreserved_threads)
-
-        # Thread Control
-        self.allThreadsFinalized.connect(self._on_all_threads_finalized)
-        self.updateMaxThreads.connect(self._on_max_threads_updated)
-
-        # Process Control
-        self.updateProcessGenerator.connect(self._set_process_generator)
-
-        # Execution Control
-        self.kill.connect(self._kill_all)
-        self.terminate.connect(self._terminate_all)
-        self.start.connect(self._start)
-
-    def _on_remove_unreserved_threads(self):
-        thread_ids = self._available_threads
-        self._available_threads.clear()
-        for thread_id in thread_ids:
-            self._threads_pending_removal.add(thread_id)
-            self._finalize_thread(thread_id)
-
-    def _on_max_threads_updated(self, max_threads: int):
-        self._max_threads = max_threads
-        if len(self._thread_pool) != 0:
+    @max_threads.setter
+    def max_threads(self, threads: int):
+        self._max_threads = abs(threads)
+        if len(self._thread_pool) != 0 and self._state == ThreadManager.State.Running:
             self._run()
 
-    def _on_app_shutdown(self):
-        self._terminate_all()
+    def __str__(self):
+        ac = len(self._thread_pool)
+        av = len(self._available_threads)
+        dt = len(self._deallocated_threads)
+        return (
+            f"active: {ac}, available: {av-ac}, deallocated: {dt}, pool size: {ac+av}"
+        )
+
+    def __set_state(self, state: "ThreadManager.State"):
+        self._logger.debug(
+            f"{self.__class__.__name__} state: {state.name.capitalize()}"
+        )
+        self._state = state
+        self.change_state.emit(state)
+
+    def _connect_signals_to_slots(self) -> None:
+        # Thread Control
+        self.all_threads_removed.connect(self._on_work_complete)
+
+        # Process Control
+        self.update_process_generator.connect(self._on_process_generator_updated)
+
+        # Execution Control
+        self.kill_all.connect(self._kill_all)
+        self.terminate_all.connect(self._terminate_all)
 
     def _thread_grammar(self, amount: int) -> str:
         return "threads" if amount != 1 else "thread"
 
-    def _process_grammer(self, amount: int) -> str:
+    def _process_grammar(self, amount: int) -> str:
         return "processes" if amount != 1 else "process"
 
     def _kill_all(self):
-        if self._killed:
+        if self._state == ThreadManager.State.Killed:
             return
 
-        self._killed = True
+        self.__set_state(ThreadManager.State.Killed)
         self._logger.info("Killing all processes")
-        for thread_id in self._thread_pool.keys():
-            self._kill_process(thread_id)
+        for thread in self._thread_pool.values():
+            # Not calling _kill_thread here as we don't care about waiting
+            thread.terminate()
 
-    def _kill_process(self, process_id: int):
-        self._process_pool[process_id].kill.emit()
-
-    def _terminate_all(self) -> None:
-        if self._terminated:
+    def _terminate_all(self):
+        if self._state == ThreadManager.State.Terminated:
             return
 
-        self._terminated = True
+        self.__set_state(ThreadManager.State.Terminated)
         self._logger.info("Terminating all processes")
-        for thread_id in self._thread_pool.keys():
-            self._terminate_process(thread_id)
+        for thread in self._thread_pool.values():
+            # Not calling _terminate_thread here as we don't care about waiting
+            thread.quit()
 
-    def _terminate_process(self, process_id: int):
-        self._process_pool[process_id].terminate.emit()
+    def _kill_thread(self, id: int):
+        try:
+            thread = self._thread_pool[id]
+            self._logger.debug(f"Killing thread {id}")
+            thread.terminate()
+            thread.wait()
+        except KeyError:
+            self._logger.warning(f"Thread {id} not found")
+
+    def _terminate_thread(self, id: int):
+        try:
+            thread = self._thread_pool[id]
+            self._logger.debug(f"Terminating thread {id}")
+            thread.quit()
+            thread.wait()
+        except KeyError:
+            self._logger.warning(f"Thread {id} not found")
 
     def _run(self) -> list[int]:
         """Schedule processes for execution in all available threads.
@@ -209,15 +219,27 @@ class ThreadManager(QObject):
             A list of process IDs for the new processes.
         """
         self._update_thread_pool()
-        process_ids = []
-        for thread_id in list(self._available_threads):
-            if self._create_process(thread_id) is not None:
-                process_ids.append(thread_id)
-                self._available_threads.remove(thread_id)
-        return process_ids
+        thread_ids = []
+        for id in list(self._available_threads):
+            if self._create_thread(id) is not None:
+                thread_ids.append(id)
+                self._available_threads.remove(id)
+        return thread_ids
 
-    def _on_process_finished(self, process_id: int) -> bool:
-        """Runs a new process with ID `process_id`, if possible.
+    def _on_process_finished(self, id: int, returncode: tuple[int | None]):
+        (code,) = returncode
+        if code == 0:
+            self._on_process_success(id)
+        elif code is None:
+            # Process still running! This shouldn't happen
+            self._logger.error(
+                f"Process {id} finished without exit code (it's still running)"
+            )
+        else:
+            self._on_process_failed(id)
+
+    def _on_process_success(self, id: int) -> bool | None:
+        """Runs a new process with ID `id`, if possible.
 
         Note
         ----
@@ -227,138 +249,100 @@ class ThreadManager(QObject):
 
         Parameters
         ----------
-        process_id : int
+        id : int
             The ID of the process that just finished.
 
         Returns
         -------
-        bool
-            Returns True if a new process is created.
+        bool | None
+            Is True if `id` is not present in the thread pool and False otherwise.
+            Is None if `id` is not in use.
         """
         if (
-            not (self._terminated or self._killed)
+            not (
+                self._state == ThreadManager.State.Terminated
+                or self._state == ThreadManager.State.Killed
+            )
             and self._current_progress < self._total_progress
         ):
             self._current_progress += 1  # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
-            self.currentProgress.emit(self._current_progress)
+            self.current_progress.emit(self._current_progress)
 
-            if process_id not in self._threads_pending_removal:
-                new_proc = self._create_process(process_id)
-                if new_proc is not None:
-                    return True
-        self._finalize_process(process_id)
-        return False
+            if id not in self._deallocated_threads:
+                return self._create_thread(id)
 
-    def _on_process_failed(self, process_id: int):
+        self._remove_thread(id)
+
+    def _on_process_failed(self, id: int) -> bool:
         # TODO: Save progress. Show a list of failed processes and the reasons in the GUI
         # TODO: Track process' download progress and save upon failure, to allow easy recovery
-        process = self._process_pool[process_id]
-        self._argument_buffer.append(process.args)
-        self._logger.warning(
-            f"Process {process_id} failed",
-            title="Process failure",
-            gui=True,
-            pid=process_id,
-        )
-        self._on_process_finished(process_id)
+        # process = self._process_pool[id]
+        # self._argument_buffer.append(process.args)
+        return self._on_process_success(id)
 
-    def _create_process(self, process_id: int) -> ProcessBase | None:
-        """Creates a new process with ID `process_id` and assigns it
+    def _create_thread(self, id: int) -> bool:
+        """Creates a new process with ID `id` and assigns it
         to the thread with the same ID.
 
         Parameters
         ----------
-        process_id : int
+        id : int
             The ID of the new process.
 
         Returns
         -------
-        ProcessBase | None
-            The new process or None if a process could not be created.
+        bool
+            Is True if `id` is not present in the thread pool and False otherwise.
         """
         try:
             args = self._argument_buffer.pop()
         except IndexError:
-            args = next(self._argument_generator, None)
+            args = next(self._process_args, None)
 
+        is_new_thread = False
         if args is not None:
-            is_running = False
             try:
-                process = self._process_pool[process_id]
+                thread = self._thread_pool[id]
+                # Delete the thread previously using `id`.
+                if thread.isRunning():
+                    thread.quit()
+                    thread.wait()
+                    thread.deleteLater()
             except KeyError:
-                process = self._process_generator.process()()
-                process.finished.connect(self._on_process_finished)
-                process.failed.connect(self._on_process_failed)
-                self._process_pool[process_id] = process
-                thread = self._thread_pool[process_id]
-                process.moveToThread(thread)
-                thread.started.connect(process._start)
-                is_running = not thread.isRunning()
+                is_new_thread = True
 
-            process.setProgram(self._process_generator.program())
-            process.setArguments(args)
-            process.process_id = process_id
+            thread = self._process_generator.process()(
+                pid=id,
+                program=self._process_generator.program(),
+                args=args,
+            )
+            self._thread_pool[id] = thread
+            thread.done.connect(self._on_process_finished)
 
-            if len(self._process_pool) == 1 and is_running:
-                self.changeState.emit(ThreadManager.State.Running)
-            return process
+            if len(self._thread_pool) == 1 and not thread.isRunning():
+                self.__set_state(ThreadManager.State.Running)
 
-    def _finalize_process(self, process_id: int):
-        """Performs cleanup after a process has finished.
-        The process is removed from the process pool.
+        return is_new_thread
+
+    def _remove_thread(self, id: int):
+        """Removes a thread from the thread pool.
 
         Parameters
         ----------
-        process_id : int
-            The ID of the finished process.
+        id : int
+            The ID of the thread.
         """
-        # Ensure a process is only finalized once
-        if process_id not in self._process_pool:
-            return
+        if id in self._thread_pool:
+            self._logger.debug(f"Removing thread {id}")
+            thread = self._thread_pool[id]
+            if thread.isRunning():
+                self._terminate_thread(id)
 
-        self._process_pool.pop(process_id)
-        self._thread_pool[process_id].quit()
+            self._thread_pool.pop(id).deleteLater()
+            self.thread_removed.emit(id)
 
-    def _create_thread(self, thread_id: int) -> QThread:
-        """Creates a new thread and returns it.
-
-        Parameters
-        ----------
-        thread_id : int
-            The ID of the new thread.
-        """
-        self._logger.debug(f"Creating thread {thread_id}")
-        self._thread_pool[thread_id] = thread = QThread()
-        thread.finished.connect(
-            lambda thread_id=thread_id: self._finalize_thread(thread_id)
-        )
-        return thread
-
-    def _finalize_thread(self, thread_id: int) -> None:
-        """Performs cleanup after a thread has finished.
-        The thread is removed from the thread pool.
-
-        Parameters
-        ----------
-        thread_id : int
-            The ID of the finished thread.
-        """
-        # Ensure a thread is only finalized once
-        if thread_id not in self._thread_pool:
-            return
-
-        self._logger.debug(f"Finalizing thread {thread_id}")
-        self._thread_pool.pop(thread_id)
-
-        try:
-            self._threads_pending_removal.remove(thread_id)
-        except KeyError:
-            pass
-
-        self.threadFinalized.emit(thread_id)
-
-        if not self._thread_pool:
-            self.allThreadsFinalized.emit()
+            if len(self._thread_pool) == 0:
+                self.all_threads_removed.emit()
 
     def _update_thread_pool(self):
         """Compute the active thread count and schedule threads accordingly."""
@@ -380,10 +364,8 @@ class ThreadManager(QObject):
                 stop = start + thread_difference
                 for i in range(start, stop):
                     self._available_threads.add(i)
-                    self._thread_pool[i] = self._create_thread(i)
                 self._logger.debug(
-                    f"Added {thread_difference} {self._thread_grammar(thread_difference)} to the thread pool "
-                    + f"(total size: {len(self._thread_pool)})"
+                    f"Added {thread_difference} {self._thread_grammar(thread_difference)} ({self})"
                 )
 
             # Thread count is decreased
@@ -393,59 +375,66 @@ class ThreadManager(QObject):
                     start + thread_difference
                 )  # Addition cause the difference is negative
                 step = -1
-                for thread_id in range(start, stop, step):
-                    self._threads_pending_removal.add(thread_id)
+                for id in range(start, stop, step):
+                    self._deallocated_threads.add(id)
                 removed_threads = stop - start
                 if removed_threads > 0:
                     self._logger.debug(
-                        f"Removed {removed_threads} {self._thread_grammar(removed_threads)} from the thread pool "
-                        + f"(total size: {len(self._thread_pool)})"
+                        f"Deallocated {removed_threads} {self._thread_grammar(removed_threads)} ({self})"
                     )
 
-    def _on_all_threads_finalized(self) -> None:
-        if self._terminated:
-            self._logger.info(
-                f"Termination successful. Finished {self._current_progress} / {self._total_progress} processes"
-            )
-        elif self._current_progress < self._total_progress:
+    def _clean_thread_pool(self):
+        for thread in self._thread_pool.values():
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+            thread.deleteLater()
+        self._thread_pool.clear()
+
+    def _on_work_complete(self):
+        if self._current_progress < self._total_progress:
             self._logger.warning(
                 f"Some processes did not complete. Missing {self._total_progress - self._current_progress} / {self._total_progress} processes"
             )
         else:
             self._logger.info(
-                f"{f"All {self._total_progress} processes have" if self._total_progress != 1 else "The process has"} finished!"
+                f"Finished {self._current_progress} / {self._total_progress} processes"
             )
-        self.changeState.emit(ThreadManager.State.Stopped)
+        self._clean_thread_pool()
+        self.__set_state(ThreadManager.State.Stopped)
 
-    def _set_process_generator(self, generator: ProcessGenerator):
+    def _on_process_generator_updated(self, generator: ProcessGeneratorBase):
         self._process_generator = generator
 
-    def _start(self) -> None:
-        if not self._init:
-            self.__connect_signal_to_slot()
-            self._init = True
-
-        if not self._process_generator.can_start():
-            self._logger.error(f"No arguments available", gui=True)
-            return
-
-        self._killed = False
-        self._terminated = False
-        self._current_progress = 0
+    def start(self):
         try:
-            self._argument_generator = self._process_generator.args()
-            self._total_progress = self._process_generator.get_total_progress()
+            if not self._connected:
+                self._connect_signals_to_slots()
+                self._connected = True
+
+            self.__set_state(ThreadManager.State.Starting)
+            args = self._process_generator.arguments_list()
+
+            self._current_progress = 0
+            self._total_progress = len(args)
+
+            if self._total_progress == 0:
+                self._logger.error(f"No arguments available", gui=True)
+                return
+
+            self._process_args = iter(args)
+
             self._logger.info(
                 f"Initializing {self.__class__.__name__}. Processes to execute: {self._total_progress}"
             )
-            self.currentProgress.emit(self.currentProgress)
-            self.totalProgress.emit(self._total_progress)
+            self.current_progress.emit(self.current_progress)
+            self.total_progress.emit(self._total_progress)
 
             self._run()
 
             thread_pool_size = len(self._thread_pool)
-            self._logger.debug(
-                f"Scheduled {self._total_progress} {self._process_grammer(self._total_progress)} "
+            self._logger.info(
+                f"Scheduled {self._total_progress} {self._process_grammar(self._total_progress)} "
                 + f"in {thread_pool_size} {self._thread_grammar(thread_pool_size)}"
             )
         except Exception:

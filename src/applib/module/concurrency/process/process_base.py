@@ -1,212 +1,289 @@
+import asyncio
+import os
+import shlex
+import signal
+import sys
 import traceback
+from asyncio import subprocess
+from enum import Enum
+from typing import override
 
-from PyQt6.QtCore import (
-    QObject,
-    QProcess,
-    QProcessEnvironment,
-    QStringDecoder,
-    pyqtSignal,
-)
+import qasync
+from PyQt6.QtCore import QDeadlineTimer, QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import LoggingManager
 
 
+class ProcessStatus(Enum):
+    PAUSED = 0
+    TERMINATED = 1
+    KILLED = 2
+    RUNNING = 4
+    STARTING = 5
+
+
 # Signals must not be connected to slots in __init__
-# as that will result in them being bound to the main thread
-# (a good idea would be to connect signals in the "start" method instead)
-class ProcessBase(QObject):
-    finished = pyqtSignal(int)
-    """The process finished successfully.
+# as that will result in them being bound to the main thread.
+# (a good idea would be to connect signals in the "run" method instead).
+#
+# A subclassed QThread has no event loop per default.
+# As such, it cannot receive any pyqtSignals, only emit.
+# An eventloop can be instantiated by calling exec(), however, this call is thread blocking.
+class ProcessGUI(QThread):
+    """A process streaming its output to the GUI"""
+
+    done = pyqtSignal(int, tuple)
+    """The process has finished.
 
     Parameters
     ----------
     process_id : int
         The id of the process.
+    returncode : tuple[int | None]
+        The exit code of the process
     """
+    pause = pyqtSignal()
+    """Suspend the process."""
 
-    failed = pyqtSignal(int)
-    """The process failed in some way.
+    resume = pyqtSignal()
+    """Continue the process."""
 
-    Parameters
-    ----------
-    process_id : int
-        The id of the process.
-    """
+    pipe_closed = pyqtSignal()
+    """Indicates process has finished"""
 
-    kill = pyqtSignal()
-    """Kill the process immediately."""
-
-    terminate = pyqtSignal()
-    """Terminate process."""
-
-    start = pyqtSignal()
-    """Start process."""
-
-    def __init__(self):
+    def __init__(self, pid: int, program: str, args: str):
         """The base class for processes.
 
         NOTE: All communication with the process should be made using the signal/slot system.
-        """
-        super().__init__()
-        self._logger = LoggingManager()
-        self._initialized = False
-        self.process = None  # type: QProcess
-        self.process_environment = None  # type: QProcessEnvironment
-        self.process_id = None  # type: int
-        self.program = ""
-        self.args = []
-        self.decoder = None  # type: QStringDecoder
-
-        self._killed = False
-        self._terminated = False
-
-    def __connectSignalToSlot(self):
-        self.process.errorOccurred.connect(self._onProcessError)
-        self.process.finished.connect(self._onProcessFinished)
-        self.process.readyReadStandardOutput.connect(self._onReadyStdOut)
-        self.process.readyReadStandardError.connect(self._onReadyStdErr)
-        self.kill.connect(self._killProcess)
-        self.terminate.connect(self._terminate)
-        self.start.connect(self._start)
-
-    def _onReadyStdOut(self):
-        self.process.setReadChannel(QProcess.ProcessChannel.StandardOutput)
-        self._logger.info(
-            self.decoder.decode(self.process.readLine()),
-            log=False,
-            pid=self.process_id,
-        )
-
-    def _onReadyStdErr(self):
-        self.process.setReadChannel(QProcess.ProcessChannel.StandardError)
-        self._logger.error(
-            self.decoder.decode(self.process.readLine()), log=False, pid=self.process_id
-        )
-
-    def _onProcessError(self, code: int):
-        match code:
-            # The process failed to start
-            case QProcess.ProcessError.FailedToStart:
-                self._logger.error(
-                    f"Process {self.process_id} failed to start", pid=self.process_id
-                )
-            # The process crashed some time after starting successfully
-            case QProcess.ProcessError.Crashed:
-                if self._killed:
-                    return
-                self._logger.error(
-                    f"Process {self.process_id} crashed", pid=self.process_id
-                )
-            # The last waitFor...() function timed out
-            case QProcess.ProcessError.Timedout:
-                self._logger.info(
-                    f"Process {self.process_id} timed out while terminating and will be killed forcefully",
-                    pid=self.process_id,
-                )
-                self.process.kill()
-            # An error occurred when attempting to read from the process
-            case QProcess.ProcessError.ReadError:
-                self._logger.error(
-                    f"Failed to read from process {self.process_id}",
-                    pid=self.process_id,
-                )
-                self._terminate()
-            # An error occurred when attempting to write to the process
-            case QProcess.ProcessError.WriteError:
-                self._logger.error(
-                    f"Failed to write to process {self.process_id}", pid=self.process_id
-                )
-                self._terminate()
-            # An unknown error occurred
-            case QProcess.ProcessError.UnknownError:
-                self._logger.error(
-                    f"Process {self.process_id} encountered an unknown error",
-                    pid=self.process_id,
-                )
-                self._terminate()
-            # The error codes have been extended but is not supported here
-            case _:
-                self._logger.warning(
-                    f"Unsupported error code {code} created by process {self.process_id}",
-                    pid=self.process_id,
-                )
-                self._terminate()
-
-    def _onProcessFinished(self, exitCode: int, exitStatus: QProcess.ExitStatus):
-        """
-        Determine if a finished process is considered to have failed or not.
-
-        A failed process will be treated as if it had not been run.
-        Thus, its arguments will be rescheduled by the thread manager.
 
         Parameters
         ----------
-        exitCode : int
-            The exit code of the process.
-        exitStatus : QProcess.ExitStatus
-            The exit status of the process.
+        pid : int
+            The process' ID.
+        program : str
+            The program to run.
+        args : str
+            The arguments to run `program` with.
         """
-        if not (self._killed or self._terminated):
-            if exitCode == 0:
-                self.finished.emit(self.process_id)
-            else:
-                self._logger.error(
-                    f"Process exited with error code {exitCode}", pid=self.process_id
-                )
-                # TODO: Temporary until process failure is handled properly in thread_manager
-                # When that happens, move it outside of if-statement
-                self.failed.emit(self.process_id)
-
-    def _killProcess(self):
-        self._logger.info(f"Killing process {self.process_id}")
-        self._killed = True
-        self.process.kill()
-
-    def _terminate(self):
-        self._logger.info(f"Terminating process {self.process_id}")
-        self._terminated = True
-        self.process.terminate()
-        self.process.waitForFinished(10000)
-
-    def _setup(self):
-        environ = QProcessEnvironment(
-            QProcessEnvironment.Initialization.InheritFromParent
-        )
-        # Set encoding of subprocess
-        environ.insert("PYTHONIOENCODING", "utf-8")
-        # Disable default buffering of subprocess
-        environ.insert("PYTHONUNBUFFERED", "1")
-
-        self.process = QProcess(self)
-        self.process.setProcessEnvironment(environ)
-        self.decoder = QStringDecoder(QStringDecoder.Encoding.Utf8)
-        self.__connectSignalToSlot()
-        self._initialized = True
-
-    def setProgram(self, program: str):
+        super().__init__()
+        self._event_loop = None
+        self._logger = LoggingManager()
+        self._status = ProcessStatus.STARTING
+        self.process: asyncio.subprocess.Process = None
+        self.pid = pid
         self.program = program
-
-    def setArguments(self, args: list[str]):
         self.args = args
 
-    def _start(self):
-        self._terminated = False
-        self._killed = False
-        try:
-            if not self._initialized:
-                self._setup()
+    def __connectSignalToSlot(self):
+        self.pause.connect(self._pause)
+        self.resume.connect(self._resume)
+        self.pipe_closed.connect(self._onProcessFinished)
 
-            self._logger.info(
-                f"Starting process",
-                log=True,
-                gui=False,
-                pid=self.process_id,
+    def _onProcessFinished(self):
+        returncode_msg = f"(code {self.process.returncode})"
+
+        match self._status:
+            case ProcessStatus.PAUSED:
+                self._logger.error(
+                    f"Process {self.pid} finished in paused state {returncode_msg}",
+                    gui=True,
+                )
+            case ProcessStatus.TERMINATED:
+                self._logger.debug(f"Process {self.pid} terminated {returncode_msg}")
+            case ProcessStatus.KILLED:
+                self._logger.debug(f"Process {self.pid} killed {returncode_msg}")
+            case ProcessStatus.RUNNING:
+                if self.process.returncode == 0:
+                    self._logger.debug(f"Process {self.pid} finished {returncode_msg}")
+                elif self.process.returncode is None:
+                    # Process is still running
+                    pass
+                else:
+                    self._logger.debug(f"Process {self.pid} failed {returncode_msg}")
+            case ProcessStatus.STARTING:
+                self._logger.error(
+                    f"Process {self.pid} finished in starting state {returncode_msg}",
+                    gui=True,
+                )
+        self.done.emit(self.pid, (self.process.returncode,))
+
+    async def _kill_process(self):
+        self._logger.info(f"\nKilling process {self.pid}", log=False, pid=self.pid)
+        self._status = ProcessStatus.KILLED
+
+        try:
+            self.process.kill()
+        except ProcessLookupError:
+            # Already dead
+            pass
+
+    def _terminate_process(self):
+        self._logger.info(f"\nTerminating process {self.pid}", log=False, pid=self.pid)
+        self._status = ProcessStatus.TERMINATED
+
+        try:
+            self.process.terminate()
+        except ProcessLookupError:
+            # Already dead
+            pass
+
+    def _pause(self):
+        self._logger.info(f"\nPausing process {self.pid}", log=False, pid=self.pid)
+        self._status = ProcessStatus.PAUSED
+        self.process.send_signal(signal.SIGSTOP)
+
+    def _resume(self):
+        self._logger.info(f"\nResuming process {self.pid}", log=False, pid=self.pid)
+        self._status = ProcessStatus.RUNNING
+        self.process.send_signal(signal.SIGCONT)
+
+    async def _run(self) -> None:
+        env = {
+            # Copy parent's environment. SYSTEMROOT environment variable is required to
+            # create network connections using getaddrinfo() (https://stackoverflow.com/a/14587915)
+            **os.environ.copy(),
+            # Set encoding of subprocess
+            "PYTHONIOENCODING": "utf-8",
+            # Use unbuffered pipe to enable streaming of program output to GUI
+            "PYTHONUNBUFFERED": "1",
+        }
+        kwargs = {}
+
+        if sys.platform == "win32":
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags = subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = subprocess.SW_HIDE
+
+            kwargs["creationflags"] = subprocess.CREATE_NEW_CONSOLE
+            kwargs["startupinfo"] = startupinfo
+
+        self.process = await asyncio.create_subprocess_exec(
+            self.program,
+            *shlex.split(self.args),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env,
+            **kwargs,
+        )
+
+        self._status = ProcessStatus.RUNNING
+
+        self._logger.debug(
+            f'Process {self.pid} started\n\tProgram: "{self.program}"\n\tArgs: "{self.args}"'
+        )
+        await self._read_pipe()
+
+    async def _read_pipe(self) -> None:
+        """
+        Reads piped stdout/stderr from the process, line by line, in realtime.
+
+        Important
+        ---------
+            Remember to disable buffering for the process.
+            Otherwise stdout/stderr will only be shown upon process completion.
+        """
+        pending = {
+            asyncio.create_task(
+                self.process.stdout.readline(),
+                name="stdout",
+            ),
+            asyncio.create_task(
+                self.process.stderr.readline(),
+                name="stderr",
+            ),
+        }
+        while len(pending) > 0:
+            done, pending = await asyncio.wait(
+                pending, return_when=asyncio.FIRST_COMPLETED
             )
-            self.process.start(self.program, self.args)
+            for task in done:
+                line = await task
+
+                # If the line is empty, we are at the end of the stream
+                if len(line) == 0:
+                    continue
+
+                # Re-create a readline() task for the respective stream
+                match task.get_name():
+                    case "stdout":
+                        self._logger.info(
+                            line.decode(errors="replace"),
+                            log=False,
+                            pid=self.pid,
+                        )
+                        pending.update(
+                            (
+                                asyncio.create_task(
+                                    self.process.stdout.readline(), name="stdout"
+                                ),
+                            )
+                        )
+                    case "stderr":
+                        self._logger.error(
+                            line.decode(errors="replace"),
+                            pid=self.pid,
+                        )
+                        pending.update(
+                            (
+                                asyncio.create_task(
+                                    self.process.stderr.readline(), name="stderr"
+                                ),
+                            )
+                        )
+        self.pipe_closed.emit()
+
+    @override
+    def run(self):
+        try:
+            self.__connectSignalToSlot()
+
+            self._logger.debug(
+                f"Starting process {self.pid}",
+            )
+
+            self._event_loop = qasync.QEventLoop(self)
+            asyncio.set_event_loop(self._event_loop)
+            asyncio.run(self._run())
         except Exception:
             self._logger.error(
-                f"Failed to start process {self.process_id}\n{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}",
-                pid=self.process_id,
+                f"Process {self.pid} failed:\n{traceback.format_exc(limit=CoreArgs._core_traceback_limit)}",
+                pid=self.pid,
             )
-            self._terminate()
+            # TODO: Figure out whether we should stop the thread manager on failure or continue with the remaining processes.
+            #       (Maybe make it a config option??)
+            #       Since nothing is done here, the thread manager keeps self.pid reserved for this process forever.
+
+    @override
+    def quit(self):
+        """Stop the event loop, perform cleanup, and shut down.
+
+        Equivalent to calling `self.exit(0)`.
+        """
+        self._terminate_process()
+        self._event_loop.stop()
+        return super().quit()
+
+    @override
+    def exit(self, returnCode: int):
+        """Stop the event loop, perform cleanup, shut down, and exit with a return code."""
+        self._terminate_process()
+        self._event_loop.stop()
+        return super().exit(returnCode)
+
+    @override
+    def terminate(self):
+        """Terminates the execution of the thread.
+
+        # Warning
+        This function is dangerous and its use is discouraged.
+
+        The thread can be terminated at any point in its code path.
+        It can be terminated while modifying data. There is no chance
+        for the thread to clean up after itself, unlock any held mutexes, etc.
+        In short, use this function only if absolutely necessary.
+        """
+        self._kill_process()
+        self._event_loop.stop()
+        self._event_loop.close()
+        return super().terminate()

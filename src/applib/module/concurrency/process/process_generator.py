@@ -1,11 +1,9 @@
-from abc import ABC, abstractmethod
-from collections.abc import Generator
-from typing import Any
+from abc import abstractmethod
 
-from ..process.process_base import ProcessBase
+from ..process.process_base import ProcessGUI
 
 
-class ProcessGenerator(ABC):
+class ProcessGeneratorBase:
 
     @abstractmethod
     def program(self) -> str:
@@ -18,21 +16,20 @@ class ProcessGenerator(ABC):
         ...
 
     @abstractmethod
-    def args(self) -> Generator[list[str], Any, Any]:
-        """Generator that creates arguments to be consumed by a process.
+    def arguments_list(self) -> list[str]:
+        """All arguments to executed by the program.
 
-        Yields
+        Returns
         ------
-        Generator[list[str], Any, Any]
-            All created arguments must be a list of strings.
+        list[str]
+            Each argument is a string in the list, e.g., `--input "path" --output "o"`
         """
         ...
 
-    @abstractmethod
-    def process(self) -> type[ProcessBase]:
-        """The Process class in which the code is run.
+    def process(self) -> type[ProcessGUI]:
+        """The Process class in which the arguments are executed by the program.
 
-        Must be a subclass of `ProcessBase` in order
+        Must be a `ProcessGUI` (or a subclass thereof) in order
         to be handled properly by the thread manager.
 
         Returns
@@ -40,26 +37,4 @@ class ProcessGenerator(ABC):
         type[ProcessBase]
             A reference to the process class.
         """
-        ...
-
-    @abstractmethod
-    def can_start(self) -> bool:
-        """Whether any arguments can be created by the generator.
-
-        Returns
-        -------
-        bool
-            Returns True if the Generator is non-empty.
-        """
-        ...
-
-    @abstractmethod
-    def get_total_progress(self) -> int:
-        """Calculates the total amount of processes that can be created by the generator.
-
-        Returns
-        -------
-        int
-            The total amount of processes that can be created by the generator.
-        """
-        ...
+        return ProcessGUI
