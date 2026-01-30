@@ -22,4 +22,4 @@ from interfaces.mainwindow import TestMainWindow
 
 from applib.app.core_app import CoreApp
 
-CoreApp(TestMainWindow)  # type: ignore
+CoreApp(TestMainWindow)
