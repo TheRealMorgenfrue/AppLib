@@ -20,7 +20,7 @@ os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[0]}"
 
 # Dirty fix to silence noisy software
 with __ctxl.redirect_stdout(None):
-    from qfluentwidgets import QConfig as __silence
+    from qfluentwidgets import QConfig as __silence  # noqa: F401
 
 from .app.common.auto_wrap import AutoTextWrap
 from .app.common.core_signalbus import core_signalbus
