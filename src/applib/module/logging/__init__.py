@@ -30,23 +30,33 @@ class LoggingManager:
     _level = LogLevel.DEBUG
     _cache_max_size = 50  # This many messages before the oldest get deleted
 
-    _gui_msg_cache = deque()  # type: deque[Callable]
-    _proc_msg_cache = deque()  # type: deque[Callable]
+    _gui_msg_buffer = deque()  # type: deque[Callable]
+    _process_msg_buffer = deque()  # type: deque[Callable]
     _gui_msg_signal = None  # type: pyqtBoundSignal | None
-    _proc_msg_signal = None  # type: pyqtBoundSignal | None
+    _process_msg_signal = None  # type: pyqtBoundSignal | None
 
     def __new__(cls) -> Self:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def _add_to_cache(self, cache_type: str, cache: deque[Callable], msg: Callable):
-        if len(cache) > self._cache_max_size:
+    def _add_to_process_buffer(self, msg: Callable):
+        size = len(self._process_msg_buffer)
+        if size > self._cache_max_size:
             self.warning(
-                f"{cache_type} message cache ({len(cache)}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
+                f"Process message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
             )
-            cache.popleft()
-        cache.append(msg)
+            self._process_msg_buffer.popleft()
+        self._process_msg_buffer.append(msg)
+
+    def _add_to_gui_buffer(self, msg: Callable):
+        size = len(self._gui_msg_buffer)
+        if size > self._cache_max_size:
+            self.warning(
+                f"GUI message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
+            )
+            self._gui_msg_buffer.popleft()
+        self._gui_msg_buffer.append(msg)
 
     def _get_gui_orient(self, msg: str):
         return Qt.Orientation.Horizontal if len(msg) < 50 else Qt.Orientation.Vertical
@@ -55,17 +65,17 @@ class LoggingManager:
         return re.sub(pattern="\n", repl="<br>", string=text)
 
     def _display_gui_msg_cache(self):
-        for fn in self._gui_msg_cache:
+        for fn in self._gui_msg_buffer:
             fn()
-        self._gui_msg_cache.clear()
+        self._gui_msg_buffer.clear()
 
     def _display_proc_msg_cache(self):
-        for fn in self._proc_msg_cache:
+        for fn in self._process_msg_buffer:
             fn()
-        self._proc_msg_cache.clear()
+        self._process_msg_buffer.clear()
 
-    def set_proc_signal(self, signal: pyqtBoundSignal | None):
-        self._proc_msg_signal = signal
+    def set_process_signal(self, signal: pyqtBoundSignal | None):
+        self._process_msg_signal = signal
         self._display_proc_msg_cache()
 
     def set_gui_signal(self, signal: pyqtBoundSignal | None):
@@ -147,15 +157,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.debug(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("gui", self._gui_msg_cache, func)
+                    self._add_to_gui_buffer(func)
             if pid is not None:
-                if self._proc_msg_signal is not None:
-                    self._proc_msg_signal.emit(level, pid, msg)
+                if self._process_msg_signal is not None:
+                    self._process_msg_signal.emit(level, pid, msg)
                 else:
                     func = lambda msg=msg, log=False, gui=False, pid=pid: self.debug(
                         msg=msg, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("process", self._proc_msg_cache, func)
+                    self._add_to_process_buffer(func)
 
     def info(
         self,
@@ -206,15 +216,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.info(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("gui", self._gui_msg_cache, func)
+                    self._add_to_gui_buffer(func)
             if pid is not None:
-                if self._proc_msg_signal is not None:
-                    self._proc_msg_signal.emit(level, pid, msg)
+                if self._process_msg_signal is not None:
+                    self._process_msg_signal.emit(level, pid, msg)
                 else:
                     func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
                         msg=msg, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("process", self._proc_msg_cache, func)
+                    self._add_to_process_buffer(func)
 
     def warning(
         self,
@@ -265,15 +275,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.warning(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("gui", self._gui_msg_cache, func)
+                    self._add_to_gui_buffer(func)
             if pid is not None:
-                if self._proc_msg_signal is not None:
-                    self._proc_msg_signal.emit(level, pid, msg)
+                if self._process_msg_signal is not None:
+                    self._process_msg_signal.emit(level, pid, msg)
                 else:
                     func = lambda msg=msg, log=False, gui=False, pid=pid: self.warning(
                         msg=msg, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("process", self._proc_msg_cache, func)
+                    self._add_to_process_buffer(func)
 
     def error(
         self,
@@ -324,15 +334,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.error(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("gui", self._gui_msg_cache, func)
+                    self._add_to_gui_buffer(func)
             if pid is not None:
-                if self._proc_msg_signal is not None:
-                    self._proc_msg_signal.emit(level, pid, msg)
+                if self._process_msg_signal is not None:
+                    self._process_msg_signal.emit(level, pid, msg)
                 else:
                     func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
                         msg=msg, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("process", self._proc_msg_cache, func)
+                    self._add_to_process_buffer(func)
 
     def critical(
         self,
@@ -383,15 +393,15 @@ class LoggingManager:
                     func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.critical(
                         msg=msg, title=title, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("gui", self._gui_msg_cache, func)
+                    self._add_to_gui_buffer(func)
             if pid is not None:
-                if self._proc_msg_signal is not None:
-                    self._proc_msg_signal.emit(level, pid, msg)
+                if self._process_msg_signal is not None:
+                    self._process_msg_signal.emit(level, pid, msg)
                 else:
                     func = lambda msg=msg, log=False, gui=False, pid=pid: self.critical(
                         msg=msg, log=log, gui=gui, pid=pid
                     )
-                    self._add_to_cache("process", self._proc_msg_cache, func)
+                    self._add_to_process_buffer(func)
 
     def applib_logger(self) -> logging.Logger:
         """Get the library logger"""
