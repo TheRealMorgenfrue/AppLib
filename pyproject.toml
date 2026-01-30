@@ -28,8 +28,9 @@ dependencies = [
 dev = ["pytest", "pytest-cov", "ruff==0.14.11", "mkdocs-material"]
 
 [project.urls]
-"Homepage" = "https://github.com/TheRealMorgenfrue/AppLib"
-"Bug Tracker" = "https://github.com/TheRealMorgenfrue/AppLib/issues"
+Homepage = "https://github.com/TheRealMorgenfrue/AppLib"
+Documentation = "https://example.com"
+Issues = "https://github.com/TheRealMorgenfrue/AppLib/issues"
 
 [tool.hatch.version]
 path = "src/applib/version.py"
