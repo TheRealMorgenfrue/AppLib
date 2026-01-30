@@ -59,6 +59,17 @@ According to [this forum post](https://forum.qt.io/topic/158586/qt6-qpropertyani
 
 On Linux Wayland, start your program with the environment variable: `QT_QPA_PLATFORM=xcb`.
 
+## Development Setup
+
+> [!NOTE]
+> This project uses `uv` as package manager
+
+1. Install uv from https://docs.astral.sh/uv/getting-started/installation/
+2. Run `uv run --extra dev tests/manual/mantest.py`  
+   If a GUI displays, the installation was successful.
+
+Please refer to uv's [documentation](https://docs.astral.sh/uv/) for further assistance.
+
 ## Acknowledgements
 
 AppLib builds on top of:
