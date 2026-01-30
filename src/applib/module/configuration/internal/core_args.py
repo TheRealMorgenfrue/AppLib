@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from ...tools.version import VERSION
+from ....version import VERSION
 
 
 class CoreArgs:

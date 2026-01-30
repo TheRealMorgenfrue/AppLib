@@ -31,7 +31,7 @@ dev = ["pytest", "pytest-cov", "ruff==0.14.11", "mkdocs-material"]
 "Bug Tracker" = "https://github.com/TheRealMorgenfrue/AppLib/issues"
 
 [tool.hatch.version]
-    path="src/applib/module/tools/version.py"
+path = "src/applib/version.py"
 
 [tool.ruff]
 extend-exclude = []

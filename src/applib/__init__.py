@@ -13,6 +13,8 @@ import contextlib as __ctxl
 import os
 from pathlib import Path
 
+from .version import VERSION
+
 # Set path for library code
 os.environ["APPLIB_PATH"] = f"{Path(os.path.abspath(__file__)).parents[0]}"
 
@@ -159,7 +161,6 @@ from .module.tools.utilities import (
     format_validation_error,
     iter_to_str,
 )
-from .module.tools.version import VERSION
 
 __author__ = "TheRealMorgenfrue"
 __version__ = VERSION
