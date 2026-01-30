@@ -6,8 +6,8 @@ from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import LoggingManager
-from ..process.process_base import ProcessGUI
 from ..process.process_generator import ProcessGeneratorBase
+from ..process.process_gui import CoreProcessGUI
 
 
 class ThreadManager(QObject):
@@ -112,7 +112,7 @@ class ThreadManager(QObject):
         self._available_threads = set()  # type: set[int]
 
         # Processes
-        self._process_pool = {}  # type: dict[int, ProcessGUI]
+        self._process_pool = {}  # type: dict[int, CoreProcessGUI]
         self._process_generator = ProcessGenerator()
         self._process_args = None  # type: Iterator[str]
         self._argument_buffer = []  # type: list[list[str]]
@@ -315,6 +315,7 @@ class ThreadManager(QObject):
                 pid=id,
                 program=self._process_generator.program(),
                 args=args,
+                logger=LoggingManager(),  # TODO: Make changeable by client code instead of hardcoded
             )
             self._thread_pool[id] = thread
             thread.done.connect(self._on_process_finished)

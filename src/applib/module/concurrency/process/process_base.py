@@ -6,7 +6,7 @@ import sys
 import traceback
 from asyncio import subprocess
 from enum import Enum
-from typing import override
+from typing import IO, Any, override
 
 import qasync
 from PyQt6.QtCore import QDeadlineTimer, QThread, pyqtSignal
@@ -30,8 +30,8 @@ class ProcessStatus(Enum):
 # A subclassed QThread has no event loop per default.
 # As such, it cannot receive any pyqtSignals, only emit.
 # An eventloop can be instantiated by calling exec(), however, this call is thread blocking.
-class ProcessGUI(QThread):
-    """A process streaming its output to the GUI"""
+class CoreProcess(QThread):
+    """The basic process which doesn't capture it's output"""
 
     done = pyqtSignal(int, tuple)
     """The process has finished.
@@ -139,15 +139,6 @@ class ProcessGUI(QThread):
         self.process.send_signal(signal.SIGCONT)
 
     async def _run(self) -> None:
-        env = {
-            # Copy parent's environment. SYSTEMROOT environment variable is required to
-            # create network connections using getaddrinfo() (https://stackoverflow.com/a/14587915)
-            **os.environ.copy(),
-            # Set encoding of subprocess
-            "PYTHONIOENCODING": "utf-8",
-            # Use unbuffered pipe to enable streaming of program output to GUI
-            "PYTHONUNBUFFERED": "1",
-        }
         kwargs = {}
 
         if sys.platform == "win32":
@@ -161,9 +152,9 @@ class ProcessGUI(QThread):
         self.process = await asyncio.create_subprocess_exec(
             self.program,
             *shlex.split(self.args),
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
-            env=env,
+            stdout=self.stdout(),
+            stderr=self.stderr(),
+            env=self.env(),
             **kwargs,
         )
 
@@ -172,66 +163,46 @@ class ProcessGUI(QThread):
         self._logger.debug(
             f'Process {self.pid} started\n\tProgram: "{self.program}"\n\tArgs: "{self.args}"'
         )
-        await self._read_pipe()
+        await self.process_monitor()
 
-    async def _read_pipe(self) -> None:
-        """
-        Reads piped stdout/stderr from the process, line by line, in realtime.
+    async def process_monitor(self):
+        """Monitor the process.
 
-        Important
-        ---------
-            Remember to disable buffering for the process.
-            Otherwise stdout/stderr will only be shown upon process completion.
+        What "monitor" means is up to the implementation of this method.
+        By default, wait until the process exit.
+
+        As indicated, this method is meant to be reimplemented in subclasses.
         """
-        pending = {
-            asyncio.create_task(
-                self.process.stdout.readline(),
-                name="stdout",
-            ),
-            asyncio.create_task(
-                self.process.stderr.readline(),
-                name="stderr",
-            ),
+        self.pipe_closed.emit(await self.process.wait())
+
+    def env(self) -> dict:
+        """Returns the environment to use in the process.
+
+        Reimplement in a subclas to change it.
+        """
+        return {
+            # Copy parent's environment. SYSTEMROOT environment variable is required to
+            # create network connections using getaddrinfo() (https://stackoverflow.com/a/14587915)
+            **os.environ.copy(),
+            # Set encoding of subprocess
+            "PYTHONIOENCODING": "utf-8",
+            # Use unbuffered pipe to enable streaming of program output to GUI
+            "PYTHONUNBUFFERED": "1",
         }
-        while len(pending) > 0:
-            done, pending = await asyncio.wait(
-                pending, return_when=asyncio.FIRST_COMPLETED
-            )
-            for task in done:
-                line = await task
 
-                # If the line is empty, we are at the end of the stream
-                if len(line) == 0:
-                    continue
+    def stdout(self) -> int | IO[Any] | None:
+        """Returns the pipe used by stdout of the process.
 
-                # Re-create a readline() task for the respective stream
-                match task.get_name():
-                    case "stdout":
-                        self._logger.info(
-                            line.decode(errors="replace"),
-                            log=False,
-                            pid=self.pid,
-                        )
-                        pending.update(
-                            (
-                                asyncio.create_task(
-                                    self.process.stdout.readline(), name="stdout"
-                                ),
-                            )
-                        )
-                    case "stderr":
-                        self._logger.error(
-                            line.decode(errors="replace"),
-                            pid=self.pid,
-                        )
-                        pending.update(
-                            (
-                                asyncio.create_task(
-                                    self.process.stderr.readline(), name="stderr"
-                                ),
-                            )
-                        )
-        self.pipe_closed.emit()
+        Reimplement in a subclass to change it.
+        """
+        return None
+
+    def stderr(self) -> int | IO[Any] | None:
+        """Returns the pipe used by stderr of the process.
+
+        Reimplement in a subclass to change it.
+        """
+        return None
 
     @override
     def run(self):

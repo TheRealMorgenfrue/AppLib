@@ -1,6 +1,6 @@
 from abc import abstractmethod
 
-from ..process.process_base import ProcessGUI
+from .process_gui import CoreProcessGUI
 
 
 class ProcessGeneratorBase:
@@ -26,7 +26,7 @@ class ProcessGeneratorBase:
         """
         ...
 
-    def process(self) -> type[ProcessGUI]:
+    def process(self) -> type[CoreProcessGUI]:
         """The Process class in which the arguments are executed by the program.
 
         Must be a `ProcessGUI` (or a subclass thereof) in order
@@ -37,4 +37,4 @@ class ProcessGeneratorBase:
         type[ProcessBase]
             A reference to the process class.
         """
-        return ProcessGUI
+        return CoreProcessGUI

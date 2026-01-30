@@ -83,8 +83,8 @@ from .app.interfaces.main_window import CoreMainWindow
 from .app.interfaces.process.process_interface import CoreProcessInterface
 from .app.interfaces.settings_interface import CoreSettingsInterface
 from .app.interfaces.settings_subinterface import CoreSettingsSubInterface
-from .module.concurrency.process.process_base import ProcessGUI
 from .module.concurrency.process.process_generator import ProcessGeneratorBase
+from .module.concurrency.process.process_gui import CoreProcessGUI
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from .module.configuration.config.config_base import ConfigBase
@@ -248,7 +248,7 @@ __all__ = [
     "Option",
     "ParentCardBase",
     "PivotCardStack",
-    "ProcessGUI",
+    "CoreProcessGUI",
     "ProcessGeneratorBase",
     "ProgressBarCard",
     "ProgressCard",
