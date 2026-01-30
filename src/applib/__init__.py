@@ -1,7 +1,7 @@
 """
 AppLib
 ======
-An application component library for building small GUI apps easily.
+An application component library which makes it easy to create fancy GUIs.
 
 Documentation is available in the docstrings.
 
