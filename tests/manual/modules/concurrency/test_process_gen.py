@@ -1,14 +1,12 @@
 import sys
-from collections.abc import Generator
+from itertools import repeat
 from pathlib import Path
-from typing import Any, override
+from typing import override
 
-from modules.concurrency.test_process import TestProcess
-
-from applib.module.concurrency.process.process_generator import ProcessGenerator
+from applib.module.concurrency.process.process_generator import ProcessGeneratorBase
 
 
-class TestProcessGenerator(ProcessGenerator):
+class TestProcessGenerator(ProcessGeneratorBase):
     def __init__(self) -> None:
         super().__init__()
         self.test_size = 50
@@ -18,20 +16,6 @@ class TestProcessGenerator(ProcessGenerator):
         return sys.executable
 
     @override
-    def args(self) -> Generator[list[str], Any, Any]:
-        for i in range(self.test_size):
-            yield [
-                f"{Path(r"tests\manual\modules\concurrency\test_file_program.py").resolve()}"
-            ]
-
-    @override
-    def process(self) -> type[TestProcess]:
-        return TestProcess
-
-    @override
-    def can_start(self) -> bool:
-        return self.test_size > 0
-
-    @override
-    def get_total_progress(self) -> int:
-        return self.test_size
+    def arguments_list(self):
+        arg = f"{Path(r"tests/manual/modules/concurrency/test_file_program.py").resolve()}"
+        return list(repeat(arg, self.test_size))
