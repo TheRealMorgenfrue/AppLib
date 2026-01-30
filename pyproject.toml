@@ -7,7 +7,8 @@ name = "AppLib"
 dynamic = ["version"]
 description = "An Application Component Library (short AppLib) which makes it easy to create fancy GUIs"
 readme = "README.md"
-requires-python = "=3.12"
+keywords = ["fluent-design", "PyQt6"]
+requires-python = "==3.12.*"
 license = { file = "LICENSE" }
 authors = [{ name = "TheRealMorgenfrue" }]
 classifiers = [
