@@ -24,13 +24,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "black==26.1.0",
-    "isort==7.0.0",
-    "mkdocs-material",
-]
+dev = ["pytest", "pytest-cov", "ruff==0.14.11", "mkdocs-material"]
 
 [project.urls]
 "Homepage" = "https://github.com/TheRealMorgenfrue/AppLib"
@@ -39,14 +33,11 @@ dev = [
 [tool.hatch.version]
     path="src/applib/module/tools/version.py"
 
-[tool.black]
-line-length = 88
-target-version = ['py312']
-include = '\.pyi?$'
+[tool.ruff]
+extend-exclude = []
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.pytest.ini_options]
 addopts = ["--import-mode=importlib"]
