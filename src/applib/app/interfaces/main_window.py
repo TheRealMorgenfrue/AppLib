@@ -121,7 +121,9 @@ class CoreMainWindow(MSFluentWindow):
                     )
                     created_interfaces.append(init_interface)
                     if isinstance(init_interface, CoreProcessInterface):
-                        self._logger.set_proc_signal(init_interface._proc_msg_signal)
+                        self._logger.set_process_signal(
+                            init_interface._process_msg_signal
+                        )
                 except Exception:
                     self._log_error(
                         traceback.format_exc(limit=CoreArgs._core_traceback_limit)
