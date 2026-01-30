@@ -26,7 +26,7 @@ class CoreApp:
             app = QApplication(sys.argv)
             app.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
 
-            w = MainWindow()
+            _ = MainWindow()
             sys.exit(app.exec())
         except Exception:
             import time
