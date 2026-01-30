@@ -566,8 +566,8 @@ class InfoBarManager(QObject):
                 if not ani:
                     continue
 
-            ani.setStartValue(bar.pos())
-            ani.setEndValue(self._pos(bar))
+                ani.setStartValue(bar.pos())
+                ani.setEndValue(self._pos(bar))
 
     def _pos(self, infoBar: InfoBar, parentSize: QSize | None = None) -> QPoint:
         """return the position of info bar"""
