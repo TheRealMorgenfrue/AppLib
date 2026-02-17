@@ -1,0 +1,46 @@
+site_name: AppLib Documentation
+site_url: https://TheRealMorgenfrue.github.io/AppLib/
+repo_url: https://github.com/TheRealMorgenfrue/AppLib
+edit_uri: edit/main/docs/
+plugins:
+    - search
+    - git-revision-date-localized:
+          enable_creation_date: true
+          type: date
+    - git-committers:
+          repository: TheRealMorgenfrue/AppLib
+          branch: main
+theme:
+    name: material
+    language: en
+features:
+    - search.suggest
+    - search.highlight
+    - content.action.edit
+    - content.action.view
+icon:
+    edit: material/pencil
+    view: material/eye
+extra:
+    version:
+        provider: mike
+markdown_extensions:
+    - admonition
+    - pymdownx.details
+    - footnotes
+    - pymdownx.highlight:
+          anchor_linenums: true
+    - pymdownx.superfences # (1)!
+    - pymdownx.smartsymbols
+    - pymdownx.snippets
+    - pymdownx.tabbed:
+          alternate_style: true
+    - toc:
+          permalink: true
+    - pymdownx.tasklist:
+          custom_checkbox: true
+    - pymdownx.betterem:
+          smart_enable: all
+    - pymdownx.caret
+    - pymdownx.mark
+    - pymdownx.tilde
