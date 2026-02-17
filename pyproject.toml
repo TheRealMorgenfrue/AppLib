@@ -24,13 +24,24 @@ dependencies = [
     "colorama",
 ]
 
-[project.optional-dependencies]
-dev = ["pytest", "pytest-cov", "ruff==0.14.11", "mkdocs-material"]
-
 [project.urls]
 Homepage = "https://github.com/TheRealMorgenfrue/AppLib"
 Documentation = "https://example.com"
 Issues = "https://github.com/TheRealMorgenfrue/AppLib/issues"
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "docs" },
+]
+lint = ["ruff"]
+test = ["pytest", "pytest-cov"]
+docs = [
+    "mkdocs-material",
+    "mkdocs-git-revision-date-localized-plugin",
+    "mkdocs-git-committers-plugin-2",
+]
 
 [tool.hatch.version]
 path = "src/applib/version.py"
