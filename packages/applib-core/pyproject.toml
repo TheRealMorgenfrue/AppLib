@@ -1,0 +1,12 @@
+[project]
+name = "applib-core"
+version = "0.1.0"
+description = "The essential components of AppLib, like configuration and logging."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["tomlkit", "pydantic", "colorama"]
+
+[tool.uv.sources]
+tomlkit = { workspace = true }
+pydantic = { workspace = true }
+colorama = { workspace = true }

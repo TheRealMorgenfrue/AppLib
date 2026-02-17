@@ -11,6 +11,10 @@ import tomlkit
 import tomlkit.exceptions
 from pydantic import ValidationError
 
+if 0 == 1:
+    print("")
+    # TODO: Conditionally import/execute code. If Qt is available, use the signalbus, otherwise ignore.
+
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...logging import LoggingManager
@@ -148,13 +152,13 @@ class ConfigBase(MappingBase):
                         search_fields(*next_search, search_mode=search_mode)
                     else:
                         section_errors.append(
-                            f"{search_mode.capitalize()} {f"subsection '{".".join(parents)}.{key}'" if parents else f"section '{key}'"}"
+                            f"{search_mode.capitalize()} {f"subsection '{'.'.join(parents)}.{key}'" if parents else f"section '{key}'"}"
                         )
                 # We've reached the bottom of the nesting (non-mapping key/value pairs)
                 elif key not in validation_dict:
                     if parents:
                         field_errors.append(
-                            f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{".".join(parents)}'"}"
+                            f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{'.'.join(parents)}'"}"
                         )
                     else:
                         field_errors.append(
