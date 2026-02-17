@@ -1,3 +1,4 @@
+import re
 from abc import abstractmethod
 from typing import Any
 
@@ -98,6 +99,7 @@ class BaseSetting(QWidget):
         self.notify.connect(self._onParentNotification)
         core_signalbus.updateConfigSettings.connect(self._onUpdateConfigSettings)
         core_signalbus.configUpdated.connect(self._onConfigUpdated)
+        core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
 
     def _validateKey(self, name: str, key: str, path: str) -> bool:
         if self.config.name == name and self.config_key == key:
@@ -125,6 +127,11 @@ class BaseSetting(QWidget):
     ):
         if self._validateKey(names[0], key, path):
             self.setWidgetValue(value_tuple[0])
+
+    def _onConfigNameUpdated(self, old_name: str, new_name: str) -> None:
+        idx = self.path.find(old_name)
+        if idx != -1:  # old_name == self.job_name:
+            re.sub(old_name, new_name, self.path)
 
     def _onUpdateConfigSettings(
         self,
