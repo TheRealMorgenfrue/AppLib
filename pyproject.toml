@@ -21,6 +21,7 @@ dependencies = [
     "qasync==0.28.0",
     "tomlkit",
     "pydantic==2.9.2",
+    "pydantic-settings==2.13",
     "colorama",
 ]
 
