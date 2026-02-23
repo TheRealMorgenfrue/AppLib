@@ -1,5 +1,6 @@
 from typing import Any, override
 
+from ....logging import LoggingManager
 from .converter import Converter
 
 
@@ -22,6 +23,7 @@ class GenericConverter(Converter):
             The config values as they should be displayed in the GUI.
         """
         super().__init__()
+        self._logger = LoggingManager()
         self.config_values = config_values
         self.gui_values = gui_values
 
@@ -32,6 +34,9 @@ class GenericConverter(Converter):
             try:
                 idx = target.index(value)
             except ValueError:
+                self._logger.warning(
+                    f"Failed to convert value '{value}'. No mapping provided for value"
+                )
                 return value  # No mapping provided for value
         return target[idx]
 
