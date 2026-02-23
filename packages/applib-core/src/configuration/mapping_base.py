@@ -2,15 +2,13 @@ from collections import deque
 from collections.abc import Generator
 from typing import Any
 
-from applib.module.configuration.tools.template_utils.options import GUIOption, Option
-
 from .tools.search import SEARCH_SEP, SearchMode
 from .tools.search.nested_dict_search import NestedDictSearch
 from .tools.search.search_index import SearchIndex
+from .tools.template_utils.options import Option
 
 
 class MappingBase:
-
     def __init__(self, d: dict):
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
@@ -27,13 +25,13 @@ class MappingBase:
     def __str__(self):
         return f"{self._dict}"
 
-    def options(self) -> Generator[tuple[str, Option | GUIOption, str], Any, None]:
+    def options(self) -> Generator[tuple[str, Option, str], Any, None]:
         """Returns the Options of the mapping.
 
         Yields
         ------
         tuple[str, Option | GUIOption, str]
-            A key and its associated Option or GUIOption, and its path in the mapping.
+            A key, its associated Option, and its path in the mapping.
         """
         path = []
         stack = [self._dict]
@@ -41,7 +39,7 @@ class MappingBase:
         while stack:
             _dict = stack[-1]
             for k, v in _dict.items():
-                str_path = f"{f"{SEARCH_SEP}".join([*path, k])}"
+                str_path = f"{f'{SEARCH_SEP}'.join([*path, k])}"
                 if str_path not in visited:
                     if isinstance(v, dict):
                         path.append(k)

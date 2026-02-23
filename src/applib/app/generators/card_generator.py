@@ -136,7 +136,7 @@ class CardGenerator(GeneratorBase):
                 parent=parent,
             )
             # Create Setting Card
-            if is_nesting_group and setting == group.get_parent_name():  # type: ignore
+            if is_nesting_group and setting == group.get_parent_name():
                 card = ExpandingSettingCard(
                     card_name=setting,
                     icon=icon,
@@ -145,7 +145,7 @@ class CardGenerator(GeneratorBase):
                     has_disable_button=has_disable_button,
                     parent=parent,
                 )
-            elif is_clustered_group and setting == group.get_parent_name():  # type: ignore
+            elif is_clustered_group and setting == group.get_parent_name():
                 card = ClusteredSettingCard(
                     card_name=setting,
                     icon=icon,

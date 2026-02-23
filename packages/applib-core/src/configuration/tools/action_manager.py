@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from .....app.common.core_signalbus import core_signalbus
+from ...common.core_signalbus import core_signalbus
 
 
 class Actions:

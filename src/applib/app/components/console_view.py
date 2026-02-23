@@ -35,7 +35,7 @@ class ConsoleView(QWidget):
         self.textEdit.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.textEdit.setReadOnly(True)
         # Block count == Line count. NOTE: Also disables undo/redo history.
-        self.textEdit.document().setMaximumBlockCount(1000)  # type: ignore
+        self.textEdit.document().setMaximumBlockCount(1000)
         self.terminateButton.setDisabled(True)
         self._setQss()
 

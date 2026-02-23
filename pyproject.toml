@@ -15,15 +15,7 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.12",
 ]
-dependencies = [
-    "PyQt6-Fluent-Widgets==1.7.4",
-    "PyQt6==6.8.1",
-    "qasync==0.28.0",
-    "tomlkit",
-    "pydantic==2.9.2",
-    "colorama",
-    "applib-core",
-]
+dependencies = ["PyQt6-Fluent-Widgets==1.7.4", "qasync==0.28.0", "applib-core"]
 
 [project.urls]
 Homepage = "https://github.com/TheRealMorgenfrue/AppLib"

@@ -1,8 +1,7 @@
 from typing import override
 
+from applib_core import Converter
 from PyQt6.QtGui import QColor
-
-from .converter import Converter
 
 
 class ColorConverter(Converter):

@@ -1,5 +1,9 @@
 from typing import Self, override
 
+from applib.module.configuration.runners.validators.generic_validator import (
+    validate_path,
+)
+from applib.module.logging import LoggingManager
 from modules.config.test_args import TestArgs
 
 from applib.app.common.auto_wrap import AutoTextWrap
@@ -8,12 +12,9 @@ from applib.module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
-from applib.module.configuration.runners.validators.app_validator import (
+from applib.module.configuration.runners.validators.theme_validator import (
     validate_loglevel,
     validate_theme,
-)
-from applib.module.configuration.runners.validators.generic_validator import (
-    validate_path,
 )
 from applib.module.configuration.templates.base_template import BaseTemplate
 from applib.module.configuration.tools.template_utils.options import (
@@ -29,7 +30,6 @@ from applib.module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
 )
-from applib.module.logging import LoggingManager
 
 
 class TestTemplate(BaseTemplate):

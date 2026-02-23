@@ -241,7 +241,9 @@ class GeneratorBase:
         return widget
 
     def _exclude_setting(self, setting: str, option: GUIOption) -> bool:
-        exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore # option.ui_flags is a list after being parsed.
+        exclude = (
+            option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags
+        )  # option.ui_flags is a list after being parsed.
         if exclude:
             self._logger.debug(
                 f"{self._prefix_msg()} Excluding setting '{setting}' from GUI"

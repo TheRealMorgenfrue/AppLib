@@ -1,14 +1,13 @@
 from collections.abc import Iterable
 from typing import Any
 
-from ...tools.types.config import AnyConfig
-from ...tools.types.templates import AnyTemplate
+from ...types.config import AnyConfig
+from ...types.templates import AnyTemplate
 from ..runners.converters.cmd_converter import CMDConverter
-from .template_utils.options import GUIOption, Option
+from .template_utils.options import Option  # noqa: F401
 
 
 class CLIArgumentGenerator:
-
     def create_arguments_from_config(
         self, config: AnyConfig, template: AnyTemplate, arg_prefix: str = "--"
     ) -> list[str]:
@@ -45,8 +44,8 @@ class CLIArgumentGenerator:
 
         Parameters
         ----------
-        arg_list : list[_rbtm_item]
-            A list of `_rbtm_item`s created by a config.
+        arg_list : Iterable[tuple[str, Any, str]]
+            TODO
         template : AnyTemplate
             The template determines which arguments are generated.
             NOTE: `arg_list` must be generated from a config which is from this template.
@@ -62,16 +61,8 @@ class CLIArgumentGenerator:
         """
         out_args = []
         for k, v, path in args:
-            option = template.get_value(
-                k, path, search_mode="strict"
-            )  # type: Option | GUIOption
-            if not (
-                (option.defined(option.disable_self) and option.disable_self != v)
-                or (
-                    option.defined(option.ui_disable_self)
-                    and option.ui_disable_self != v
-                )
-            ):
+            option = template.get_value(k, path, search_mode="strict")  # type: Option
+            if not (option.defined(option.disable_self) and option.disable_self != v):
                 continue
 
             if option.defined(option.converter) and isinstance(

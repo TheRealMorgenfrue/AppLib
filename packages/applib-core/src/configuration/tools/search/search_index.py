@@ -1,7 +1,7 @@
 import traceback
 
-from applib.module.configuration.tools.search import SEARCH_SEP
-from applib.module.logging import LoggingManager
+from ....logging import LoggingManager
+from ..search import SEARCH_SEP
 
 
 class SearchIndex:

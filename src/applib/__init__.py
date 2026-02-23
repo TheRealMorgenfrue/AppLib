@@ -23,7 +23,6 @@ with __ctxl.redirect_stdout(None):
     from qfluentwidgets import QConfig as __silence  # noqa: F401
 
 from .app.common.auto_wrap import AutoTextWrap
-from .app.common.core_signalbus import core_signalbus
 from .app.common.core_stylesheet import CoreStyleSheet
 from .app.components.cardstack import PivotCardStack, SegmentedPivotCardStack
 from .app.components.console_view import ConsoleView
@@ -100,14 +99,14 @@ from .module.configuration.runners.converters.cmd_converter import CMDConverter
 from .module.configuration.runners.converters.color_converter import ColorConverter
 from .module.configuration.runners.converters.converter import Converter
 from .module.configuration.runners.converters.generic_converter import GenericConverter
-from .module.configuration.runners.validators.app_validator import (
-    validate_loglevel,
-    validate_theme,
-)
 from .module.configuration.runners.validators.generic_validator import (
     validate_ip_address,
     validate_path,
     validate_proxy_address,
+)
+from .module.configuration.runners.validators.theme_validator import (
+    validate_loglevel,
+    validate_theme,
 )
 from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate

@@ -15,19 +15,19 @@ class BoolSettingMixin:
     ...
 
     @override
-    def _setDisableWidget(self, is_disabled: bool, save_value: bool) -> None:  # type: ignore
+    def _setDisableWidget(self, is_disabled: bool, save_value: bool) -> None:
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            self.setting.setDisabled(self.is_disabled)  # type: ignore
+            self.setting.setDisabled(self.is_disabled)
 
             if self.is_disabled:
-                self.backup_value = self.current_value  # type: ignore
-                value = self.disable_self_value  # type: ignore
+                self.backup_value = self.current_value
+                value = self.disable_self_value
             else:
                 value = (
-                    not self.disable_self_value  # type: ignore
-                    if self._canGetDisabled()  # type: ignore
+                    not self.disable_self_value
+                    if self._canGetDisabled()
                     else self.backup_value
                 )
-            if self._canGetDisabled() and save_value:  # type: ignore
-                self.setValue(value)  # type: ignore
+            if self._canGetDisabled() and save_value:
+                self.setValue(value)

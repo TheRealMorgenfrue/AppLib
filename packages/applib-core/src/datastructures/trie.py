@@ -143,7 +143,7 @@ class Trie:
         node = self.base
         for char in word:
             try:
-                node = node.children.get(char)  # type: ignore
+                node = node.children.get(char)
             except AttributeError:
                 return  # word doesn't exist in the trie
 

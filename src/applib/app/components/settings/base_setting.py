@@ -83,7 +83,8 @@ class BaseSetting(QWidget):
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
             option.defined(option.ui_flags)
-            and UIFlags.REQUIRES_RELOAD in option.ui_flags  # type: ignore # option.ui_flags is a list after parsing
+            and UIFlags.REQUIRES_RELOAD
+            in option.ui_flags  # option.ui_flags is a list after parsing
         )
 
         self.buttonlayout = QHBoxLayout(self)
@@ -179,7 +180,7 @@ class BaseSetting(QWidget):
     def _setDisableWidget(self, is_disabled: bool, save: bool):
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            self.setting.setDisabled(self.is_disabled)  # type: ignore # Is defined in subclasses
+            self.setting.setDisabled(self.is_disabled)  # Is defined in subclasses
 
             if self.is_disabled:
                 self.backup_value = self.current_value

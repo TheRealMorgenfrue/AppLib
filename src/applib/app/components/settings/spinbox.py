@@ -72,7 +72,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             # Configure spinbox
             self.setting.setAccelerated(True)
             self.setting.setSingleStep(1)
-            self.setting.setRange(self.min_value, self.max_value)  # type: ignore
+            self.setting.setRange(self.min_value, self.max_value)
 
             # Ensure value cannot be invalid in the GUI
             self.setWidgetValue(self.current_value)
@@ -92,5 +92,5 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         if self.notify_disabled:
             self.notify_disabled = False
             # Do not update GUI with disable values
-            self.setting.setValue(self._ensureValidGUIValue(value))  # type: ignore
+            self.setting.setValue(self._ensureValidGUIValue(value))
             self.notify_disabled = True

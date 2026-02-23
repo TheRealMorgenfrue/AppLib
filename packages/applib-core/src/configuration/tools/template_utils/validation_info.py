@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from applib.module.configuration.tools.search.nested_dict_search import NestedDictSearch
+from ...tools.search.nested_dict_search import NestedDictSearch
 
 
 class ValidatorContainer:

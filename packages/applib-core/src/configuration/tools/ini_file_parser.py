@@ -2,7 +2,7 @@ import re
 from typing import IO, Union
 
 from ...exceptions import IniParseError
-from ...tools.utilities import decodeInput
+from ...utilities import decodeInput
 
 
 class IniFileParser:
@@ -58,11 +58,11 @@ class IniFileParser:
                 try:
                     key, value = match.group(2).split("=", maxsplit=1)
                 except ValueError:
-                    err_msg = f"Unexpected input '{line}' at line {i+1}"
+                    err_msg = f"Unexpected input '{line}' at line {i + 1}"
                     raise IniParseError(err_msg) from None
 
                 if not key:
-                    err_msg = f"Illegal key '{key}' at line {i+1}"
+                    err_msg = f"Illegal key '{key}' at line {i + 1}"
                     raise IniParseError(err_msg)
 
                 # Add key/value pair to list of parsed pairs

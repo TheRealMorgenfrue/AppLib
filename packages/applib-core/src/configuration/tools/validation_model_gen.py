@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field, create_model, field_validator
 
 from applib.module.configuration.tools.search import SEARCH_SEP
 
-from ...tools.types.templates import AnyTemplate
+from ...types.templates import AnyTemplate
 from .template_parser import TemplateParser
 from .template_utils.validation_info import ValidationInfo
 
@@ -47,10 +47,7 @@ class CoreValidationModelGenerator:
 
             Structure:
             ```
-            {path: {
-                validator_name: field_validator
-                }
-            }
+            {path: {validator_name: field_validator}}
             ```
         """
         field_validators: dict[str, dict[str, Callable]] = {}
@@ -77,9 +74,10 @@ class CoreValidationModelGenerator:
         fields: dict[str, Any],
         field_validators: dict[str, dict[str, Callable]],
     ) -> type[BaseModel]:
-        """Generate a Pydantic validation model.
+        """
+        Generate a Pydantic validation model.
 
-         Recursively constructs submodels for each nested dict in `fields`.
+        Recursively constructs submodels for each nested dict in `fields`.
 
         Parameters
         ----------
