@@ -10,7 +10,6 @@ from .tools.search.search_index import SearchIndex
 
 
 class MappingBase:
-
     def __init__(self, d: dict):
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
@@ -33,7 +32,7 @@ class MappingBase:
         Yields
         ------
         tuple[str, Option | GUIOption, str]
-            A key and its associated Option or GUIOption, and its path in the mapping.
+            A key, its associated Option or GUIOption, and its path in the mapping.
         """
         path = []
         stack = [self._dict]
@@ -41,7 +40,7 @@ class MappingBase:
         while stack:
             _dict = stack[-1]
             for k, v in _dict.items():
-                str_path = f"{f"{SEARCH_SEP}".join([*path, k])}"
+                str_path = f"{f'{SEARCH_SEP}'.join([*path, k])}"
                 if str_path not in visited:
                     if isinstance(v, dict):
                         path.append(k)
