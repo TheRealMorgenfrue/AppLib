@@ -65,10 +65,11 @@ On Linux Wayland, start your program with the environment variable: `QT_QPA_PLAT
 > This project uses `uv` as package manager
 
 1. Install uv from https://docs.astral.sh/uv/getting-started/installation/
-2. Run `uv run --extra dev tests/manual/mantest.py`  
+2. Run `uvx prek install` (install pre-commit hook)
+3. Run `uv run --extra dev tests/manual/mantest.py`  
    If a GUI displays, the installation was successful.
 
-Please refer to uv's [documentation](https://docs.astral.sh/uv/) for further assistance.
+If needed, please refer to uv's [documentation](https://docs.astral.sh/uv/) for further assistance.
 
 ## Acknowledgements
 
