@@ -96,7 +96,6 @@ from .module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
-from .module.configuration.runners.converters.cmd_converter import CMDConverter
 from .module.configuration.runners.converters.color_converter import ColorConverter
 from .module.configuration.runners.converters.converter import Converter
 from .module.configuration.runners.converters.generic_converter import GenericConverter
@@ -111,7 +110,7 @@ from .module.configuration.runners.validators.generic_validator import (
 )
 from .module.configuration.templates.base_template import BaseTemplate
 from .module.configuration.templates.core_template import CoreTemplate
-from .module.configuration.tools.cli_argument_gen import CLIArgumentGenerator
+from .module.configuration.tools.cli_arguments import CLIArguments
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.config_utils.config_enums import ConfigLoadOptions
 from .module.configuration.tools.ini_file_parser import IniFileParser
@@ -182,12 +181,11 @@ __all__ = [
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
-    "CMDConverter",
     "ColorConverter",
     "ColorPickerOption",
     "Converter",
     "ComboBoxOption",
-    "CLIArgumentGenerator",
+    "CLIArguments",
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
     "ConfigBase",
