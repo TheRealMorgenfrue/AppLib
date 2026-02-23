@@ -7,7 +7,7 @@ from pathlib import Path
 import tomlkit
 
 from ...logging import LoggingManager
-from ...tools.types.general import Model, StrPath
+from ...tools.types.general import StrPath
 from ..internal.core_args import CoreArgs
 
 

@@ -9,12 +9,12 @@ from typing import Any, Literal, override
 
 import tomlkit
 import tomlkit.exceptions
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...logging import LoggingManager
-from ...tools.types.general import Model, StrPath
+from ...tools.types.general import StrPath
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import format_validation_error
 from ..internal.core_args import CoreArgs
@@ -32,7 +32,7 @@ class ConfigBase(MappingBase):
         self,
         name: str,
         template: AnyTemplate,
-        validation_model: type[Model] | None,
+        validation_model: type[BaseModel] | None,
         file_path: StrPath,
         save_interval: int = 1,
     ) -> None:
@@ -44,7 +44,7 @@ class ConfigBase(MappingBase):
             The name of the config to create.
         template : AnyTemplate
             The template used to create `validation_model`.
-        validation_model : type[Model] | None
+        validation_model : type[BaseModel] | None
             The Pydantic model used to validate the config. If None, no validation is performed.
         file_path : StrPath
             The config's location on disk.
@@ -148,13 +148,13 @@ class ConfigBase(MappingBase):
                         search_fields(*next_search, search_mode=search_mode)
                     else:
                         section_errors.append(
-                            f"{search_mode.capitalize()} {f"subsection '{".".join(parents)}.{key}'" if parents else f"section '{key}'"}"
+                            f"{search_mode.capitalize()} {f"subsection '{'.'.join(parents)}.{key}'" if parents else f"section '{key}'"}"
                         )
                 # We've reached the bottom of the nesting (non-mapping key/value pairs)
                 elif key not in validation_dict:
                     if parents:
                         field_errors.append(
-                            f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{".".join(parents)}'"}"
+                            f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{'.'.join(parents)}'"}"
                         )
                     else:
                         field_errors.append(
