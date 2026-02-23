@@ -1,0 +1,20 @@
+repos:
+    - repo: builtin
+      hooks:
+          - id: trailing-whitespace
+          - id: end-of-file-fixer
+
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.15.2
+      hooks:
+          # Run the linter.
+          - id: ruff-check
+            language: python
+            args: [
+                    "--select",
+                    "I", # Auto-sort imports.
+                    --fix, # Enable auto-fixing for supported rules.
+                ]
+
+          # Run the formatter.
+          - id: ruff-format
