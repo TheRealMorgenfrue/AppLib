@@ -1,14 +1,41 @@
 from collections.abc import Iterable
 from typing import Any
 
+from pydantic import BaseModel
+
 from ...tools.types.config import AnyConfig
 from ...tools.types.templates import AnyTemplate
-from ..runners.converters.cmd_converter import CMDConverter
 from .template_utils.options import GUIOption, Option
+
+# TODO: Inspiration from:
+
+# General
+# https://docs.pydantic.dev/latest/api/pydantic_settings/#pydantic_settings.CliApp.run
+# https://docs.pydantic.dev/latest/concepts/pydantic_settings/#integrating-with-existing-parsers
+# https://docs.pydantic.dev/latest/concepts/pydantic_settings/#cli-boolean-flags
+# https://docs.pydantic.dev/latest/concepts/pydantic_settings/#cli-boolean-flags
+
+
+# Serializing
+# # https://docs.python.org/3/library/argparse.html#argument-groups
+# https://stackoverflow.com/a/72741664 (nice example using serialize to construct argparser)
+# https://docs.pydantic.dev/latest/concepts/serialization/#iterating-over-models
+
+
+# Deserializing
+# https://github.com/swansonk14/typed-argument-parser?tab=readme-ov-file#argument-processing
+class CLIArguments:
+    def __init__(self):
+        pass
+
+    def serialize(self, from_config: AnyConfig) -> list[str]:
+        pass
+
+    def deserialize(self, args: list[str], to_config: type[AnyConfig]) -> AnyConfig:
+        pass
 
 
 class CLIArgumentGenerator:
-
     def create_arguments_from_config(
         self, config: AnyConfig, template: AnyTemplate, arg_prefix: str = "--"
     ) -> list[str]:
@@ -36,7 +63,7 @@ class CLIArgumentGenerator:
 
     def create_arguments_from_iter(
         self,
-        args: Iterable[tuple[str, Any, str]],
+        args: Iterable[tuple[str, Option, str]],
         template: AnyTemplate,
         arg_prefix: str = "--",
     ) -> list[str]:
@@ -45,8 +72,8 @@ class CLIArgumentGenerator:
 
         Parameters
         ----------
-        arg_list : list[_rbtm_item]
-            A list of `_rbtm_item`s created by a config.
+        arg_list : tuple[str, Option, str]
+            A key, its associated Option (or GUIOption), and its path in the mapping.
         template : AnyTemplate
             The template determines which arguments are generated.
             NOTE: `arg_list` must be generated from a config which is from this template.
@@ -62,9 +89,7 @@ class CLIArgumentGenerator:
         """
         out_args = []
         for k, v, path in args:
-            option = template.get_value(
-                k, path, search_mode="strict"
-            )  # type: Option | GUIOption
+            option = template.get_value(k, path, search_mode="strict")  # type: Option | GUIOption
             if not (
                 (option.defined(option.disable_self) and option.disable_self != v)
                 or (
@@ -74,11 +99,9 @@ class CLIArgumentGenerator:
             ):
                 continue
 
-            if option.defined(option.converter) and isinstance(
-                option.converter, CMDConverter
-            ):
+            if option.defined(option.converter):
                 # Convert value to the correct CLI argument
-                v = option.converter.getArgument(v)
+                cmd = option.converter.getArgument(v)
 
-            out_args.append(f"{arg_prefix}{v}")
+            out_args.append(f"{arg_prefix}{cmd}")
         return out_args
