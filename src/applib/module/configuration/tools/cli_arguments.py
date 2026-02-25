@@ -1,11 +1,12 @@
-from collections.abc import Iterable
-from typing import Any
+import shlex
+from argparse import ArgumentParser, Namespace, _ArgumentGroup
 
 from pydantic import BaseModel
 
+from applib.module.configuration.tools.search import SearchMode
+
 from ...tools.types.config import AnyConfig
-from ...tools.types.templates import AnyTemplate
-from .template_utils.options import GUIOption, Option
+from .template_utils.options import Option
 
 # TODO: Inspiration from:
 
@@ -28,80 +29,101 @@ class CLIArguments:
     def __init__(self):
         pass
 
-    def serialize(self, from_config: AnyConfig) -> list[str]:
-        pass
-
-    def deserialize(self, args: list[str], to_config: type[AnyConfig]) -> AnyConfig:
-        pass
-
-
-class CLIArgumentGenerator:
-    def create_arguments_from_config(
-        self, config: AnyConfig, template: AnyTemplate, arg_prefix: str = "--"
-    ) -> list[str]:
+    def create_argparser(self, from_config: AnyConfig) -> ArgumentParser:
         """
-        Create command line arguments from `config` and its associated `template`.
+        Create an argument parser from a config.
+
+        Useful for generating a command-line interface (CLI).
 
         Parameters
         ----------
-        config : AnyConfig
-            The config supplies a value for each argument.
-        template : AnyTemplate
-            The template determines which arguments are generated.
-            NOTE: `config` must be generated from this template.
-        arg_prefix : str, optional
-            Use this string as argument prefix.
-            By default "--".
+        from_config : AnyConfig
+            The config to create the argument parser from.
 
         Returns
         -------
-        list[str]
-            A list of command line arguments.
-            E.g. ["--a", "--b"]
+        ArgumentParser
+            The argument parser generated from the config.
         """
-        return self.create_arguments_from_iter(config.options(), template, arg_prefix)
+        parser = ArgumentParser()
 
-    def create_arguments_from_iter(
-        self,
-        args: Iterable[tuple[str, Option, str]],
-        template: AnyTemplate,
-        arg_prefix: str = "--",
-    ) -> list[str]:
-        """
-        Create command line arguments from `args` and its associated `template`.
+        arg_groups: dict[str, _ArgumentGroup] = {}
 
-        Parameters
-        ----------
-        arg_list : tuple[str, Option, str]
-            A key, its associated Option (or GUIOption), and its path in the mapping.
-        template : AnyTemplate
-            The template determines which arguments are generated.
-            NOTE: `arg_list` must be generated from a config which is from this template.
-        arg_prefix : str, optional
-            Use this string as argument prefix.
-            By default "--".
+        for k, _, path in from_config.options():
+            groups = path.split("/")
+            if len(groups) > 1 and groups[-1] not in arg_groups:
+                arg_groups[groups[-1]] = parser.add_argument_group(title=groups[-1])
 
-        Returns
-        -------
-        list[str]
-            A list of command line arguments.
-            E.g. ["--a", "--b"]
-        """
-        out_args = []
-        for k, v, path in args:
-            option = template.get_value(k, path, search_mode="strict")  # type: Option | GUIOption
-            if not (
-                (option.defined(option.disable_self) and option.disable_self != v)
-                or (
-                    option.defined(option.ui_disable_self)
-                    and option.ui_disable_self != v
+            option: Option = from_config.template.get_value(
+                k, path, mode=SearchMode.STRICT
+            )
+
+            try:
+                group = arg_groups[groups[-1]]
+                # TODO: Help
+                group.add_argument(
+                    f"--{k}", dest=k, type=option.type, default=option.default
                 )
-            ):
+            except (KeyError, IndexError):
+                parser.add_argument(
+                    f"--{k}", dest=k, type=option.type, default=option.default
+                )
+        return parser
+
+    def serialize(self, from_config: AnyConfig) -> list[str]:
+        """
+        Serialize a config to command-line arguments.
+
+        Parameters
+        ----------
+        from_config : AnyConfig
+            The config to serialize.
+
+        Returns
+        -------
+        list[str]
+            A list of shell-escaped command-line arguments.
+        """
+        args = []
+
+        for k, v, path in from_config.options():
+            option: Option = from_config.template.get_value(
+                k, path, mode=SearchMode.STRICT
+            )
+
+            if option.disable_self:
                 continue
 
-            if option.defined(option.converter):
-                # Convert value to the correct CLI argument
-                cmd = option.converter.getArgument(v)
+            # Must be a bool (not truthy) and must be True
+            if v is True:
+                args.append(f"--{k}")
+            else:
+                args.append(f'--{k} "{v}"')
 
-            out_args.append(f"{arg_prefix}{cmd}")
-        return out_args
+        normalized_str = shlex.join(args)
+        return shlex.quote(normalized_str)
+
+    def deserialize(self, args: Namespace, to_model: type[BaseModel]) -> BaseModel:
+        """
+        Deserialize command-line arguments into a model.
+
+        Parameters
+        ----------
+        args : Namespace
+            The command-line arguments to deserialize.
+        to_model : type[BaseModel]
+            The model type to deserialize into.
+
+        Returns
+        -------
+        BaseModel
+            An instance of `to_model` with values from `args`.
+
+        Raises
+        ------
+        ValidationError
+            If `args` could not be deserialized into the model.
+
+        """
+        # TODO: Handle list[str]
+        return to_model(**args)
