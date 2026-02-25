@@ -1,8 +1,5 @@
 from collections import deque
-from collections.abc import Generator
-from typing import Any
-
-from applib.module.configuration.tools.template_utils.options import GUIOption, Option
+from typing import Any, Generator
 
 from .tools.search import SEARCH_SEP, SearchMode
 from .tools.search.nested_dict_search import NestedDictSearch
@@ -26,13 +23,13 @@ class MappingBase:
     def __str__(self):
         return f"{self._dict}"
 
-    def options(self) -> Generator[tuple[str, Option | GUIOption, str], Any, None]:
+    def options(self) -> Generator[tuple[str, Any, str], Any, None]:
         """Returns the Options of the mapping.
 
         Yields
         ------
-        tuple[str, Option | GUIOption, str]
-            A key, its associated Option or GUIOption, and its path in the mapping.
+        tuple[str, Any, str]
+            A key, its associated value, and its path in the mapping.
         """
         path = []
         stack = [self._dict]
