@@ -8,11 +8,10 @@ from .tools.search.search_index import SearchIndex
 
 class MappingBase:
     def __init__(self, d: dict):
-        self._idx = SearchIndex(d)
-        self._dict: dict[str, Any] = d
+        self._rebuild_mapping(d)
 
     def __iter__(self):
-        # Breath-first search
+        # Breadth-first search
         queue = deque([self._dict])
         while queue:
             for k, v in queue.popleft().items():
@@ -22,6 +21,10 @@ class MappingBase:
 
     def __str__(self):
         return f"{self._dict}"
+
+    def _rebuild_mapping(self, d: dict):
+        self._idx = SearchIndex(d)
+        self._dict: dict[str, Any] = d
 
     def options(self) -> Generator[tuple[str, Any, str], Any, None]:
         """Returns the Options of the mapping.

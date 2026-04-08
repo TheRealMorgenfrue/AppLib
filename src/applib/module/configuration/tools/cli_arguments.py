@@ -1,11 +1,10 @@
 import shlex
 from argparse import ArgumentParser, Namespace, _ArgumentGroup
+from typing import overload
 
-from pydantic import BaseModel
-
-from applib.module.configuration.tools.search import SearchMode
-
+from ...configuration.tools.search import SearchMode
 from ...tools.types.config import AnyConfig
+from ...tools.types.templates import AnyTemplate
 from .template_utils.options import Option
 
 # TODO: Inspiration from:
@@ -29,34 +28,46 @@ class CLIArguments:
     def __init__(self):
         pass
 
-    def create_argparser(self, from_config: AnyConfig) -> ArgumentParser:
+    @overload
+    def create_argparser(self, from_value: AnyTemplate) -> ArgumentParser: ...
+    @overload
+    def create_argparser(self, from_value: AnyConfig) -> ArgumentParser: ...
+
+    def create_argparser(self, from_value) -> ArgumentParser:
         """
-        Create an argument parser from a config.
+        Create an argument parser from a template.
 
         Useful for generating a command-line interface (CLI).
 
         Parameters
         ----------
-        from_config : AnyConfig
-            The config to create the argument parser from.
+        from_value
+            The value to create an argument parser from.
 
         Returns
         -------
         ArgumentParser
-            The argument parser generated from the config.
+            The argument parser generated from the value.
         """
+        if isinstance(from_value, AnyTemplate):
+            template = from_value
+        elif isinstance(from_value, AnyConfig):
+            template = from_value.template
+        else:
+            raise TypeError(
+                f"cannot create an argument parser from input '{from_value}'. Expected one of: {', '.join([f'{type(AnyTemplate).__name__}', f'{type(AnyConfig).__name__}'])}"
+            )
+
         parser = ArgumentParser()
 
         arg_groups: dict[str, _ArgumentGroup] = {}
 
-        for k, _, path in from_config.options():
+        for k, _, path in template.options():
             groups = path.split("/")
             if len(groups) > 1 and groups[-1] not in arg_groups:
                 arg_groups[groups[-1]] = parser.add_argument_group(title=groups[-1])
 
-            option: Option = from_config.template.get_value(
-                k, path, mode=SearchMode.STRICT
-            )
+            option: Option = template.get_value(k, path, mode=SearchMode.STRICT)
 
             try:
                 group = arg_groups[groups[-1]]
@@ -70,7 +81,7 @@ class CLIArguments:
                 )
         return parser
 
-    def serialize(self, from_config: AnyConfig) -> list[str]:
+    def serialize(self, from_config: AnyConfig) -> str:
         """
         Serialize a config to command-line arguments.
 
@@ -103,21 +114,18 @@ class CLIArguments:
         normalized_str = shlex.join(args)
         return shlex.quote(normalized_str)
 
-    def deserialize(self, args: Namespace, to_model: type[BaseModel]) -> BaseModel:
+    def deserialize(self, args: Namespace, to_config: AnyConfig):
         """
-        Deserialize command-line arguments into a model.
+        Deserialize command-line arguments into a config.
+
+        The config's data is overridden with `args`.
 
         Parameters
         ----------
         args : Namespace
             The command-line arguments to deserialize.
-        to_model : type[BaseModel]
+        to_config : type[AnyConfig]
             The model type to deserialize into.
-
-        Returns
-        -------
-        BaseModel
-            An instance of `to_model` with values from `args`.
 
         Raises
         ------
@@ -126,4 +134,5 @@ class CLIArguments:
 
         """
         # TODO: Handle list[str]
-        return to_model(**args)
+
+        to_config.update_config(args)
