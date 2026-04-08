@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import shutil
@@ -14,7 +15,6 @@ from pydantic import BaseModel, ValidationError
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
 from ...logging import LoggingManager
-from ...tools.types.general import StrPath
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import format_validation_error
 from ..internal.core_args import CoreArgs
@@ -22,7 +22,6 @@ from ..mapping_base import MappingBase
 from ..tools.config_tools import ConfigUtils
 from ..tools.config_utils.config_enums import ConfigLoadOptions
 from ..tools.ini_file_parser import IniFileParser
-from ..tools.search import SearchMode
 
 
 class ConfigBase(MappingBase):
@@ -32,8 +31,8 @@ class ConfigBase(MappingBase):
         self,
         name: str,
         template: AnyTemplate,
-        validation_model: type[BaseModel] | None,
-        file_path: StrPath,
+        validation_model: type[BaseModel],
+        file_path: str | Path,
         save_interval: int = 1,
     ) -> None:
         """Base class for all configs.
@@ -46,25 +45,20 @@ class ConfigBase(MappingBase):
             The template used to create `validation_model`.
         validation_model : type[BaseModel] | None
             The Pydantic model used to validate the config. If None, no validation is performed.
-        file_path : StrPath
+        file_path : str | Path
             The config's location on disk.
         save_interval : int, optional
             Time between config saves in seconds.
             By default 1.
         """
         self._is_modified = False
-        """A modified config needs to be written to disk"""
         self._save_interval = save_interval
-        """Time between config saves in seconds"""
         self._last_save_time = time()  # Prevent excessive disk writing
         self.template = template
-        self.validation_model = (
-            validation_model.model_construct() if validation_model else None
-        )
+        self.validation_model = validation_model.model_construct()
         self.name = name
         self.file_path = file_path
         self.failure = False
-        """The config failed to load"""
         self.__connectSignalToSlot()
 
         if self._logger is None:
@@ -72,7 +66,7 @@ class ConfigBase(MappingBase):
             self._logger = LoggingManager()
 
         # Initialize config after everything is set up
-        super().__init__(self._init_config())
+        super().__init__(self._init_config(self.file_path))
 
     def __connectSignalToSlot(self) -> None:
         core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
@@ -175,63 +169,51 @@ class ConfigBase(MappingBase):
                 all_errors = [f"{error_prefix}: {error}" for error in all_errors]
             raise MissingFieldError(all_errors)
 
-    def _init_config(self) -> dict:
-        """Loads the config from a file."""
-        config, self.failure = self._load_config(
+    def update_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
+        """Loads the config from `data`."""
+        config = self._init_config(data)
+        self._rebuild_mapping(config)
+
+    # TODO: https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.extra
+    # TODO: https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.validate_assignment
+    def _init_config(
+        self, data: dict | Mapping | argparse.Namespace | str | Path
+    ) -> dict[str, Any]:
+        """Loads the config from `data`."""
+        config, self.failure = self._load(
+            data,
             validator=self._validate_load,
-            model_dict=(
-                self.validation_model.model_dump() if self.validation_model else None
-            ),
+            model_dict=(self.validation_model.model_dump()),
         )
         return config
 
-    def _validate_load(self, raw_config: dict) -> dict:
-        """
-        Validates the config when loaded from a file.
-
-        Parameters
-        ----------
-        raw_config : dict
-            The raw, unvalidated config loaded from a file.
-
-        Returns
-        -------
-        dict
-            The validated config.
-        """
-        if self.validation_model:
-            config = self.validation_model.model_validate(raw_config).model_dump()
-            self._check_missing_fields(raw_config, config)
-            return config
-        return raw_config
-
-    def _load_config(
+    def _load(
         self,
+        data: dict | Mapping | argparse.Namespace | str | Path,
         validator: Callable[[dict], dict] | None = None,
         model_dict: dict | None = None,
         load_options: (
             ConfigLoadOptions | list[ConfigLoadOptions]
         ) = ConfigLoadOptions.WRITE_CONFIG,
         retries: int = 1,
-    ) -> tuple[dict, bool]:
+    ) -> tuple[dict[str, Any], bool]:
         """
-        Read and validate the config file residing at the supplied config path.
+        Read and validate `data` as an instance of this config file.
 
         Parameters
         ----------
+        data : str | dict
+            The input to load.
         validator : Callable[[dict], dict]
             A callable that validates the config.
             Must take the raw config as input and return a dict of the validated config.
-
         model_dict : dict | None, optional
             A validated config created by the supplied validation model.
             NOTE: Must be supplied if `load_options` contains ConfigLoadOptions.WRITE_CONFIG.
             By default None.
-
         load_options : ConfigLoadOptions | list[ConfigLoadOptions], optional
             Manipulate with files on the file system to recover from soft errors.
             By default ConfigLoadOptions.WRITE_CONFIG.
-
         retries : int, optional
             Reload the config X times if soft errors occur.
             Note: This has no effect if `load_options` does not contain ConfigLoadOptions.WRITE_CONFIG.
@@ -254,8 +236,7 @@ class ConfigBase(MappingBase):
 
         is_error, failure = False, False
         config = {}
-        filename = os.path.split(self.file_path)[1]
-        extension = os.path.splitext(filename)[1].strip(".")
+
         write_config = ConfigLoadOptions.WRITE_CONFIG in load_options
 
         if write_config and model_dict is None:
@@ -265,18 +246,24 @@ class ConfigBase(MappingBase):
             write_config = False
 
         try:
-            with open(self.file_path, "rb") as file:
-                if extension.lower() == "toml":
-                    raw_config = tomlkit.load(file)
-                elif extension.lower() == "ini":
-                    raw_config = IniFileParser.load(file)
-                elif extension.lower() == "json":
-                    raw_config = json.load(file)
-                else:
-                    err_msg = f"{self._prefix_msg()} Cannot load unsupported file '{self.file_path}'"
-                    raise NotImplementedError(err_msg)
+            if isinstance(data, str):
+                raw_config = self._load_file(data)
+            elif isinstance(data, Path):
+                raw_config = self._load_file(f"{data}")
+            elif isinstance(data, (dict, Mapping, argparse.Namespace)):
+                input_name = f"{type(data).__name__}"
+                raw_config = data
+            else:
+                input_name = data
+                not_implemented_msg = (
+                    f"{self._prefix_msg()} Cannot load unsupported input '{input_name}'"
+                )
+                raise NotImplementedError(not_implemented_msg)
 
-            if ConfigLoadOptions.IGNORE_VALIDATION_ERROR in load_options:
+            if (
+                ConfigLoadOptions.IGNORE_VALIDATION_ERROR in load_options
+                or validator is None
+            ):
                 config = raw_config
 
             if validator:
@@ -284,7 +271,7 @@ class ConfigBase(MappingBase):
         except ValidationError as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
-                f"{self._prefix_msg()} Could not validate '{filename}'"
+                f"{self._prefix_msg()} Could not validate '{input_name}'"
             )
             self._logger.debug(format_validation_error(err))
             if write_config:
@@ -293,7 +280,7 @@ class ConfigBase(MappingBase):
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
             err_msg = (
-                f"{self._prefix_msg()} Detected incorrect fields in '{filename}':\n"
+                f"{self._prefix_msg()} Detected incorrect fields in '{input_name}':\n"
             )
             for item in err.args[0]:
                 err_msg += f"  {item}\n"
@@ -304,7 +291,7 @@ class ConfigBase(MappingBase):
                     repaired_config = self._repair_config(raw_config, model_dict)
                 except Exception:
                     self._logger.error(
-                        f"Config repair failed:\n"
+                        "Config repair failed:\n"
                         + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
                     )
                 self.backup_config()
@@ -319,28 +306,29 @@ class ConfigBase(MappingBase):
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
-                f"{self._prefix_msg()} Failed to parse '{filename}':\n  {err.args[0]}\n"
+                f"{self._prefix_msg()} Failed to parse '{input_name}':\n  {err.args[0]}\n"
             )
             if write_config:
                 self.backup_config()
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         except FileNotFoundError:
             is_error, is_recoverable = True, True
-            self._logger.info(f"{self._prefix_msg()} Creating '{filename}'")
+            self._logger.info(f"{self._prefix_msg()} Creating '{input_name}'")
             if write_config:
                 ConfigUtils.writeConfig(model_dict, self.file_path)
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
-                f"{self._prefix_msg()} An unexpected error occurred while loading '{filename}'\n"
+                f"{self._prefix_msg()} An unexpected error occurred while loading '{input_name}'\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
             )
         finally:
             if is_error:
                 if retries > 0 and is_recoverable:
-                    reload_msg = f"{self._prefix_msg()} Reloading '{filename}'"
+                    reload_msg = f"{self._prefix_msg()} Reloading '{input_name}'"
                     self._logger.info(reload_msg)
-                    config, failure = self._load_config(
+                    config, failure = self._load(
+                        data=data,
                         validator=validator,
                         model_dict=model_dict,
                         load_options=load_options,
@@ -349,7 +337,7 @@ class ConfigBase(MappingBase):
                 else:
                     failure = True
                     load_failure_msg = (
-                        f"{self._prefix_msg()} Failed to load '{filename}'"
+                        f"{self._prefix_msg()} Failed to load '{input_name}'"
                     )
                     if model_dict:
                         load_failure_msg += ". Loading template as config"
@@ -360,8 +348,47 @@ class ConfigBase(MappingBase):
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.info(f"{self._prefix_msg()} '{filename}' loaded!")
+                self._logger.info(f"{self._prefix_msg()} '{input_name}' loaded!")
             return config, failure
+
+    def _load_file(self, file_path: str):
+        input_name = os.path.split(file_path)[1]
+        extension = os.path.splitext(input_name)[1].strip(".")
+        with open(file_path, "rb") as file:
+            if extension.lower() == "toml":
+                return tomlkit.load(file)
+            elif extension.lower() == "ini":
+                return IniFileParser.load(file)
+            elif extension.lower() == "json":
+                return json.load(file)
+            else:
+                not_implemented_msg = f"{self._prefix_msg()} File extension '{extension}' is not supported"
+                raise NotImplementedError(not_implemented_msg)
+
+    def _validate_load(self, raw_config: dict) -> dict:
+        """
+        Performs default config validation.
+
+        Parameters
+        ----------
+        raw_config : dict
+            The raw, unvalidated config.
+
+        Returns
+        -------
+        dict
+            The validated config.
+        """
+        if self.validation_model:
+            self.validation_model.model_validate(raw_config)
+            config = self.validation_model.model_dump()
+            self._check_missing_fields(raw_config, config)
+            return config
+        else:
+            self._logger.warning(
+                f"{self._prefix_msg()} Cannot validate config. Validation model is {type(self.validation_model).__name__}"
+            )
+        return raw_config
 
     def _repair_config(self, config: dict, model_dict: dict) -> dict:
         """
