@@ -137,3 +137,6 @@ class SearchIndex:
                     f"Failed to remove path '{path}' from key '{key}'\n"
                     + traceback.format_exc()
                 )
+
+    def clear(self):
+        self._index.clear()

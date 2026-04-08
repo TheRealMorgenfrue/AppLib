@@ -206,3 +206,8 @@ class MappingBase:
 
         remove_children(v, f"{path}/{key}")
         self._idx.remove(key, path)
+
+    def clear(self):
+        """Removes all elements from the mapping"""
+        self._dict.clear()
+        self._idx.clear()
