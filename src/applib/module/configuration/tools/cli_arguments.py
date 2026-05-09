@@ -114,7 +114,7 @@ class CLIArguments:
         normalized_str = shlex.join(args)
         return shlex.quote(normalized_str)
 
-    def deserialize(self, args: Namespace, to_config: AnyConfig):
+    def deserialize(self, args: Namespace, to_config: AnyConfig, merge: bool):
         """
         Deserialize command-line arguments into a config.
 
@@ -126,6 +126,10 @@ class CLIArguments:
             The command-line arguments to deserialize.
         to_config : type[AnyConfig]
             The model type to deserialize into.
+        merge : bool
+            If `True`, the command-line arguments are merged into the config.
+            Otherwise, a new config is created with default values for
+            those not set by command-line args.
 
         Raises
         ------
@@ -135,4 +139,7 @@ class CLIArguments:
         """
         # TODO: Handle list[str]
 
-        to_config.update_config(args)
+        if merge:
+            to_config.update_config(args)
+        else:
+            to_config.replace_config(args)

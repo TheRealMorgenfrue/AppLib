@@ -170,7 +170,16 @@ class ConfigBase(MappingBase):
             raise MissingFieldError(all_errors)
 
     def update_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
-        """Loads the config from `data`."""
+        """Update the config with values from `data`."""
+        config = self._init_config(data)
+
+        # TODO: this will prolly replace parent keys in config
+        # instead of keys at the lowest level.
+        for k, v in config.items():
+            self.set_value(k, v, "")
+
+    def replace_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
+        """Replaces the config with values form `data`."""
         config = self._init_config(data)
         self._rebuild_mapping(config)
 
