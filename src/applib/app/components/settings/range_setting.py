@@ -9,8 +9,8 @@ class RangeSettingMixin:
 
     def _defineRange(self, num_range: tuple[floatOrInt | None, floatOrInt | None]):
         min, max = num_range
-        self.min_value = min if min is not None else -999999
-        self.max_value = max if max is not None else 999999
+        self.min_value = min if min is not None else -2e63
+        self.max_value = max if max is not None else 2e63
 
     def _ensureValidGUIValue(self, value: int | float) -> int | float:
         return value if value > self.min_value else self.min_value
