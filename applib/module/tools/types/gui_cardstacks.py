@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from ....app.components.cardstack import PivotCardStack, SegmentedPivotCardStack
 
-type AnyCardStack = PivotCardStack | SegmentedPivotCardStack
+AnyCardStack: TypeAlias = PivotCardStack | SegmentedPivotCardStack

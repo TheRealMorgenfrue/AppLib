@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from ....app.components.settingcards.cards.clustered_settingcard import (
     ClusteredSettingCard,
 )
@@ -11,7 +13,7 @@ from ....app.components.settingcards.widgets.parent_settingwidgets import (
 )
 from ....app.components.settingcards.widgets.settingwidget import SettingWidget
 
-type AnyCard = (
+AnyCard: TypeAlias = (
     ExpandingSettingCard
     | ClusteredSettingCard
     | GenericSettingCard
@@ -20,7 +22,7 @@ type AnyCard = (
     | SettingWidget
 )
 
-type AnyParentCard = (
+AnyParentCard: TypeAlias = (
     ExpandingSettingCard
     | ClusteredSettingCard
     | GenericSettingCard
@@ -28,8 +30,12 @@ type AnyParentCard = (
     | ClusteredSettingWidget
 )
 
-type AnyNestingCard = ExpandingSettingCard | NestedSettingWidget
+AnyNestingCard: TypeAlias = ExpandingSettingCard | NestedSettingWidget
 
-type AnySettingCard = ExpandingSettingCard | ClusteredSettingCard | GenericSettingCard
+AnySettingCard: TypeAlias = (
+    ExpandingSettingCard | ClusteredSettingCard | GenericSettingCard
+)
 
-type AnySettingWidget = NestedSettingWidget | ClusteredSettingWidget | SettingWidget
+AnySettingWidget: TypeAlias = (
+    NestedSettingWidget | ClusteredSettingWidget | SettingWidget
+)
