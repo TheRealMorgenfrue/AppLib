@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import LineEdit
 
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import GUIMessage, GUIOption
+from ....module.configuration.tools.template_utils.options import GUIMessage, Option
 from ....module.logging import LoggingManager
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
@@ -15,7 +15,7 @@ class CoreLineEdit(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         is_tight: bool = False,
         ui_invalid_input: GUIMessage | None = None,
         converter: Converter | None = None,
@@ -33,7 +33,7 @@ class CoreLineEdit(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         is_tight : bool, optional

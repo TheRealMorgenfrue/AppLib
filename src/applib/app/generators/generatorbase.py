@@ -9,7 +9,7 @@ from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.configuration.tools.template_utils.groups import Group
-from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.options import Option
 from ...module.configuration.tools.template_utils.template_enums import UIFlags, UITypes
 from ...module.exceptions import OrphanGroupWarning
 from ...module.logging import LoggingManager
@@ -70,7 +70,7 @@ class GeneratorBase:
         self,
         card_type: UITypes | None,
         setting: str,
-        option: GUIOption,
+        option: Option,
         path: str,
         group: Group | None,
         parent: QWidget | None = None,
@@ -88,7 +88,7 @@ class GeneratorBase:
             The setting this card represent.
             That is, a key in the template (and by extension, the config).
 
-        option : GUIOption
+        option : Option
             Options detailing how the card should look and behave.
             That is, the value of `setting` in the template.
 
@@ -117,7 +117,7 @@ class GeneratorBase:
         self,
         card_type: UITypes,
         key: str,
-        option: GUIOption,
+        option: Option,
         path: str,
         parent: QWidget | None = None,
     ) -> AnySetting | None:
@@ -132,7 +132,7 @@ class GeneratorBase:
         key : str
             The setting's key in the config.
 
-        option : GUIOption
+        option : Option
             The options available for this setting, e.g., its default value.
 
         path : str
@@ -240,7 +240,7 @@ class GeneratorBase:
             raise TypeError(err_msg)
         return widget
 
-    def _exclude_setting(self, setting: str, option: GUIOption) -> bool:
+    def _exclude_setting(self, setting: str, option: Option) -> bool:
         exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore # option.ui_flags is a list after being parsed.
         if exclude:
             self._logger.debug(
@@ -257,7 +257,7 @@ class GeneratorBase:
         failed_cards = 0
 
         for setting, option, path in self._template.options():
-            if not isinstance(option, GUIOption):
+            if not isinstance(option, Option):
                 self._logger.error(
                     f"TypeError: setting '{setting}' has option of type '{type(option)}' which is invalid for card generation."
                 )

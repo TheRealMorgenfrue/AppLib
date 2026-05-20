@@ -47,70 +47,6 @@ class Option:
         self,
         default,
         actions: Callable | list[Callable] = AppLibUndefined,
-        disable_self: bool = AppLibUndefined,
-        max: floatOrInt | None = AppLibUndefined,
-        min: floatOrInt | None = AppLibUndefined,
-        type: type = AppLibUndefined,
-        validators: Callable | list[Callable] = AppLibUndefined,
-    ):
-        """
-        Create an option instance usable in a non-GUI environment.
-
-        An Option is the value of a setting, as defined in the template specification.
-
-        Parameters
-        ----------
-        default : Any
-            The default value for this setting.
-        actions : Callable | list[Callable], optional
-            Functions to call when this setting changes value.
-            Each function must take one argument, which is the new value of this setting.
-        disable_self : bool, optional
-            The value that disables this setting.
-            Disabled settings are excluded from command line arguments.
-        max : floatOrInt, optional
-            The maximum value for this setting.
-            If None, there is no limit.
-        min : floatOrInt, optional
-            The minimum value for this setting.
-            If None, there is no limit.
-        type : type, optional
-            The Python type for the value of this setting. For instance, 3 has type 'int'.
-
-            The final type is a union of:
-            - default
-            - type
-        validators : Callable | list[Callable], optional
-            Functions used to validate the value of this setting (in addition to default Pydantic validation).
-            Each function must take one argument, which is the value of this setting.
-            If the value is invalid, they must raise either ValueError or AssertionError.
-        """
-        self.default = default
-        self.actions = actions
-        self.disable_self = disable_self
-        self.max = max
-        self.min = min
-        self.type = type
-        self.validators = validators
-
-    def __getattr__(self, name):
-        """
-        Called when the default attribute access fails with an AttributeError (either __getattribute__()
-        raises an AttributeError because `name` is not an instance attribute or an attribute in the class tree
-        for self; or __get__() of a `name` property raises AttributeError)
-        """
-        return AppLibUndefined
-
-    def defined(self, attr_value) -> bool:
-        """Returns True if the given attribute is defined."""
-        return attr_value != AppLibUndefined
-
-
-class GUIOption(Option):
-    def __init__(
-        self,
-        default,
-        actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
@@ -129,7 +65,6 @@ class GUIOption(Option):
         ui_unit: str = AppLibUndefined,
         validators: Validator | list[Validator] = AppLibUndefined,
         values: list | dict = AppLibUndefined,
-        **kwargs,
     ):
         """
         Create an option instance usable in a GUI environment.
@@ -241,16 +176,13 @@ class GUIOption(Option):
             Possible values for this setting.
             ##### Applicable settings: Combobox
         """
-        super().__init__(
-            default=default,
-            actions=actions,
-            max=max,
-            min=min,
-            type=type,
-            validators=validators,
-            **kwargs,
-        )
+        self.actions = actions
         self.converter = converter
+        self.default = default
+        self.hide_in_cli = hide_in_cli
+        self.max = max
+        self.min = min
+        self.type = type
         self.ui_disable_button = ui_disable_button
         self.ui_disable_other = ui_disable_other
         self.ui_disable_self = ui_disable_self
@@ -263,10 +195,23 @@ class GUIOption(Option):
         self.ui_show_dir_only = ui_show_dir_only
         self.ui_type = ui_type
         self.ui_unit = ui_unit
+        self.validators = validators
         self.values = values
 
+    def __getattr__(self, name):
+        """
+        Called when the default attribute access fails with an AttributeError (either __getattribute__()
+        raises an AttributeError because `name` is not an instance attribute or an attribute in the class tree
+        for self; or __get__() of a `name` property raises AttributeError)
+        """
+        return AppLibUndefined
 
-class FileSelectorOption(GUIOption):
+    def defined(self, attr_value) -> bool:
+        """Returns True if the given attribute is defined."""
+        return attr_value != AppLibUndefined
+
+
+class FileSelectorOption(Option):
     def __init__(
         self,
         default: str,
@@ -306,7 +251,7 @@ class FileSelectorOption(GUIOption):
         )
 
 
-class ColorPickerOption(GUIOption):
+class ColorPickerOption(Option):
     def __init__(
         self,
         default: str,
@@ -342,7 +287,7 @@ class ColorPickerOption(GUIOption):
         )
 
 
-class ComboBoxOption(GUIOption):
+class ComboBoxOption(Option):
     def __init__(
         self,
         default,
@@ -384,7 +329,7 @@ class ComboBoxOption(GUIOption):
         )
 
 
-class TextEditOption(GUIOption):
+class TextEditOption(Option):
     def __init__(
         self,
         default: str,
@@ -422,7 +367,7 @@ class TextEditOption(GUIOption):
         )
 
 
-class NumberOption(GUIOption):
+class NumberOption(Option):
     def __init__(
         self,
         default: floatOrInt,

@@ -3,7 +3,7 @@ from typing import override
 from PyQt6.QtWidgets import QWidget
 
 from ...module.configuration.tools.template_utils.groups import Group
-from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.options import Option
 from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
@@ -94,7 +94,7 @@ class CardWidgetGenerator(GeneratorBase):
         self,
         card_type: UITypes,
         setting: str,
-        option: GUIOption,
+        option: Option,
         path: str,
         group: Group | None,
         parent: QWidget | None = None,

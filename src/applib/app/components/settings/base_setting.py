@@ -6,7 +6,7 @@ from PyQt6.QtGui import QHideEvent
 from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.options import Option
 from ....module.configuration.tools.template_utils.template_enums import UIFlags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
@@ -21,7 +21,7 @@ class BaseSetting(QWidget):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         converter: Converter | None = None,
         notify_disabled: bool = True,
         path="",
@@ -45,7 +45,7 @@ class BaseSetting(QWidget):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         converter : Converter | None, optional

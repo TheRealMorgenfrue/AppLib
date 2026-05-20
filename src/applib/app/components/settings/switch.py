@@ -6,7 +6,7 @@ from qfluentwidgets import SwitchButton
 
 from applib.module.configuration.runners.converters.converter import Converter
 
-from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.options import Option
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 from .bool_setting import BoolSettingMixin
@@ -17,7 +17,7 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         converter: Converter | None = None,
         path="",
         parent: QWidget | None = None,
@@ -33,7 +33,7 @@ class CoreSwitch(BaseSetting, BoolSettingMixin):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         converter : Converter | None, optional

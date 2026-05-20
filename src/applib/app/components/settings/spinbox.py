@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import DoubleSpinBox, SpinBox
 
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.options import Option
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.general import floatOrInt
 from .base_setting import BaseSetting
@@ -16,7 +16,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         num_range: tuple[floatOrInt | None, floatOrInt | None],
         converter: Converter | None = None,
         path="",
@@ -33,7 +33,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         config_key : str
             The key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         num_range : tuple[floatOrInt | None, floatOrInt | None]
