@@ -3,6 +3,8 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from applib.module.exceptions import CoreValidationError
+
 
 def iter_to_str(arg: Iterable, separator: str = "") -> str:
     """
@@ -60,18 +62,20 @@ def dict_lookup(input: dict, search_param: Any) -> Any:
 
 
 def format_validation_error(
-    err: ValidationError, include_url: bool = False, include_input: bool = True
+    err: ValidationError | CoreValidationError,
+    include_url: bool = False,
+    include_input: bool = True,
 ) -> str:
     """
     Format a validation error.
 
     Parameters
     ----------
-    err : ValidationError
-        An instance of a ValidationError which should be formatted.
+    err : ValidationError | CoreValidationError
+        The validation error to format.
 
     include_url : bool, optional
-        Include a url to the Pydantic help page for this error.
+        Include a url to the Pydantic help page for this error, if any.
         By default `False`.
 
     include_input : bool, optional
@@ -81,16 +85,19 @@ def format_validation_error(
     Returns
     -------
     str
-        A formatted string of the ValidationError instance.
+        A formatted string of the `err` instance.
     """
+    if isinstance(err, CoreValidationError):
+        return str(err)
+
     if not isinstance(err, ValidationError):
         raise TypeError(
-            f"must be an instance of {ValidationError.__name__}. Got '{type(err).__name__}'"
+            f"must be an instance of {ValidationError.__name__}. Got {type(err).__name__!r}"
         )
 
     errors = err.errors(include_url=include_url, include_input=include_input)
     error_count = err.error_count()
-    msg = f"{error_count} validation error{'s' if error_count > 1 else ''} for '{err.title}'\n"
+    msg = f"{error_count} validation error{'s' if error_count > 1 else ''} for {err.title!r}\n"
     for error in errors:
         section = error.get("loc")[0]
         setting = error.get("loc")[1]
@@ -101,7 +108,7 @@ def format_validation_error(
         input_type = f"input_type={type(error.get('input')).__name__}"
         details = [error_type, input_value, input_type]
 
-        msg += f"  {error.get('msg')} [{iter_to_str(details, separator=', ')}]\n"
+        msg += f"  {error.get('msg')} [{', '.join(details)}]\n"
         msg += (
             f"    For further information visit {error.get('url')}\n"
             if include_url

@@ -1,10 +1,15 @@
 from collections.abc import Mapping
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, ValidationError
-from pydantic_core import InitErrorDetails, PydanticCustomError
+from pydantic import BaseModel
 
-from ...exceptions import MissingFieldError
+from applib.module.configuration.tools.search import SEARCH_SEP
+
+from ...exceptions import (
+    CoreValidationError,
+    CoreValidationErrorDetails,
+    MissingFieldError,
+)
 from ..mapping_base import MappingBase
 from ..tools.template_utils.validation_info import ModelValidationInfo
 
@@ -123,7 +128,7 @@ class CoreValidationModel(BaseModel):
             If the model has incompatible Option/value pairs.
         """
         model_map = MappingBase(model_dump)
-        errors: list[InitErrorDetails] = []
+        errors: list[CoreValidationErrorDetails] = []
 
         for validator, fields in validation_info.validators.items():
             for field_tuple in fields:
@@ -132,23 +137,30 @@ class CoreValidationModel(BaseModel):
                     try:
                         field_map[field] = model_map.get_value(field)
                     except KeyError as e:
-                        error = PydanticCustomError(
-                            "key_error",
-                            "Failed to create field map: {e}",
-                            {"e": e.args},
+                        details = CoreValidationErrorDetails(
+                            type=type(e).__name__.replace(" ", "_"),  # to snake_case
+                            loc=("", field),
+                            msg=f"Failed to create field map: {e.args}",
+                            input=field,
                         )
-                        details = InitErrorDetails(type=error, input=field)
                         errors.append(details)
                 try:
                     validator(**field_map)
                 except ValueError as e:
-                    details = InitErrorDetails(type=f"{e}", input=field_map)
+                    section = model_map.get_path(field, default="").replace(
+                        SEARCH_SEP, "."
+                    )
+                    details = CoreValidationErrorDetails(
+                        type=type(e).__name__.replace(" ", "_"),  # to snake_case
+                        loc=(section, field),
+                        msg=f"{e.args[0] if len(e.args) > 0 else e}",
+                        input=field_map,
+                    )
                     errors.append(details)
-
         err_len = len(errors)
         if err_len > 0:
-            # TODO: Make applib validation error
-            raise ValidationError(errors)
+            # raise CoreValidationError("config compatibility check", errors)
+            raise CoreValidationError(f"{type(self).__name__}", errors)
 
     def core_model_validate(
         self, obj: Any, validation_info: ModelValidationInfo
