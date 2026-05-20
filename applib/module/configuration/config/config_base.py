@@ -13,7 +13,12 @@ import tomlkit.exceptions
 from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
-from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
+from ...exceptions import (
+    CoreValidationError,
+    IniParseError,
+    InvalidMasterKeyError,
+    MissingFieldError,
+)
 from ...logging import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import format_validation_error
@@ -161,12 +166,12 @@ class ConfigBase(MappingBase):
                     raw_config, self._model_validation_info
                 ).model_dump()
             )
-        except ValidationError as err:
+        except (ValidationError, CoreValidationError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
                 f"{self._prefix_msg()} Could not validate '{input_name}'"
             )
-            self._logger.debug(format_validation_error(err))
+            self._logger.error(format_validation_error(err))
             if write_config:
                 self.backup_config()
                 self._write_config()
