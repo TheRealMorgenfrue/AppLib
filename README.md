@@ -67,16 +67,55 @@ On Linux Wayland, start your program with the environment variable: `QT_QPA_PLAT
 > [!NOTE]
 > This project uses `uv` as package manager
 
-1. Install uv from https://docs.astral.sh/uv/getting-started/installation/
-2. Run `uvx prek install` (install pre-commit hook)
-3. Run `uv run --extra dev tests/manual/mantest.py`  
-   If a GUI displays, the installation was successful.
+1. Install uv from [https://docs.astral.sh/uv/getting-started/installation/](https://docs.astral.sh/uv/getting-started/installation/)  
+   Tip: remember to restart your terminal after installation.
+2. [Optional] Install pre-commit hook:
+
+    ```bash
+    uvx prek install
+    ```
+
+3. Install dependencies:
+
+    ```bash
+    uv sync --dev
+    ```
+
+4. Start the test program:
+
+    ```bash
+    uv run tests/manual/mantest.py
+    ```
+
+    If a GUI displays, the installation was successful.
 
 If needed, please refer to uv's [documentation](https://docs.astral.sh/uv/) for further assistance.
 
 ### Building documentation
 
 To build the documentation locally, run: `uv run mkdocs serve`.
+
+### Linting, tests, and dependencies
+
+- You can run linting (and fix issues) with command:
+
+    ```bash
+    ruff check --fix
+    ```
+
+    - The pre-commit hook also does this for you.
+
+- To update dependencies:
+
+    ```bash
+    uv sync -U --dev
+    ```
+
+- To run automated tests:
+
+    ```bash
+    uv run pytest tests/automatic
+    ```
 
 ## Acknowledgements
 
