@@ -2,28 +2,116 @@ site_name: AppLib Documentation
 site_url: https://TheRealMorgenfrue.github.io/AppLib/
 repo_url: https://github.com/TheRealMorgenfrue/AppLib
 edit_uri: edit/main/docs/
-plugins:
-    - search
-    - git-revision-date-localized:
-          enable_creation_date: true
-          type: date
-    - git-committers:
-          repository: TheRealMorgenfrue/AppLib
-          branch: main
+
 theme:
     name: material
     language: en
-features:
-    - search.suggest
-    - search.highlight
-    - content.action.edit
-    - content.action.view
-icon:
-    edit: material/pencil
-    view: material/eye
+    palette:
+        - media: "(prefers-color-scheme)"
+          primary: blue
+          accent: blue
+          toggle:
+              icon: material/brightness-auto
+              name: "Switch to light mode"
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: blue
+          accent: blue
+          toggle:
+              icon: material/brightness-7
+              name: "Switch to dark mode"
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: blue
+          accent: blue
+          toggle:
+              icon: material/brightness-4
+              name: "Switch to system preference"
+    features:
+        - search.suggest
+        - search.highlight
+        - content.action.edit
+        - content.action.view
+        - content.tabs.link
+        - content.code.annotate
+        - content.code.copy
+        - announce.dismiss
+        - navigation.tabs
+        - navigation.instant
+        - navigation.instant.prefetch
+        - navigation.instant.preview
+        - navigation.instant.progress
+        - navigation.path
+        - navigation.sections
+        - navigation.top
+        - navigation.tracking
+        - search.suggest
+        - toc.follow
+    icon:
+        edit: material/pencil
+        view: material/eye
+
 extra:
     version:
         provider: mike
+
+plugins:
+    #     - optimize
+    #     - git-revision-date-localized:
+    #           enable_creation_date: true
+    #           type: date
+    #      - git-committers:
+    #           repository: TheRealMorgenfrue/AppLib
+    #           branch: main
+    - mike:
+          alias_type: symlink
+          canonical_version: latest
+    - search
+    - exclude:
+          glob:
+              - plugins/*
+              - __pycache__/*
+    - mkdocstrings:
+          handlers:
+              python:
+                  paths: [.] # see also: build-docs.sh
+                  options:
+                      members_order: source
+                      separate_signature: true
+                      filters: ["!^_"]
+                      docstring_options:
+                          ignore_init_summary: true
+                      merge_init_into_class: true
+                      show_signature_annotations: true
+                      signature_crossrefs: true
+                  import:
+                      - url: https://docs.python.org/3/objects.inv
+                        domains: [py, std]
+                      - url: https://typing-extensions.readthedocs.io/en/latest/objects.inv
+
+# https://www.mkdocs.org/user-guide/configuration/#validation
+validation:
+    omitted_files: warn
+    absolute_links: warn
+    unrecognized_links: warn
+    anchors: warn
+
+watch:
+    - src/applib
+
+nav:
+    - Get Started:
+          - Introduction: index.md
+    - Concepts:
+          - Config:
+                - Actions: concepts/config/actions.md
+                - Converters: concepts/config/converters.md
+                - Core Attributes: concepts/config/core_attributes.md
+                - Option: concepts/config/option.md
+                - Templates: concepts/config/templates.md
+                - Validation: concepts/config/validation.md
+          - Logging: concepts/logging.md
+
 markdown_extensions:
     - admonition
     - pymdownx.details
