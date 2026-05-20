@@ -6,7 +6,7 @@ from PyQt6.QtCore import pyqtBoundSignal
 from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_utils.groups import Group
-from ...module.configuration.tools.template_utils.options import GUIOption
+from ...module.configuration.tools.template_utils.options import Option
 from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
@@ -133,8 +133,8 @@ class GeneratorUtils:
                     if func is not None:
                         if is_undirected:
                             parent_slots.append(
-                                lambda wrapper_or_checked, parent=parent, func=func: func(
-                                    wrapper_or_checked, parent
+                                lambda wrapper_or_checked, parent=parent, func=func: (
+                                    func(wrapper_or_checked, parent)
                                 )
                             )
                         child_slots.append(
@@ -218,7 +218,7 @@ class GeneratorUtils:
 
     @classmethod
     def infer_type(
-        cls, setting: str, option: GUIOption, config_name: str
+        cls, setting: str, option: Option, config_name: str
     ) -> UITypes | None:
         """Infer card type from various options in the template"""
         card_type = None
@@ -253,9 +253,7 @@ class GeneratorUtils:
         return card_type
 
     @classmethod
-    def parse_unit(
-        cls, setting: str, option: GUIOption, config_name: str
-    ) -> str | None:
+    def parse_unit(cls, setting: str, option: Option, config_name: str) -> str | None:
         baseunit = None
         if option.defined(option.ui_unit):
             baseunit = option.ui_unit
@@ -264,7 +262,7 @@ class GeneratorUtils:
                     AutoTextWrap.text_format(
                         f"""
                         Config '{config_name}': Setting '{setting}' has invalid unit '{baseunit}'.
-                        Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=', ')}]
+                        Expected one of [{iter_to_str(CoreArgs._core_config_units.keys(), separator=", ")}]
                         """
                     ),
                     gui=True,

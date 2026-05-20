@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
 
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.options import Option
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -14,7 +14,7 @@ class CoreComboBox(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         texts: list[str] | dict[str, str],
         converter: Converter | None = None,
         path="",
@@ -31,7 +31,7 @@ class CoreComboBox(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         texts : list | dict

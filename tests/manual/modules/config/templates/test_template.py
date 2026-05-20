@@ -22,8 +22,8 @@ from applib.module.configuration.tools.template_utils.options import (
     CompatilityValidator,
     FileSelectorOption,
     GUIMessage,
-    GUIOption,
     NumberOption,
+    Option,
     TextEditOption,
 )
 from applib.module.configuration.tools.template_utils.template_enums import (
@@ -104,7 +104,7 @@ class TestTemplate(BaseTemplate):
                 ),
             },
             "PixivUtil2": {
-                "partialCompat": GUIOption(
+                "partialCompat": Option(
                     default=False,
                     ui_flags=UIFlags.REQUIRES_RELOAD,
                     ui_group_parent=[
@@ -123,7 +123,7 @@ class TestTemplate(BaseTemplate):
                         ),
                     ),
                 ),
-                "fullCompat": GUIOption(
+                "fullCompat": Option(
                     default=False,
                     ui_flags=UIFlags.REQUIRES_RELOAD,
                     ui_group="pu_compat",
@@ -140,7 +140,7 @@ class TestTemplate(BaseTemplate):
                 ),
             },
             "IrfanView": {
-                "startIrfanView": GUIOption(
+                "startIrfanView": Option(
                     default=False,
                     ui_group_parent=UIGroups.DESYNC_TRUE_CHILDREN,
                     ui_group="downloadList_1",
@@ -149,7 +149,7 @@ class TestTemplate(BaseTemplate):
                         "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files",
                     ),
                 ),
-                "startIrfanSlide": GUIOption(
+                "startIrfanSlide": Option(
                     default=False,
                     ui_group_parent=UIGroups.DESYNC_TRUE_CHILDREN,
                     ui_group="downloadList_2",
@@ -158,7 +158,7 @@ class TestTemplate(BaseTemplate):
                         "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files. Slideshow-options will be same as you have set in IrfanView before",
                     ),
                 ),
-                "createDownloadLists": GUIOption(
+                "createDownloadLists": Option(
                     default=False,
                     ui_disable_self=False,
                     ui_group_parent=[
@@ -183,7 +183,7 @@ class TestTemplate(BaseTemplate):
                     ),
                     validators=[validate_path],
                 ),
-                "ignore-config": GUIOption(
+                "ignore-config": Option(
                     default=False,
                     ui_disable_self=False,
                     ui_group_parent=[UIGroups.CLUSTERED],
@@ -193,7 +193,7 @@ class TestTemplate(BaseTemplate):
                         "For backward compatibility, if this option is found inside the system configuration file, the user configuration is not loaded.",
                     ),
                 ),
-                "no-config-locations": GUIOption(
+                "no-config-locations": Option(
                     default=False,
                     ui_disable_self=False,
                     ui_group_parent=[

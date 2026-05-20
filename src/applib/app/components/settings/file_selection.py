@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QFileDialog, QWidget
 from qfluentwidgets import PushButton
 
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import GUIOption
+from ....module.configuration.tools.template_utils.options import Option
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -15,7 +15,7 @@ class CoreFileSelect(BaseSetting):
         self,
         config: AnyConfig,
         config_key: str,
-        option: GUIOption,
+        option: Option,
         caption: str,
         directory: str,
         show_dir_only: bool = False,
@@ -36,7 +36,7 @@ class CoreFileSelect(BaseSetting):
         config_key : str
             The option key in the config which should be associated with this setting.
 
-        option : GUIOption
+        option : Option
             The options associated with `config_key`.
 
         caption : str
