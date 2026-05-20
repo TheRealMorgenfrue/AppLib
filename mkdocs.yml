@@ -97,7 +97,7 @@ validation:
     anchors: warn
 
 watch:
-    - src/applib
+    - applib
 
 nav:
     - Get Started:

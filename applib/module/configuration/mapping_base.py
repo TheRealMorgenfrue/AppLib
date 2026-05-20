@@ -53,7 +53,7 @@ class MappingBase:
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
 
-    def options(self) -> Generator[tuple[str, Any, str], Any, None]:
+    def options(self) -> Generator[tuple[str, Any, str], Any]:
         """Returns the Options of the mapping.
 
         Yields
@@ -97,6 +97,8 @@ class MappingBase:
         ----------
         key : str
             The key whose path to look for.
+        base_path : str
+            Start looking from this path.
         default : Any
             The default value, if supplied, is returned instead of raising a
             KeyError if `key` isn't found.
