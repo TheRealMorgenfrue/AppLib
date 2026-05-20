@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import override
+from typing import TypeAlias, override
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon
@@ -25,7 +25,7 @@ from ...module.tools.types.gui_generators import AnyCardGenerator
 
 
 # All QFluentWidgets' pivot classes are supported. Add as needed.
-type AnyPivot = Pivot | SegmentedToolWidget
+AnyPivot: TypeAlias = Pivot | SegmentedToolWidget
 
 
 class CardStackBase(ScrollArea):
