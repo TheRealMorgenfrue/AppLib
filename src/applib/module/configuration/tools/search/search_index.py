@@ -5,7 +5,9 @@ from applib.module.logging import LoggingManager
 
 
 class SearchIndex:
-    def __init__(self, d: dict = {}) -> None:
+    def __init__(self, d: dict | None = None) -> None:
+        if d is None:
+            d = {}
         self._index: dict[str, list[str]] = {}
         self.build(d)
 

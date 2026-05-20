@@ -92,7 +92,7 @@ class CoreTemplate(BaseTemplate):
                     ui_group_parent=UIGroups.CLUSTERED,
                     ui_group="pu_threads",
                     ui_info=GUIMessage(
-                        f"Maxmimum number of threads to run concurrently",
+                        "Maxmimum number of threads to run concurrently",
                         "Going beyond CPU core count will decrease performance for CPU-bound tasks",
                     ),
                 ),

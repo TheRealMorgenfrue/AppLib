@@ -130,7 +130,7 @@ class TestTemplate(BaseTemplate):
                     ui_info=GUIMessage(
                         "Use full compatibility mode",
                         AutoTextWrap.text_format(
-                            f"""
+                            """
                             <b>Not recommended</b><br>Use only if partial compatibility is insufficient and you know what you're doing.
                             Enabling full compatibility disables ALL safety measures against illegal or invalid values.
                             NAMES's config file will be used and displayed as-is.
@@ -145,7 +145,7 @@ class TestTemplate(BaseTemplate):
                     ui_group_parent=UIGroups.DESYNC_TRUE_CHILDREN,
                     ui_group="downloadList_1",
                     ui_info=GUIMessage(
-                        f"Start IrfanView with downloaded images when exiting NAME",
+                        "Start IrfanView with downloaded images when exiting NAME",
                         "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files",
                     ),
                 ),
@@ -154,7 +154,7 @@ class TestTemplate(BaseTemplate):
                     ui_group_parent=UIGroups.DESYNC_TRUE_CHILDREN,
                     ui_group="downloadList_2",
                     ui_info=GUIMessage(
-                        f"Start IrfanView Slideshow with downloaded images when exiting NAME",
+                        "Start IrfanView Slideshow with downloaded images when exiting NAME",
                         "This will create download-lists. Be sure to set IrfanView to load Unicode-Plugin on startup when there are unicode-named files. Slideshow-options will be same as you have set in IrfanView before",
                     ),
                 ),

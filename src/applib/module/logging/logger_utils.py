@@ -34,7 +34,7 @@ def write_header_to_log() -> None:
             + "┐"
             + "\n"
             + "│"
-            + f"Starting application".center(padding, " ")
+            + "Starting application".center(padding, " ")
             + "│"
             + "\n"
             + "└"

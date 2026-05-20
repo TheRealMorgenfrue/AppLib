@@ -155,18 +155,20 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
-                        self.debug(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                    self._add_to_gui_buffer(
+                        lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                            self.debug(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                        )
                     )
-                    self._add_to_gui_buffer(func)
             if pid is not None:
                 if self._process_msg_signal is not None:
                     self._process_msg_signal.emit(level, pid, msg)
                 else:
-                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.debug(
-                        msg=msg, log=log, gui=gui, pid=pid
+                    self._add_to_process_buffer(
+                        lambda msg=msg, log=False, gui=False, pid=pid: self.debug(
+                            msg=msg, log=log, gui=gui, pid=pid
+                        )
                     )
-                    self._add_to_process_buffer(func)
 
     def info(
         self,
@@ -214,18 +216,20 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
-                        self.info(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                    self._add_to_gui_buffer(
+                        lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                            self.info(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                        )
                     )
-                    self._add_to_gui_buffer(func)
             if pid is not None:
                 if self._process_msg_signal is not None:
                     self._process_msg_signal.emit(level, pid, msg)
                 else:
-                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
-                        msg=msg, log=log, gui=gui, pid=pid
+                    self._add_to_process_buffer(
+                        lambda msg=msg, log=False, gui=False, pid=pid: self.info(
+                            msg=msg, log=log, gui=gui, pid=pid
+                        )
                     )
-                    self._add_to_process_buffer(func)
 
     def warning(
         self,
@@ -273,18 +277,22 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
-                        self.warning(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                    self._add_to_gui_buffer(
+                        lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                            self.warning(
+                                msg=msg, title=title, log=log, gui=gui, pid=pid
+                            )
+                        )
                     )
-                    self._add_to_gui_buffer(func)
             if pid is not None:
                 if self._process_msg_signal is not None:
                     self._process_msg_signal.emit(level, pid, msg)
                 else:
-                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.warning(
-                        msg=msg, log=log, gui=gui, pid=pid
+                    self._add_to_process_buffer(
+                        lambda msg=msg, log=False, gui=False, pid=pid: self.warning(
+                            msg=msg, log=log, gui=gui, pid=pid
+                        )
                     )
-                    self._add_to_process_buffer(func)
 
     def error(
         self,
@@ -332,18 +340,20 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
-                        self.error(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                    self._add_to_gui_buffer(
+                        lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                            self.error(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                        )
                     )
-                    self._add_to_gui_buffer(func)
             if pid is not None:
                 if self._process_msg_signal is not None:
                     self._process_msg_signal.emit(level, pid, msg)
                 else:
-                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.info(
-                        msg=msg, log=log, gui=gui, pid=pid
+                    self._add_to_process_buffer(
+                        lambda msg=msg, log=False, gui=False, pid=pid: self.info(
+                            msg=msg, log=log, gui=gui, pid=pid
+                        )
                     )
-                    self._add_to_process_buffer(func)
 
     def critical(
         self,
@@ -391,18 +401,22 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
-                        self.critical(msg=msg, title=title, log=log, gui=gui, pid=pid)
+                    self._add_to_gui_buffer(
+                        lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                            self.critical(
+                                msg=msg, title=title, log=log, gui=gui, pid=pid
+                            )
+                        )
                     )
-                    self._add_to_gui_buffer(func)
             if pid is not None:
                 if self._process_msg_signal is not None:
                     self._process_msg_signal.emit(level, pid, msg)
                 else:
-                    func = lambda msg=msg, log=False, gui=False, pid=pid: self.critical(
-                        msg=msg, log=log, gui=gui, pid=pid
+                    self._add_to_process_buffer(
+                        lambda msg=msg, log=False, gui=False, pid=pid: self.critical(
+                            msg=msg, log=log, gui=gui, pid=pid
+                        )
                     )
-                    self._add_to_process_buffer(func)
 
     def applib_logger(self) -> logging.Logger:
         """Get the library logger"""
@@ -552,7 +566,6 @@ class LoggingManager:
             file_handler = logging.FileHandler(
                 f"{log_dir}/{log_filename}.log", encoding="utf-8", delay=True
             )
-            file_handler.setStream
             file_handler.setFormatter(file_formatter)
             logger.addHandler(file_handler)
             self.set_log_dir(name, log_dir)

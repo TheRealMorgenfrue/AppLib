@@ -1,8 +1,3 @@
-# TODO: Implement C++ library https:#github.com/Tessil/hat-trie
-# using hash function https:#github.com/google/cityhash
-# as python bindings https:#pybind11.readthedocs.io/en/stable/
-
-
 from collections import deque
 from typing import Any, Self
 
@@ -11,11 +6,11 @@ class TrieNode:
     def __init__(self, key: str | None):
         self.key = key
         """A character in the whole word"""
-        self.data = None  # type: set | None
+        self.data: set | None = None
         """The data associated with the whole word. Only present (not null) if self.end == True"""
-        self.parent = None  # type: Self
-        self.children = {}  # type: dict[str | None, Self]
-        self.end = None  # type: None | str
+        self.parent: Self | None = None
+        self.children: dict[str | None, Self] = {}
+        self.end: str | None = None
         """
         Check to see if the node is at the end of a whole word.
         We abuse this variable slightly by also storing the word here if we're at the end.
@@ -23,7 +18,7 @@ class TrieNode:
 
     def delete(self):
         """Remove this node from the trie."""
-        if len(self.children) == 0:
+        if len(self.children) == 0 and self.parent is not None:
             # Remove reference to this from parent's children.
             self.parent.children.pop(self.key)
         self.end = None
@@ -59,7 +54,7 @@ class Trie:
         """
         node = self.base
         for char in word:
-            if not char in node.children:
+            if char not in node.children:
                 child = TrieNode(char)
                 child.parent = node
                 node.children[char] = child
@@ -69,7 +64,7 @@ class Trie:
             if not override and isinstance(node.data, set):
                 node.data.add(data)
             else:
-                node.data = set([data])
+                node.data = {data}
 
     def contains(self, word: str) -> bool:
         """

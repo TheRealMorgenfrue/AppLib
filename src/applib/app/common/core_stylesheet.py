@@ -1,5 +1,6 @@
-from qfluentwidgets import StyleSheetBase, Theme, qconfig
 from enum import Enum
+
+from qfluentwidgets import StyleSheetBase, Theme, qconfig
 
 from ...module.configuration.internal.core_args import CoreArgs
 
@@ -14,13 +15,13 @@ class CoreStyleSheet(StyleSheetBase, Enum):
     GENERIC = "generic"
 
     # Components
-    CONSOLE_VIEW = f"components/console_view"
-    INPUT_VIEW = f"components/input_view"
-    LINK_CARD = f"components/link_card"
-    PROGRESS_BAR = f"components/progress_bar"
-    SAMPLE_CARD = f"components/sample_card"
-    SETTING_WIDGET = f"components/setting_widget"
-    SETTING_CARD = f"components/setting_card"
+    CONSOLE_VIEW = "components/console_view"
+    INPUT_VIEW = "components/input_view"
+    LINK_CARD = "components/link_card"
+    PROGRESS_BAR = "components/progress_bar"
+    SAMPLE_CARD = "components/sample_card"
+    SETTING_WIDGET = "components/setting_widget"
+    SETTING_CARD = "components/setting_card"
 
     def path(self, theme=Theme.AUTO):
         theme = qconfig.theme if theme == Theme.AUTO else theme

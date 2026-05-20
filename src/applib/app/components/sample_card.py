@@ -1,5 +1,4 @@
-from collections.abc import Callable
-from typing import Hashable
+from collections.abc import Callable, Hashable
 
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QIcon

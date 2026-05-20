@@ -1,5 +1,5 @@
-from collections.abc import Callable
-from typing import Any, Hashable, Self, TypeAlias, final
+from collections.abc import Callable, Hashable
+from typing import Any, Self, final
 
 from ....tools.types.general import floatOrInt
 from ...runners.converters.color_converter import ColorConverter
@@ -15,7 +15,7 @@ class AppLibUndefinedType:
     def __deepcopy__(self, memo: Any) -> Self: ...
 
 
-AppLibUndefined: TypeAlias = AppLibUndefinedType
+type AppLibUndefined = AppLibUndefinedType
 type Validator = Callable | CompatilityValidator
 
 
@@ -258,12 +258,15 @@ class FileSelectorOption(Option):
         )
 
 
+COLOR_CONVERTER = ColorConverter()
+
+
 class ColorPickerOption(Option):
     def __init__(
         self,
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
-        converter: Converter = ColorConverter(),
+        converter: Converter = COLOR_CONVERTER,
         hide_in_cli: bool = AppLibUndefined,
         type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,

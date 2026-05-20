@@ -1,10 +1,3 @@
-import os
-
-from qfluentwidgets import FluentIconBase, getIconColor, Theme
-from enum import Enum
-
-from ...module.configuration.internal.core_args import CoreArgs
-
 # Example of creating custom widgets
 
 # class CustomFluentIcon(FluentIconBase, Enum):

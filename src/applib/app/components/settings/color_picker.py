@@ -4,9 +4,11 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ColorPickerButton
 
-from ....module.configuration.runners.converters.color_converter import ColorConverter
 from ....module.configuration.runners.converters.converter import Converter
-from ....module.configuration.tools.template_utils.options import Option
+from ....module.configuration.tools.template_utils.options import (
+    COLOR_CONVERTER,
+    Option,
+)
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
@@ -17,7 +19,7 @@ class CoreColorPicker(BaseSetting):
         config: AnyConfig,
         config_key: str,
         option: Option,
-        converter: Converter | None = ColorConverter(),
+        converter: Converter | None = COLOR_CONVERTER,
         path="",
         parent: QWidget | None = None,
     ):

@@ -1,5 +1,3 @@
-from typing import TypeAlias
-
 from ....app.components.settings.checkbox import CoreCheckBox
 from ....app.components.settings.color_picker import CoreColorPicker
 from ....app.components.settings.combobox import CoreComboBox
@@ -9,7 +7,7 @@ from ....app.components.settings.slider import CoreSlider
 from ....app.components.settings.spinbox import CoreSpinBox
 from ....app.components.settings.switch import CoreSwitch
 
-AnySetting: TypeAlias = (
+type AnySetting = (
     CoreColorPicker
     | CoreComboBox
     | CoreFileSelect
@@ -20,4 +18,4 @@ AnySetting: TypeAlias = (
     | CoreCheckBox
 )
 
-AnyBoolSetting: TypeAlias = CoreSwitch | CoreCheckBox
+type AnyBoolSetting = CoreSwitch | CoreCheckBox

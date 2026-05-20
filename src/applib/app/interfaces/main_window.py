@@ -70,7 +70,7 @@ class CoreMainWindow(MSFluentWindow):
         super().__init__()
         self._subinterfaces = subinterfaces
         self._settings_tuple = settings_interface
-        self._default_logmsg = f"Please check the log for details"
+        self._default_logmsg = "Please check the log for details"
         self.background = None  # type: QPixmap | None
         self.background_opacity = 0.0
         self.background_blur_radius = 0.0

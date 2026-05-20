@@ -1,5 +1,6 @@
+from collections.abc import Hashable
 from copy import deepcopy
-from typing import Any, Hashable, Self
+from typing import Any, Self
 
 from pydantic import Field
 
@@ -72,7 +73,7 @@ class TemplateParser:
                         self._logger.warning(
                             f"{self._prefix_msg()} Unable to assign setting '{setting}' as group parent "
                             + f"for group '{self.group.get_group_name()}'. Setting '{self.group.get_parent_name()}' is already designated as parent. "
-                            + f"Adding as child to existing group"
+                            + "Adding as child to existing group"
                         )
                         self._add_child(
                             setting=setting,
@@ -118,11 +119,11 @@ class TemplateParser:
 
         # Check that the values of the ui_group_parent list are "UIGroups" enums
         for i, value in enumerate(option.ui_group_parent):
-            if not value.name in UIGroups._member_names_:
+            if value.name not in UIGroups._member_names_:
                 self._logger.error(
                     f"{self._prefix_msg()} Group parent setting '{setting}' has invalid value '{value}'. "
                     + f"Expected one of '{iter_to_str(UIGroups._member_names_, separator=', ')}'. "
-                    + f"Removing value"
+                    + "Removing value"
                 )
                 option.ui_group_parent.pop(i)
 
@@ -156,11 +157,11 @@ class TemplateParser:
                 option.ui_flags = [option.ui_flags]
 
             for i, flag in enumerate(deepcopy(option.ui_flags)):
-                if not flag.name in UIFlags._member_names_:
+                if flag.name not in UIFlags._member_names_:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid flag '{flag}'. "
                         + f"Expected one of '{iter_to_str(UIFlags._member_names_, separator=', ')}'. "
-                        + f"Removing value"
+                        + "Removing value"
                     )
                     option.ui_flags.pop(i)
 
@@ -181,7 +182,7 @@ class TemplateParser:
                 else:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid action '{action}'. "
-                        + f"An action must be callable. Removing value"
+                        + "An action must be callable. Removing value"
                     )
                     option.actions.pop(i)
 

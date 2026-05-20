@@ -166,8 +166,10 @@ class CoreProcessInterface(ScrollArea):
             self.processSubinterface.getProgressCard().progressWidget.setValue
         )
         self.thread_manager.total_progress.connect(
-            lambda max: self.processSubinterface.getProgressCard().progressWidget.setRange(
-                0, max
+            lambda max: (
+                self.processSubinterface.getProgressCard().progressWidget.setRange(
+                    0, max
+                )
             )
         )
         self.thread_manager.thread_removed.connect(self._onThreadRemoved)
@@ -222,7 +224,7 @@ class CoreProcessInterface(ScrollArea):
         except Exception:
             self._logger.set_process_signal(None)
             self._logger.error(
-                f"Process Manager failed\n"
+                "Process Manager failed\n"
                 + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
                 gui=True,
             )

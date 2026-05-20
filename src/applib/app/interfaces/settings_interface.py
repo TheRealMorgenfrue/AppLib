@@ -1,5 +1,5 @@
 import traceback
-from typing import Hashable
+from collections.abc import Hashable
 
 from PyQt6.QtCore import QEasingCurve, Qt
 from PyQt6.QtGui import QIcon

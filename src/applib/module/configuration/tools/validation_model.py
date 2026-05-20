@@ -1,4 +1,5 @@
-from typing import Any, Literal, Mapping, Self
+from collections.abc import Mapping
+from typing import Any, Literal, Self
 
 from pydantic import BaseModel, ValidationError
 from pydantic_core import InitErrorDetails, PydanticCustomError
@@ -146,7 +147,6 @@ class CoreValidationModel(BaseModel):
 
         err_len = len(errors)
         if err_len > 0:
-            title = f"{err_len} validation error{'' if err_len == 0 else 's'}"
             # TODO: Make applib validation error
             raise ValidationError(errors)
 

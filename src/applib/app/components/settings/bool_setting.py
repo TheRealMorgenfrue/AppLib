@@ -12,8 +12,6 @@ class BoolSettingMixin:
     def getCheckedSignal(self) -> pyqtBoundSignal:
         """Get the setting's state change signal."""
 
-    ...
-
     @override
     def _setDisableWidget(self, is_disabled: bool, save_value: bool) -> None:  # type: ignore
         if self.is_disabled != is_disabled:

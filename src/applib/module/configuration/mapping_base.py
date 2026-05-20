@@ -1,5 +1,6 @@
 from collections import deque
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 from .tools.search import SEARCH_SEP, SearchMode
 from .tools.search.nested_dict_search import NestedDictSearch
