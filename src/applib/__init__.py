@@ -121,6 +121,7 @@ from .module.configuration.tools.template_utils.groups import Group
 from .module.configuration.tools.template_utils.options import (
     ColorPickerOption,
     ComboBoxOption,
+    CompatilityValidator,
     FileSelectorOption,
     GUIMessage,
     GUIOption,
@@ -133,7 +134,9 @@ from .module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
 )
-from .module.configuration.tools.template_utils.validation_info import ValidationInfo
+from .module.configuration.tools.template_utils.validation_info import (
+    FieldValidationInfo,
+)
 from .module.configuration.tools.validation_model_gen import (
     CoreValidationModelGenerator,
 )
@@ -185,6 +188,7 @@ __all__ = [
     "ColorPickerOption",
     "Converter",
     "ComboBoxOption",
+    "CompatilityValidator",
     "CLIArguments",
     "ClusteredSettingCard",
     "ClusteredSettingWidget",
@@ -269,7 +273,7 @@ __all__ = [
     "UIFlags",
     "UIGroups",
     "UITypes",
-    "ValidationInfo",
+    "FieldValidationInfo",
     "core_signalbus",
     "change_theme",
     "change_theme_color",

@@ -16,6 +16,7 @@ class AppLibUndefinedType:
 
 
 AppLibUndefined: TypeAlias = AppLibUndefinedType
+type Validator = Callable | CompatilityValidator
 
 
 class GUIMessage:
@@ -33,6 +34,12 @@ class GUIMessage:
         """
         self.title = title
         self.description = description
+
+
+class CompatilityValidator:
+    def __init__(self, validator: Callable, fields: list[str]) -> None:
+        self.validator = validator
+        self.fields = fields
 
 
 class Option:
@@ -120,7 +127,7 @@ class GUIOption(Option):
         ui_show_dir_only: bool = AppLibUndefined,
         ui_type: UITypes = AppLibUndefined,
         ui_unit: str = AppLibUndefined,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         values: list | dict = AppLibUndefined,
         **kwargs,
     ):
@@ -226,10 +233,10 @@ class GUIOption(Option):
             The unit associated with this setting.
             ##### Applicable settings: Slider (TODO: Ensure units can be used on all GUI elements)
             NOTE: Must be singular, i.e., "day".
-        validators : Callable | list[Callable], optional
+        validators : Validator | list[Validator], optional
             Functions used to validate the value of this setting (in addition to default Pydantic validation).
-            Each function must take one argument, which is the value of this setting.
-            If the value is invalid, they must raise either ValueError or AssertionError.
+            Each function must take one argument, which is the value of this Option.
+            If the value is invalid, they must raise a ValueError.
         values : list | dict, optional
             Possible values for this setting.
             ##### Applicable settings: Combobox
@@ -276,7 +283,7 @@ class FileSelectorOption(GUIOption):
         ui_info: GUIMessage = AppLibUndefined,
         ui_show_dir_only: bool = False,
         ui_type: UITypes = UITypes.FILE_SELECTION,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -314,7 +321,7 @@ class ColorPickerOption(GUIOption):
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.COLOR_PICKER,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -353,7 +360,7 @@ class ComboBoxOption(GUIOption):
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.COMBOBOX,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -393,7 +400,7 @@ class TextEditOption(GUIOption):
         ui_info: GUIMessage = AppLibUndefined,
         ui_invalid_input: GUIMessage = AppLibUndefined,
         ui_type: UITypes = UITypes.LINE_EDIT,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(
@@ -433,7 +440,7 @@ class NumberOption(GUIOption):
         ui_info: GUIMessage = AppLibUndefined,
         ui_type: UITypes = AppLibUndefined,
         ui_unit: str = AppLibUndefined,
-        validators: Callable | list[Callable] = AppLibUndefined,
+        validators: Validator | list[Validator] = AppLibUndefined,
         **kwargs,
     ):
         super().__init__(

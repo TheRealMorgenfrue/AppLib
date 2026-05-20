@@ -3,17 +3,15 @@ from typing import Any, Hashable, Self
 
 from pydantic import Field
 
-from applib.module.configuration.tools.search import SEARCH_SEP
-
 from ...exceptions import OrphanGroupWarning
 from ...logging import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import iter_to_str
 from ..runners.actions.action_manager import Actions
-from ..tools.template_utils.options import GUIOption, Option
+from ..tools.template_utils.options import CompatilityValidator, Option
 from .template_utils.groups import Group
 from .template_utils.template_enums import UIFlags, UIGroups
-from .template_utils.validation_info import ValidationInfo
+from .template_utils.validation_info import FieldValidationInfo, ModelValidationInfo
 
 
 class TemplateParser:
@@ -21,13 +19,12 @@ class TemplateParser:
     _logger = None
     _current_template_name = ""
 
-    # Remember templates already parsed
-    _parsed_templates = set()  # type: set[str]
-    # Store information used to generate validation models
-    _validation_infos = {}  # type: dict[str, ValidationInfo]
+    _parsed_templates: set[str] = set()
+    _field_validation_infos: dict[str, FieldValidationInfo] = {}
+    _model_validation_infos: dict[str, ModelValidationInfo] = {}
     # These groups have no parent assigned to them (which is an error)
-    _orphan_groups = {}  # type: dict[str, list[str]]
-    group = None  # type: Group
+    _orphan_groups: dict[str, list[str]] = {}
+    group: Group | None = None
     actions = Actions()
 
     def __new__(cls) -> Self:
@@ -39,13 +36,13 @@ class TemplateParser:
     def _prefix_msg(self) -> str:
         return f"Template '{self._current_template_name}':"
 
-    def _group_is_included(self, option: GUIOption) -> bool:
+    def _group_is_included(self, option: Option) -> bool:
         # option.ui_flags is a list after parsing flags
         return not (
             option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore
         )
 
-    def _parse_group(self, setting: str, option: GUIOption, template_name: str) -> None:
+    def _parse_group(self, setting: str, option: Option, template_name: str) -> None:
         """Parse *ui_group* and *ui_group_parent* information from supplied template"""
         # Check if this setting belongs to a ui_group
         if option.defined(option.ui_group):
@@ -110,7 +107,7 @@ class TemplateParser:
     def _add_parent(
         self,
         setting: str,
-        option: GUIOption,
+        option: Option,
         group: Group,
         group_name: str,
         template_name: str,
@@ -124,7 +121,7 @@ class TemplateParser:
             if not value.name in UIGroups._member_names_:
                 self._logger.error(
                     f"{self._prefix_msg()} Group parent setting '{setting}' has invalid value '{value}'. "
-                    + f"Expected one of '{iter_to_str(UIGroups._member_names_, separator=", ")}'. "
+                    + f"Expected one of '{iter_to_str(UIGroups._member_names_, separator=', ')}'. "
                     + f"Removing value"
                 )
                 option.ui_group_parent.pop(i)
@@ -140,7 +137,7 @@ class TemplateParser:
     def _add_child(
         self,
         setting: str,
-        option: GUIOption,
+        option: Option,
         group: Group,
         group_name: str,
         template_name: str,
@@ -153,7 +150,7 @@ class TemplateParser:
         ):
             self._orphan_groups[template_name].append(group_name)
 
-    def _parse_flags(self, setting: str, option: GUIOption):
+    def _parse_flags(self, setting: str, option: Option):
         if option.defined(option.ui_flags):
             if not isinstance(option.ui_flags, list):
                 option.ui_flags = [option.ui_flags]
@@ -162,7 +159,7 @@ class TemplateParser:
                 if not flag.name in UIFlags._member_names_:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid flag '{flag}'. "
-                        + f"Expected one of '{iter_to_str(UIFlags._member_names_, separator=", ")}'. "
+                        + f"Expected one of '{iter_to_str(UIFlags._member_names_, separator=', ')}'. "
                         + f"Removing value"
                     )
                     option.ui_flags.pop(i)
@@ -229,14 +226,21 @@ class TemplateParser:
     def _parse_validation(
         self,
         setting: str,
-        option: Option | GUIOption,
+        option: Option,
         path: str,
-        validation_info: ValidationInfo,
+        field_validation_info: FieldValidationInfo,
+        model_validation_info: ModelValidationInfo,
     ):
         if option.defined(option.validators):
             if not isinstance(option.validators, list):
                 option.validators = [option.validators]
-            validation_info.add_setting_validation(setting, path, option.validators)
+            for validator in option.validators:
+                if isinstance(validator, CompatilityValidator):
+                    if setting != validator.fields[0]:
+                        validator.fields.insert(0, setting)
+                    model_validation_info.add_model_validator(validator)
+                else:
+                    field_validation_info.add_field_validator(setting, path, validator)
         field_type = self._get_field_type(setting, option)
         field_default = (
             option.default
@@ -263,7 +267,7 @@ class TemplateParser:
             field_type,
             Field(default=field_default, ge=field_min, le=field_max),
         )
-        validation_info.add_field(setting, field, path)
+        field_validation_info.add_field(setting, field, path)
 
     def parse(self, template: AnyTemplate, force: bool = False):
         """Parse the supplied template.
@@ -280,9 +284,10 @@ class TemplateParser:
         self._current_template_name = template_name = template.name
         if template_name not in self._parsed_templates or force:
             self._orphan_groups[template_name] = []
-            validation_info = ValidationInfo()
+            field_validation_info = FieldValidationInfo()
+            model_validation_info = ModelValidationInfo()
             for setting, option, path in template.options():
-                if isinstance(option, GUIOption):
+                if isinstance(option, Option):
                     self._parse_flags(setting=setting, option=option)
 
                     if self._group_is_included(option):
@@ -290,10 +295,7 @@ class TemplateParser:
                             setting=setting, option=option, template_name=template_name
                         )
                 self._parse_validation(
-                    setting,
-                    option,
-                    path,
-                    validation_info,
+                    setting, option, path, field_validation_info, model_validation_info
                 )
                 self._parse_actions(
                     setting,
@@ -302,7 +304,8 @@ class TemplateParser:
                     template_name,
                 )
             self._check_groups(template_name)
-            self._validation_infos[template_name] = validation_info
+            self._field_validation_infos[template_name] = field_validation_info
+            self._model_validation_infos[template_name] = model_validation_info
             self._parsed_templates.add(template_name)
 
     def format_raw_group(
@@ -346,5 +349,8 @@ class TemplateParser:
                     )
         return group_list  # type: ignore
 
-    def get_validation_info(self, template_name: str) -> ValidationInfo:
-        return self._validation_infos[template_name]
+    def get_field_validation_info(self, template_name: str) -> FieldValidationInfo:
+        return self._field_validation_infos[template_name]
+
+    def get_model_validation_info(self, template_name: str) -> ModelValidationInfo:
+        return self._model_validation_infos[template_name]
