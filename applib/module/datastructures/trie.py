@@ -6,8 +6,8 @@ class TrieNode:
     def __init__(self, key: str | None):
         self.key = key
         """A character in the whole word"""
-        self.data: set | None = None
-        """The data associated with the whole word. Only present (not null) if self.end == True"""
+        self.data: set[Any] | None = None
+        """The data associated with the whole word. Only present (not None) if self.end == True"""
         self.parent: Self | None = None
         self.children: dict[str | None, Self] = {}
         self.end: str | None = None
@@ -83,7 +83,7 @@ class Trie:
                 return False
         return node.end is not None
 
-    def find(self, prefix: str, limit: int = 0) -> list[str]:
+    def find(self, prefix: str, limit: int = 0) -> list[tuple[str, set[Any] | None]]:
         """
         Find word/data pairs that contains `prefix`.
 
@@ -97,12 +97,12 @@ class Trie:
 
         Returns
         -------
-        list[str]
-            List of lists where a[i][0] is a word and a[i][1] is the word's data.
+        list[tuple[str, set[Any] | None]]
+            List of tuples where a[i][0] is a word and a[i][1] is the word's data.
             Ordered by word relevance such that more relevant words have a lower index i.
         """
         node = self.base
-        output = []
+        output: list[tuple[str, set[Any] | None]] = []
         for char in prefix:
             if char in node.children:
                 node = node.children[char]
@@ -116,7 +116,7 @@ class Trie:
             if node.end is not None:
                 if limit > 0 and len(output) >= limit:
                     break
-                output.append([node.end, node.data])
+                output.append((node.end, node.data))
 
             # Traverse all children
             for child in node.children.values():
@@ -138,7 +138,7 @@ class Trie:
         node = self.base
         for char in word:
             try:
-                node = node.children.get(char)  # type: ignore
+                node = node.children.get(char)
             except AttributeError:
                 return  # word doesn't exist in the trie
 
