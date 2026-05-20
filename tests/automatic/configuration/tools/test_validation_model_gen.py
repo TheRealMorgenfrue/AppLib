@@ -6,7 +6,6 @@ from tests.automatic.configuration.tools.util import AutoTestingTemplate, setup_
 
 
 class TestValidationModelGen:
-
     def get_template(self) -> AnyTemplate:
         return AutoTestingTemplate()
 

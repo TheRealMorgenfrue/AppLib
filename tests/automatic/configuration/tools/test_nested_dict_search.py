@@ -6,7 +6,6 @@ from applib.module.configuration.tools.search.search_index import SearchIndex
 
 
 class TestNestedDictSearch:
-
     def get_test_dict(self) -> dict:
         return {"L1": {"L2": {"I1": 1}, "I2": 2, "L2_1": {"I2": {"I1": 46}}}, "I3": 3}
 
