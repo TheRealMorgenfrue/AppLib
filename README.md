@@ -71,6 +71,10 @@ On Linux Wayland, start your program with the environment variable: `QT_QPA_PLAT
 
 If needed, please refer to uv's [documentation](https://docs.astral.sh/uv/) for further assistance.
 
+### Building documentation
+
+To build the documentation locally, run: `uv run mkdocs serve`.
+
 ## Acknowledgements
 
 AppLib builds on top of:
