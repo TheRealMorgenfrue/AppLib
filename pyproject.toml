@@ -46,11 +46,38 @@
 [tool.hatch.version]
     path="src/applib/version.py"
 
-[tool.ruff]
-    extend-exclude=[]
+[tool.hatch.build.targets.wheel]
+    packages=["applib"]
 
-    [tool.ruff.format]
-        docstring-code-format=true
+[tool.ruff.format]
+    docstring-code-format=true
+
+[tool.ruff.lint]
+    fixable=["ALL"]
+    ignore=[
+        "E501", # Avoid enforcing line-length violations
+        "E402", # Module level import not at top of file
+        "T201", # print statements
+    ]
+    select=[
+        'F', # Pyflakes
+        'E', # pycodestyle (Error)
+        'I', # isort
+        #'D',      # pydocstyle
+        'UP',     # pyupgrade
+        'YTT',    # flake8-2020
+        'B',      # flake8-bugbear
+        'T10',    # flake8-debugger
+        'T20',    # flake8-print
+        'C4',     # flake8-comprehensions
+        'PERF',   # Perflint
+        'PIE',    # flake8-pie
+        'PYI006', # flake8-pyi
+        'PYI062', # flake8-pyi
+        'PYI063', # flake8-pyi
+        'PYI066', # flake8-pyi
+    ]
+
 
 [tool.pytest.ini_options]
     addopts=["--import-mode=importlib"]
