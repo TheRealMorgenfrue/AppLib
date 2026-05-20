@@ -96,6 +96,7 @@ class LoggingManager:
             for name in LoggingManager.LogLevel._member_names_:
                 if level.lower() == name.lower():
                     self._level = LoggingManager.LogLevel._member_map_[name]
+                    break
             else:
                 error = True
         else:
@@ -154,8 +155,8 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.debug(
-                        msg=msg, title=title, log=log, gui=gui, pid=pid
+                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                        self.debug(msg=msg, title=title, log=log, gui=gui, pid=pid)
                     )
                     self._add_to_gui_buffer(func)
             if pid is not None:
@@ -213,8 +214,8 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.info(
-                        msg=msg, title=title, log=log, gui=gui, pid=pid
+                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                        self.info(msg=msg, title=title, log=log, gui=gui, pid=pid)
                     )
                     self._add_to_gui_buffer(func)
             if pid is not None:
@@ -272,8 +273,8 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.warning(
-                        msg=msg, title=title, log=log, gui=gui, pid=pid
+                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                        self.warning(msg=msg, title=title, log=log, gui=gui, pid=pid)
                     )
                     self._add_to_gui_buffer(func)
             if pid is not None:
@@ -331,8 +332,8 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.error(
-                        msg=msg, title=title, log=log, gui=gui, pid=pid
+                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                        self.error(msg=msg, title=title, log=log, gui=gui, pid=pid)
                     )
                     self._add_to_gui_buffer(func)
             if pid is not None:
@@ -390,8 +391,8 @@ class LoggingManager:
                         self._get_gui_orient(msg),
                     )
                 else:
-                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: self.critical(
-                        msg=msg, title=title, log=log, gui=gui, pid=pid
+                    func = lambda msg=msg, title=title, log=False, gui=gui, pid=None: (
+                        self.critical(msg=msg, title=title, log=log, gui=gui, pid=pid)
                     )
                     self._add_to_gui_buffer(func)
             if pid is not None:
