@@ -1,13 +1,13 @@
 from collections.abc import Callable
 from typing import Any, Literal, Self
 
-from pydantic import BaseModel, Field, create_model, field_validator
-
-from applib.module.configuration.tools.search import SEARCH_SEP
+from pydantic import Field, create_model, field_validator
 
 from ...tools.types.templates import AnyTemplate
+from .search import SEARCH_SEP
 from .template_parser import TemplateParser
-from .template_utils.validation_info import ValidationInfo
+from .template_utils.validation_info import FieldValidationInfo
+from .validation_model import CoreValidationModel
 
 
 class CoreValidationModelGenerator:
@@ -22,7 +22,7 @@ class CoreValidationModelGenerator:
 
     def _create_field_validators(
         self,
-        validation_info: ValidationInfo,
+        validation_info: FieldValidationInfo,
         mode: Literal["before", "after", "plain"] = "after",
         check_fields: bool = True,
     ):
@@ -47,10 +47,7 @@ class CoreValidationModelGenerator:
 
             Structure:
             ```
-            {path: {
-                validator_name: field_validator
-                }
-            }
+            {path: {validator_name: field_validator}}
             ```
         """
         field_validators: dict[str, dict[str, Callable]] = {}
@@ -76,10 +73,10 @@ class CoreValidationModelGenerator:
         model_name: str,
         fields: dict[str, Any],
         field_validators: dict[str, dict[str, Callable]],
-    ) -> type[BaseModel]:
+    ) -> type[CoreValidationModel]:
         """Generate a Pydantic validation model.
 
-         Recursively constructs submodels for each nested dict in `fields`.
+        Recursively constructs submodels for each nested dict in `fields`.
 
         Parameters
         ----------
@@ -92,7 +89,7 @@ class CoreValidationModelGenerator:
 
         Returns
         -------
-        type[BaseModel]
+        type[CoreValidationModel]
             A Pydantic validation model.
         """
         stack = [(fields, [])]
@@ -130,13 +127,14 @@ class CoreValidationModelGenerator:
                 visited.add(f"{SEARCH_SEP}".join(path))
         return create_model(
             model_name,
+            __base__=CoreValidationModel,
             __validators__=field_validators.get(f"{SEARCH_SEP}".join(path), None),
             **fields,
         )
 
     def get_generic_model(
         self, model_name: str, template: AnyTemplate
-    ) -> type[BaseModel]:
+    ) -> type[CoreValidationModel]:
         """
         Generate a generic validation model of the supplied template.\n
         This type of model can be used to validate all templates not requiring special care.
@@ -160,7 +158,7 @@ class CoreValidationModelGenerator:
         if model_name not in self._model_cache["generic"]:
             self.template_parser = TemplateParser()
             self.template_parser.parse(template)
-            validation_info = self.template_parser.get_validation_info(model_name)
+            validation_info = self.template_parser.get_field_validation_info(model_name)
             model = self._generate_model(
                 model_name=model_name,
                 fields=validation_info.fields,

@@ -19,6 +19,7 @@ from applib.module.configuration.templates.base_template import BaseTemplate
 from applib.module.configuration.tools.template_utils.options import (
     ColorPickerOption,
     ComboBoxOption,
+    CompatilityValidator,
     FileSelectorOption,
     GUIMessage,
     GUIOption,
@@ -30,6 +31,8 @@ from applib.module.configuration.tools.template_utils.template_enums import (
     UIGroups,
 )
 from applib.module.logging import LoggingManager
+
+from ..runners.validators.encoding_validator import compatible_bit_depth
 
 
 class TestTemplate(BaseTemplate):
@@ -210,6 +213,20 @@ class TestTemplate(BaseTemplate):
                         "Location of the main configuration file",
                         "Either the path to the config or its containing directory",
                     ),
+                ),
+            },
+            "Segmentation": {
+                "segment": Option(
+                    default=False,
+                    ui_info=GUIMessage("Segment the video (background removal)"),
+                    validators=[
+                        CompatilityValidator(compatible_bit_depth, ["bit_depth"])
+                    ],
+                ),
+                "bit_depth": ComboBoxOption(
+                    default="8bit",
+                    values=["8bit", "16bit"],
+                    ui_info=GUIMessage("Bit Depth of the raw pipe input to FFmpeg"),
                 ),
             },
         }

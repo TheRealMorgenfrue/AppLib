@@ -3,14 +3,14 @@ import json
 import os
 import shutil
 import traceback
-from collections.abc import Callable, Mapping
+from collections.abc import Mapping
 from pathlib import Path
 from time import time
-from typing import Any, Literal, override
+from typing import Any, override
 
 import tomlkit
 import tomlkit.exceptions
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
 from ...exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
@@ -22,16 +22,15 @@ from ..mapping_base import MappingBase
 from ..tools.config_tools import ConfigUtils
 from ..tools.config_utils.config_enums import ConfigLoadOptions
 from ..tools.ini_file_parser import IniFileParser
+from ..tools.validation_model import CoreValidationModel
 
 
 class ConfigBase(MappingBase):
-    _logger = None
-
     def __init__(
         self,
         name: str,
         template: AnyTemplate,
-        validation_model: type[BaseModel],
+        validation_model: type[CoreValidationModel] | None,
         file_path: str | Path,
         save_interval: int = 1,
     ) -> None:
@@ -43,30 +42,39 @@ class ConfigBase(MappingBase):
             The name of the config to create.
         template : AnyTemplate
             The template used to create `validation_model`.
-        validation_model : type[BaseModel] | None
-            The Pydantic model used to validate the config. If None, no validation is performed.
+        validation_model : CoreValidationModel | None
+            The Pydantic model used to validate the config.
+
+            If None, no validation is performed.
         file_path : str | Path
             The config's location on disk.
         save_interval : int, optional
             Time between config saves in seconds.
             By default 1.
         """
+        # Break circular import
+        from ..tools.template_parser import TemplateParser
+
+        self._model_validation_info = TemplateParser().get_model_validation_info(
+            template.name
+        )
+
+        self._logger = LoggingManager()
         self._is_modified = False
         self._save_interval = save_interval
         self._last_save_time = time()  # Prevent excessive disk writing
         self.template = template
-        self.validation_model = validation_model.model_construct()
+        self.validation_model = (
+            validation_model.model_construct() if validation_model else None
+        )
         self.name = name
         self.file_path = file_path
         self.failure = False
         self.__connectSignalToSlot()
 
-        if self._logger is None:
-            # Lazy load the logger
-            self._logger = LoggingManager()
-
         # Initialize config after everything is set up
-        super().__init__(self._init_config(self.file_path))
+        raw_config, self.failure = self._load(self.file_path)
+        super().__init__(raw_config)
 
     def __connectSignalToSlot(self) -> None:
         core_signalbus.configNameUpdated.connect(self._onConfigNameUpdated)
@@ -78,129 +86,20 @@ class ConfigBase(MappingBase):
     def _prefix_msg(self) -> str:
         return f"Config '{self.name}':"
 
-    def _check_missing_fields(
-        self, config: Mapping, model: Mapping, error_prefix: str = ""
-    ) -> None:
-        """
-        Compare the config against the model_dict for missing
-        sections/settings and vice versa.
-
-        Parameters
-        ----------
-        config : Mapping
-            The config loaded from a file.
-
-        model : Mapping
-            The model associated with `config`.
-
-        error_prefix : str
-            Prefix error messages with this string.
-            By default `""`.
-
-        Raises
-        ------
-        MissingFieldError
-            If any missing or unknown sections/settings are found.
-        """
-        all_errors, section_errors, field_errors = [], [], []
-        parents = []
-
-        def search_fields(
-            config: Mapping,
-            model: Mapping,
-            search_mode: Literal["missing", "unknown"],
-        ) -> None:
-            """
-            Helper function to keep track of parents while traversing.
-            Use `search_mode` to select which type of field to search for.
-
-            Parameters
-            ----------
-            config : Mapping
-                The config loaded from a file.
-
-            model : Mapping
-                The model associated with `config`.
-
-            search_mode : Literal["missing", "unknown"]
-                Specify which type of field to search for.
-            """
-            # The mapping to search depth-first in. Should be opposite of validation mapping
-            search_dict = model if search_mode == "missing" else config
-            # The mapping to compare the search dict against. Should be opposite of search mapping
-            validation_dict = config if search_mode == "missing" else model
-            for key, value in search_dict.items():
-                # The model is still nested (mapping key/value pairs, i.e., sections)
-                if isinstance(value, Mapping):
-                    if key in validation_dict:  # section exists
-                        parents.append(key)
-                        next_search = (
-                            (config[key], value)
-                            if search_mode == "missing"
-                            else (value, model[key])
-                        )
-                        search_fields(*next_search, search_mode=search_mode)
-                    else:
-                        section_errors.append(
-                            f"{search_mode.capitalize()} {f"subsection '{'.'.join(parents)}.{key}'" if parents else f"section '{key}'"}"
-                        )
-                # We've reached the bottom of the nesting (non-mapping key/value pairs)
-                elif key not in validation_dict:
-                    if parents:
-                        field_errors.append(
-                            f"{search_mode.capitalize()} setting '{key}' in {f"section '{parents[0]}'" if len(parents) == 1 else f"subsection '{'.'.join(parents)}'"}"
-                        )
-                    else:
-                        field_errors.append(
-                            f"{search_mode.capitalize()} setting '{key}'"
-                        )
-            else:
-                if parents:
-                    parents.pop()
-
-        search_fields(config, model, search_mode="missing")
-        search_fields(config, model, search_mode="unknown")
-
-        # Ensure all section errors are displayed first
-        all_errors.extend(section_errors)
-        all_errors.extend(field_errors)
-        if len(all_errors) > 0:
-            if error_prefix:
-                all_errors = [f"{error_prefix}: {error}" for error in all_errors]
-            raise MissingFieldError(all_errors)
-
     def update_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
         """Update the config with values from `data`."""
-        config = self._init_config(data)
-
-        # TODO: this will prolly replace parent keys in config
-        # instead of keys at the lowest level.
-        for k, v in config.items():
-            self.set_value(k, v, "")
+        raw_config, self.failure = self._load(data)
+        config = MappingBase(raw_config)
+        self |= config
 
     def replace_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
         """Replaces the config with values form `data`."""
-        config = self._init_config(data)
-        self._rebuild_mapping(config)
-
-    # TODO: https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.extra
-    # TODO: https://docs.pydantic.dev/latest/api/config/#pydantic.config.ConfigDict.validate_assignment
-    def _init_config(
-        self, data: dict | Mapping | argparse.Namespace | str | Path
-    ) -> dict[str, Any]:
-        """Loads the config from `data`."""
-        config, self.failure = self._load(
-            data,
-            validator=self._validate_load,
-            model_dict=(self.validation_model.model_dump()),
-        )
-        return config
+        config, self.failure = self._load(data)
+        self.rebuild_mapping(config)
 
     def _load(
         self,
         data: dict | Mapping | argparse.Namespace | str | Path,
-        validator: Callable[[dict], dict] | None = None,
-        model_dict: dict | None = None,
         load_options: (
             ConfigLoadOptions | list[ConfigLoadOptions]
         ) = ConfigLoadOptions.WRITE_CONFIG,
@@ -213,13 +112,6 @@ class ConfigBase(MappingBase):
         ----------
         data : str | dict
             The input to load.
-        validator : Callable[[dict], dict]
-            A callable that validates the config.
-            Must take the raw config as input and return a dict of the validated config.
-        model_dict : dict | None, optional
-            A validated config created by the supplied validation model.
-            NOTE: Must be supplied if `load_options` contains ConfigLoadOptions.WRITE_CONFIG.
-            By default None.
         load_options : ConfigLoadOptions | list[ConfigLoadOptions], optional
             Manipulate with files on the file system to recover from soft errors.
             By default ConfigLoadOptions.WRITE_CONFIG.
@@ -245,14 +137,8 @@ class ConfigBase(MappingBase):
 
         is_error, failure = False, False
         config = {}
-
+        input_name = data  # Assume it's a file path to begin with
         write_config = ConfigLoadOptions.WRITE_CONFIG in load_options
-
-        if write_config and model_dict is None:
-            self._logger.warning(
-                f"{self._prefix_msg()} Cannot write config. {type(model_dict)} is not a valid model"
-            )
-            write_config = False
 
         try:
             if isinstance(data, str):
@@ -263,20 +149,18 @@ class ConfigBase(MappingBase):
                 input_name = f"{type(data).__name__}"
                 raw_config = data
             else:
-                input_name = data
                 not_implemented_msg = (
                     f"{self._prefix_msg()} Cannot load unsupported input '{input_name}'"
                 )
                 raise NotImplementedError(not_implemented_msg)
 
-            if (
-                ConfigLoadOptions.IGNORE_VALIDATION_ERROR in load_options
-                or validator is None
-            ):
-                config = raw_config
-
-            if validator:
-                config = validator(raw_config)
+            config = (
+                raw_config
+                if self.validation_model is None
+                else self.validation_model.core_model_validate(
+                    raw_config, self._model_validation_info
+                ).model_dump()
+            )
         except ValidationError as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
@@ -285,7 +169,7 @@ class ConfigBase(MappingBase):
             self._logger.debug(format_validation_error(err))
             if write_config:
                 self.backup_config()
-                ConfigUtils.writeConfig(model_dict, self.file_path)
+                self._write_config()
         except MissingFieldError as err:
             is_error, is_recoverable = True, True
             err_msg = (
@@ -296,21 +180,28 @@ class ConfigBase(MappingBase):
             self._logger.warning(err_msg)
             if write_config:
                 self._logger.info(f"{self._prefix_msg()} Repairing config")
-                try:
-                    repaired_config = self._repair_config(raw_config, model_dict)
-                except Exception:
-                    self._logger.error(
-                        "Config repair failed:\n"
-                        + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                if self.validation_model is None:
+                    self._logger.warning(
+                        f"{self._prefix_msg()} Cannot repair config. The config's validation model has invalid type '{type(self.validation_model)}'"
                     )
-                self.backup_config()
-                ConfigUtils.writeConfig(repaired_config, self.file_path)
+                else:
+                    try:
+                        repaired_config = self._repair_config(
+                            raw_config, self.validation_model.model_dump()
+                        )
+                        self.backup_config()
+                        ConfigUtils.writeConfig(repaired_config, self.file_path)
+                    except Exception:
+                        self._logger.error(
+                            "Config repair failed:\n"
+                            + traceback.format_exc(limit=CoreArgs._core_traceback_limit)
+                        )
         except (InvalidMasterKeyError, AssertionError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(f"{self._prefix_msg()} {err.args[0]}")
             if write_config:
                 self.backup_config()
-                ConfigUtils.writeConfig(model_dict, self.file_path)
+                self._write_config()
         # TODO: Add separate except with JSONDecodeError
         except (tomlkit.exceptions.ParseError, IniParseError) as err:
             is_error, is_recoverable = True, True
@@ -319,12 +210,12 @@ class ConfigBase(MappingBase):
             )
             if write_config:
                 self.backup_config()
-                ConfigUtils.writeConfig(model_dict, self.file_path)
+                self._write_config()
         except FileNotFoundError:
             is_error, is_recoverable = True, True
             self._logger.info(f"{self._prefix_msg()} Creating '{input_name}'")
             if write_config:
-                ConfigUtils.writeConfig(model_dict, self.file_path)
+                self._write_config()
         except Exception:
             is_error, is_recoverable = True, False
             self._logger.error(
@@ -338,8 +229,6 @@ class ConfigBase(MappingBase):
                     self._logger.info(reload_msg)
                     config, failure = self._load(
                         data=data,
-                        validator=validator,
-                        model_dict=model_dict,
                         load_options=load_options,
                         retries=retries - 1,
                     )
@@ -348,11 +237,10 @@ class ConfigBase(MappingBase):
                     load_failure_msg = (
                         f"{self._prefix_msg()} Failed to load '{input_name}'"
                     )
-                    if model_dict:
+                    if self.validation_model is not None:
                         load_failure_msg += ". Loading template as config"
-                        config = (
-                            model_dict  # Use the model_dict as config if all else fails
-                        )
+                        # Use the model_dict as config if all else fails
+                        config = self.validation_model.model_dump()
                         self._logger.warning(load_failure_msg)
                     else:
                         self._logger.error(load_failure_msg)
@@ -374,30 +262,13 @@ class ConfigBase(MappingBase):
                 not_implemented_msg = f"{self._prefix_msg()} File extension '{extension}' is not supported"
                 raise NotImplementedError(not_implemented_msg)
 
-    def _validate_load(self, raw_config: dict) -> dict:
-        """
-        Performs default config validation.
-
-        Parameters
-        ----------
-        raw_config : dict
-            The raw, unvalidated config.
-
-        Returns
-        -------
-        dict
-            The validated config.
-        """
-        if self.validation_model:
-            self.validation_model.model_validate(raw_config)
-            config = self.validation_model.model_dump()
-            self._check_missing_fields(raw_config, config)
-            return config
-        else:
+    def _write_config(self):
+        if self.validation_model is None:
             self._logger.warning(
-                f"{self._prefix_msg()} Cannot validate config. Validation model is {type(self.validation_model).__name__}"
+                f"{self._prefix_msg()} Cannot write config. The config's validation model has invalid type '{type(self.validation_model)}'"
             )
-        return raw_config
+        else:
+            ConfigUtils.writeConfig(self.validation_model.model_dump(), self.file_path)
 
     def _repair_config(self, config: dict, model_dict: dict) -> dict:
         """
@@ -453,7 +324,9 @@ class ConfigBase(MappingBase):
                 no_old_value = True
             super().set_value(key, value, path, create_missing)
             if self.validation_model:
-                self.validation_model.model_validate(self._dict)
+                self.validation_model.core_model_validate(
+                    self._dict, self._model_validation_info
+                )
         except ValidationError as err:
             success = False
             self._logger.warning(

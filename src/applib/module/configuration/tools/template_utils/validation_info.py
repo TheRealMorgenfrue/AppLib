@@ -1,10 +1,11 @@
 from collections.abc import Callable
 from typing import Any
 
-from applib.module.configuration.tools.search.nested_dict_search import NestedDictSearch
+from ..search.nested_dict_search import NestedDictSearch
+from ..template_utils.options import CompatilityValidator
 
 
-class ValidatorContainer:
+class FieldValidatorContainer:
     def __init__(self, setting: str, validator: Callable) -> None:
         self.settings = [setting]
         self.validator = validator
@@ -19,10 +20,10 @@ class ValidatorContainer:
         return self.settings[1:] if len(self.settings) > 1 else []
 
 
-class ValidationInfo:
+class FieldValidationInfo:
     def __init__(self) -> None:
         self.fields: dict[str, Any] = {}
-        self.raw_validators: dict[str, dict[str, ValidatorContainer]] = {}
+        self.raw_validators: dict[str, dict[str, FieldValidatorContainer]] = {}
 
     def add_field(
         self,
@@ -34,18 +35,30 @@ class ValidationInfo:
             d=self.fields, key=setting, value=field, path=path, create_missing=True
         )
 
-    def add_setting_validation(
+    def add_field_validator(
         self,
         setting: str,
         path: str,
-        validators: list[Callable],
+        validator: Callable,
     ):
         if path not in self.raw_validators:
             self.raw_validators[path] = {}
-        for validator in validators:
-            try:
-                self.raw_validators[path][f"{validator}"].add(setting)
-            except KeyError:
-                self.raw_validators[path][f"{validator}"] = ValidatorContainer(
-                    setting, validator
-                )
+        try:
+            self.raw_validators[path][f"{validator}"].add(setting)
+        except KeyError:
+            self.raw_validators[path][f"{validator}"] = FieldValidatorContainer(
+                setting, validator
+            )
+
+
+class ModelValidationInfo:
+    def __init__(self) -> None:
+        self.validators: dict[Callable, list[tuple[str, ...]]] = {}
+
+    def add_model_validator(self, model_validator: CompatilityValidator):
+        if model_validator.validator in self.validators:
+            self.validators[model_validator.validator].append(
+                tuple(model_validator.fields)
+            )
+        else:
+            self.validators[model_validator.validator] = [tuple(model_validator.fields)]
