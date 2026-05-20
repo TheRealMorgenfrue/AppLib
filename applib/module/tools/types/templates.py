@@ -1,3 +1,5 @@
+from typing import TypeAlias
+
 from ...configuration.templates.base_template import BaseTemplate
 
-type AnyTemplate = BaseTemplate
+AnyTemplate: TypeAlias = BaseTemplate
