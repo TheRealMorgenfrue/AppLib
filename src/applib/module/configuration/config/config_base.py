@@ -246,7 +246,7 @@ class ConfigBase(MappingBase):
                         self._logger.error(load_failure_msg)
             else:
                 self._logger.info(f"{self._prefix_msg()} '{input_name}' loaded!")
-            return config, failure
+        return config, failure
 
     def _load_file(self, file_path: str):
         input_name = os.path.split(file_path)[1]
@@ -350,7 +350,7 @@ class ConfigBase(MappingBase):
                     (self.name, self.template.name), key, (value,), path
                 )
                 self._is_modified = True
-            return success
+        return success
 
     def save_config(self) -> None:
         """Write config to disk"""

@@ -62,7 +62,7 @@ class CoreComboBox(BaseSetting):
                 for k, v in texts.items():
                     self.setting.addItem(k, userData=v)
             else:
-                for text, value in zip(texts, texts):
+                for text, value in zip(texts, texts, strict=False):
                     self.setting.addItem(text, userData=value)
             self.setWidgetValue(self.current_value)
             self.buttonlayout.addWidget(self.setting)

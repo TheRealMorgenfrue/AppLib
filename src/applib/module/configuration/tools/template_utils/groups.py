@@ -37,10 +37,10 @@ class Group:
             # Lazy load the logger
             cls._logger = LoggingManager()
 
-        if not template_name in cls._instances:
+        if template_name not in cls._instances:
             cls._instances[template_name] = {}
 
-        if not group_name in cls._instances[template_name]:
+        if group_name not in cls._instances[template_name]:
             instance = super().__new__(cls)
             instance._created = False
             cls._instances[template_name][group_name] = instance
@@ -138,8 +138,8 @@ class Group:
             if self._nesting_level > 1:
                 self._logger.warning(
                     f"Group '{self.get_group_name()}': Multiple parents want to nest this UI group. "
-                    + f"Only the first parent in the list [{", ".join(self._parent_group_names)}] "
-                    + f"will be allowed nesting"
+                    + f"Only the first parent in the list [{', '.join(self._parent_group_names)}] "
+                    + "will be allowed nesting"
                 )
                 # Only the first parent is allowed to nest - all other parent groups have their reference to this child group deleted.
                 for parent_group_name in self._parent_group_names[
@@ -241,7 +241,7 @@ class Group:
             )
 
     def remove_child(self, child: str | AnyCard | None) -> None:
-        if child == None:
+        if child is None:
             return
         if isinstance(child, str):
             self._children.pop(child)

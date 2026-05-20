@@ -21,7 +21,7 @@ def validate_loglevel(loglevel: str) -> str:
         The loglevel is invalid.
     """
     loglevel = loglevel.upper()
-    if not loglevel in LoggingManager.LogLevel._member_names_:
+    if loglevel not in LoggingManager.LogLevel._member_names_:
         err_msg = (
             f"Invalid log level '{loglevel}'. "
             + f"Expected one of '{LoggingManager.LogLevel._member_names_}'"
@@ -48,7 +48,7 @@ def validate_theme(theme: str) -> str:
     ValueError
         The theme is invalid.
     """
-    if not theme in CoreArgs._core_template_themes:
+    if theme not in CoreArgs._core_template_themes:
         err_msg = f"Invalid theme '{theme}'. Expected one of '{CoreArgs._core_template_themes}'"
         raise ValueError(err_msg)
     return theme

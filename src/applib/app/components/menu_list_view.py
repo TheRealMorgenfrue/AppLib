@@ -7,8 +7,8 @@ from qfluentwidgets import ListView, RoundMenu
 class MenuListView(ListView):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self._menu = None  # type: RoundMenu
-        self.rightClickIndex = None  # type: QModelIndex
+        self._menu: RoundMenu | None = None
+        self.rightClickIndex: QModelIndex | None = None
         self.setEditTriggers(QListView.EditTrigger.NoEditTriggers)
 
     def clear(self) -> None:

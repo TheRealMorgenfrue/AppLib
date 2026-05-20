@@ -60,7 +60,7 @@ class AutoTextWrap(TextWrap):
                     wrapped_lines.append(line_buffer.rstrip())
                 chunks = cls.split_long_token(token, width)
                 for chunk in chunks[:-1]:
-                    wrapped_lines.append(chunk.rstrip())
+                    wrapped_lines.append(chunk.rstrip())  # noqa: PERF401
                 line_buffer = chunks[-1]
                 current_width = cls.get_text_width(chunks[-1])
 

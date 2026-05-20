@@ -9,7 +9,7 @@ from enum import Enum
 from typing import IO, Any, override
 
 import qasync
-from PyQt6.QtCore import QDeadlineTimer, QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
 from ...logging import LoggingManager

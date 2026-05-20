@@ -1,6 +1,6 @@
 import traceback
+from collections.abc import Iterator
 from enum import Enum
-from typing import Iterator, override
 
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
@@ -106,16 +106,16 @@ class ThreadManager(QObject):
         self._connected = False
 
         # Threads
-        self._thread_pool = {}  # type: dict[int, QThread]
+        self._thread_pool: dict[int, QThread] = {}
         self._max_threads = abs(max_threads)
-        self._deallocated_threads = set()  # type: set[int]
-        self._available_threads = set()  # type: set[int]
+        self._deallocated_threads: set[int] = set()
+        self._available_threads: set[int] = set()
 
         # Processes
-        self._process_pool = {}  # type: dict[int, CoreProcessGUI]
+        self._process_pool: dict[int, CoreProcessGUI] = {}
         self._process_generator = ProcessGenerator()
-        self._process_args = None  # type: Iterator[str]
-        self._argument_buffer = []  # type: list[list[str]]
+        self._process_args: Iterator[str] | None = None
+        self._argument_buffer: list[list[str]] = []
 
         # Progress
         self._current_progress = 0  # Amount of processes that finished succesfully
@@ -139,9 +139,7 @@ class ThreadManager(QObject):
         ac = len(self._thread_pool)
         av = len(self._available_threads)
         dt = len(self._deallocated_threads)
-        return (
-            f"active: {ac}, available: {av-ac}, deallocated: {dt}, pool size: {ac+av}"
-        )
+        return f"active: {ac}, available: {av - ac}, deallocated: {dt}, pool size: {ac + av}"
 
     def __set_state(self, state: "ThreadManager.State"):
         self._logger.debug(
@@ -420,7 +418,7 @@ class ThreadManager(QObject):
             self._total_progress = len(args)
 
             if self._total_progress == 0:
-                self._logger.error(f"No arguments available", gui=True)
+                self._logger.error("No arguments available", gui=True)
                 return
 
             self._process_args = iter(args)

@@ -1,5 +1,3 @@
-from typing import TypeAlias
-
 from ....app.components.settingcards.cards.clustered_settingcard import (
     ClusteredSettingCard,
 )
@@ -7,14 +5,13 @@ from ....app.components.settingcards.cards.expanding_settingcard import (
     ExpandingSettingCard,
 )
 from ....app.components.settingcards.cards.settingcard import GenericSettingCard
-from ....app.components.settingcards.widgets.settingwidget import SettingWidget
 from ....app.components.settingcards.widgets.parent_settingwidgets import (
     ClusteredSettingWidget,
     NestedSettingWidget,
 )
+from ....app.components.settingcards.widgets.settingwidget import SettingWidget
 
-
-AnyCard: TypeAlias = (
+type AnyCard = (
     ExpandingSettingCard
     | ClusteredSettingCard
     | GenericSettingCard
@@ -23,7 +20,7 @@ AnyCard: TypeAlias = (
     | SettingWidget
 )
 
-AnyParentCard: TypeAlias = (
+type AnyParentCard = (
     ExpandingSettingCard
     | ClusteredSettingCard
     | GenericSettingCard
@@ -31,12 +28,8 @@ AnyParentCard: TypeAlias = (
     | ClusteredSettingWidget
 )
 
-AnyNestingCard: TypeAlias = ExpandingSettingCard | NestedSettingWidget
+type AnyNestingCard = ExpandingSettingCard | NestedSettingWidget
 
-AnySettingCard: TypeAlias = (
-    ExpandingSettingCard | ClusteredSettingCard | GenericSettingCard
-)
+type AnySettingCard = ExpandingSettingCard | ClusteredSettingCard | GenericSettingCard
 
-AnySettingWidget: TypeAlias = (
-    NestedSettingWidget | ClusteredSettingWidget | SettingWidget
-)
+type AnySettingWidget = NestedSettingWidget | ClusteredSettingWidget | SettingWidget

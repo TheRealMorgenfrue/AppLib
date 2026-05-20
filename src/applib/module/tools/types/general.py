@@ -1,15 +1,15 @@
 import os
-from typing import SupportsIndex, SupportsInt, TypeAlias
+from collections.abc import Buffer
+from typing import SupportsIndex, SupportsInt
 
 from PyQt6.QtGui import QIcon
 from qfluentwidgets import FluentIconBase
-from typing_extensions import Buffer
 
-ReadableBuffer: TypeAlias = Buffer
-ConvertibleToInt: TypeAlias = str | ReadableBuffer | SupportsInt | SupportsIndex
-StrPath: TypeAlias = str | os.PathLike[str]
-floatOrInt: TypeAlias = float | int
+type ReadableBuffer = Buffer
+type ConvertibleToInt = str | ReadableBuffer | SupportsInt | SupportsIndex
+type StrPath = str | os.PathLike[str]
+type floatOrInt = float | int
 
 
-iconDict: TypeAlias = dict[str, str | QIcon | FluentIconBase]
+type iconDict = dict[str, str | QIcon | FluentIconBase]
 """Maps a template section name to an icon"""
