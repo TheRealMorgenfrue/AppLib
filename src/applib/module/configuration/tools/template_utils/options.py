@@ -143,12 +143,12 @@ class GUIOption(Option):
             ##### Applicable settings: All
         max : floatOrInt, optional
             The maximum value for this setting.
-            If None, there is no limit. Although upper limit is 2e63 (9 sextillion) in the GUI.
+            If None, there is no limit. Although upper limit is 2147483647 (2.1 billion) in the GUI.
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
         min : floatOrInt, optional
             The minimum value for this setting.
-            If None, there is no limit. Although lower limit is -2e63 (9 sextillionth) in the GUI.
+            If None, there is no limit. Although lower limit is -2147483648 (-2.1 billion) in the GUI.
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
         type : type, optional
