@@ -1,52 +1,63 @@
-import pytest
+from typing import Any
 
 from applib.module.datastructures.trie import Trie
+from applib.module.logging import LoggingManager
 
 
-@pytest.mark.skip
 def test_trie():
     trie = Trie()
     testData = ["Rem", "Ram", "Fubuki", "Unicorn"]
+    logger = LoggingManager()
 
-    print("--- Testing Trie ---")
+    logger.info("--- Testing Trie ---")
 
     # Test no duplicate values
-    print("Adding values to trie")
+    logger.info("Adding values to trie")
     for i, label in enumerate(testData):
         trie.add(label, i)
-        print(f"[{i}]: {label}")
+        logger.info(f"[{i}]: {label}")
 
-    print("\nPerforming membership tests")
-    print(f"R | {convertlist(trie.find('R'))}")
-    print(f"Re | {convertlist(trie.find('Re'))}")
-    print(f"Rem | {convertlist(trie.find('Rem'))}")
-    print(f"r | {convertlist(trie.find('r'))}")
-    print(f"Fub | {convertlist(trie.find('Fub'))}")
-    print(f"corn | {convertlist(trie.find('corn'))}")
-    print(f'"" | {convertlist(trie.find(""))}')
+    assert validate_output(trie.find("R"), [("Rem", {0}), ("Ram", {1})])
+    assert validate_output(trie.find("Re"), [("Rem", {0})])
+    assert validate_output(trie.find("Rem"), [("Rem", {0})])
+    assert len(trie.find("r")) == 0
+    assert validate_output(trie.find("Fub"), [("Fubuki", {2})])
+    assert len(trie.find("corn")) == 0
+    assert validate_output(
+        trie.find(""), [("Rem", {0}), ("Ram", {1}), ("Fubuki", {2}), ("Unicorn", {3})]
+    )
 
     # Test duplicate values
-    print("\nAdding duplicate values to trie")
+    logger.info("\nAdding duplicate values to trie")
     for i, label in enumerate(testData):
         label = testData[i]
         offset = i + 10
         trie.add(label, offset)
-        print(f"[{offset}]: {label}")
+        logger.info(f"[{offset}]: {label}")
 
-    print("\nPerforming duplicate membership tests")
-    print(f"R | {convertlist(trie.find('R'))}")
-    print(f"Re | {convertlist(trie.find('Re'))}")
-    print(f"Rem | {convertlist(trie.find('Rem'))}")
-    print(f"r | {convertlist(trie.find('r'))}")
-    print(f"Fub | {convertlist(trie.find('Fub'))}")
-    print(f"corn | {convertlist(trie.find('corn'))}")
-    print(f'"" | {convertlist(trie.find(""))}')
+    assert validate_output(trie.find("R"), [("Rem", {0, 10}), ("Ram", {1, 11})])
+    assert validate_output(trie.find("Re"), [("Rem", {0, 10})])
+    assert validate_output(trie.find("Rem"), [("Rem", {0, 10})])
+    assert len(trie.find("r")) == 0
+    assert validate_output(trie.find("Fub"), [("Fubuki", {2, 12})])
+    assert len(trie.find("corn")) == 0
+    assert validate_output(
+        trie.find(""),
+        [("Rem", {0, 10}), ("Ram", {1, 11}), ("Fubuki", {2, 12}), ("Unicorn", {3, 13})],
+    )
 
-    print("--- Testing of Trie finished ---")
 
+def validate_output(
+    output: list[tuple[str, set[Any] | None]],
+    expected_output: list[tuple[str, set[Any]]],
+) -> bool:
+    state = True and len(output) == len(expected_output)
 
-def convertlist(listinput: list) -> str:
-    return " ~ ".join([f"{e}" for e in listinput])
+    for item in output:
+        state = state and item in expected_output
+        if not state:
+            break
+    return state
 
 
 if __name__ == "__main__":
