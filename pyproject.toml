@@ -11,7 +11,7 @@
     dependencies=[
         "PyQt6-Fluent-Widgets==1.7.4",
         "PyQt6==6.8.1",
-        "qasync==0.28.0",
+        "qasync>=0.28.0",
         "tomlkit",
         "pydantic==2.9.2",
         "pydantic-settings==2.13",
@@ -23,7 +23,7 @@
     license={file="LICENSE"}
     name="AppLib"
     readme="README.md"
-    requires-python="==3.12.*"
+    requires-python="==3.13.*"
 
     [project.urls]
         Documentation="https://example.com"
@@ -57,7 +57,6 @@
     ignore=[
         "E501", # Avoid enforcing line-length violations
         "E402", # Module level import not at top of file
-        "T201", # print statements
     ]
     select=[
         'F', # Pyflakes
