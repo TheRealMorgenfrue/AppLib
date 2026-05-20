@@ -69,6 +69,9 @@ class CLIArguments:
 
             option: Option = template.get_value(k, path, mode=SearchMode.STRICT)
 
+            if option.defined(option.hide_in_cli) and option.hide_in_cli:
+                continue
+
             try:
                 group = arg_groups[groups[-1]]
                 # TODO: Help

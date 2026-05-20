@@ -48,6 +48,7 @@ class Option:
         default,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
+        hide_in_cli: bool = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
         type: type = AppLibUndefined,
@@ -82,6 +83,10 @@ class Option:
             ##### Applicable settings: All
         converter : Converter, optional
             The value converter used to convert values between config and GUI representation.
+            ##### Applicable settings: All
+        hide_in_cli : bool, optional
+            If True, this setting is excluded by the CLI generator.
+            Thus, it cannot be used by a CLI application.
             ##### Applicable settings: All
         max : floatOrInt, optional
             The maximum value for this setting.
@@ -217,6 +222,7 @@ class FileSelectorOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
+        hide_in_cli: bool = AppLibUndefined,
         type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
@@ -235,6 +241,7 @@ class FileSelectorOption(Option):
             default=default,
             actions=actions,
             converter=converter,
+            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -257,6 +264,7 @@ class ColorPickerOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = ColorConverter(),
+        hide_in_cli: bool = AppLibUndefined,
         type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
@@ -273,6 +281,7 @@ class ColorPickerOption(Option):
             default=default,
             actions=actions,
             converter=converter,
+            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -294,6 +303,7 @@ class ComboBoxOption(Option):
         values: list | dict,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
+        hide_in_cli: bool = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
         type: type = AppLibUndefined,
@@ -313,6 +323,7 @@ class ComboBoxOption(Option):
             values=values,
             actions=actions,
             converter=converter,
+            hide_in_cli=hide_in_cli,
             min=min,
             max=max,
             type=type,
@@ -335,6 +346,7 @@ class TextEditOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
+        hide_in_cli: bool = AppLibUndefined,
         type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
@@ -352,6 +364,7 @@ class TextEditOption(Option):
             default=default,
             actions=actions,
             converter=converter,
+            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
@@ -373,6 +386,7 @@ class NumberOption(Option):
         default: floatOrInt,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
+        hide_in_cli: bool = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         type: type = AppLibUndefined,
@@ -392,6 +406,7 @@ class NumberOption(Option):
             default=default,
             actions=actions,
             converter=converter,
+            hide_in_cli=hide_in_cli,
             max=max,
             min=min,
             type=type,
