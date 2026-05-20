@@ -27,7 +27,10 @@ An Application Component Library (short AppLib) which makes it easy to create fa
 
 ## Supported Platforms
 
-AppLib supports both Windows and Linux and is tested on Windows 11 and CachyOS (Arch Linux) using Wayland.
+AppLib supports both Windows and Linux and is tested on:
+
+- Windows 11
+- CachyOS (Arch Linux) using Wayland.
 
 MacOS may work but hasn't been tested.
 
