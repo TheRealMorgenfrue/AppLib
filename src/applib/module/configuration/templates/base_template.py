@@ -50,7 +50,7 @@ class BaseTemplate(MappingBase):
             icons = other.icons  # Maybe None
 
         template = super().__new__(BaseTemplate)  # type: ignore
-        template.__init__(f"{self.name}-union", d, icons)
+        template.__init__(f"{self.name}-union-{other.name}", d, icons)
         return template
 
     def __ror__(self, other):
@@ -70,7 +70,7 @@ class BaseTemplate(MappingBase):
             icons = self.icons  # Maybe None
 
         template = super().__new__(BaseTemplate)  # type: ignore
-        template.__init__(f"{other.name}-union", d, icons)
+        template.__init__(f"{other.name}-union-{self.name}", d, icons)
         return template
 
     def __ior__(self, other):
