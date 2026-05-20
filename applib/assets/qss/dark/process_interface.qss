@@ -1,0 +1,16 @@
+#view,
+#processInterface {
+    background-color: transparent;
+}
+
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+
+#Label {
+    font: 26px 'Segoe UI SemiBold';
+    background-color: transparent;
+    color: white;
+}

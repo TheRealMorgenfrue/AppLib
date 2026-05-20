@@ -1,0 +1,27 @@
+#view,
+#batchJobInterface {
+    background-color: transparent;
+}
+
+QScrollArea {
+    border: none;
+    background-color: transparent;
+}
+
+#titleLabel {
+    font: 26px 'Segoe UI SemiBold';
+    background-color: transparent;
+    color: white;
+}
+
+#jobListLabel {
+    font: 16px 'Microsoft YaHei Light';
+    background-color: transparent;
+    color: white;
+}
+
+QStackedWidget,
+StackedWidget {
+    border: none;
+    background-color: transparent;
+}

@@ -1,0 +1,22 @@
+QLabel {
+    font: 14px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    color: black;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+}
+
+QLabel#contentLabel {
+    font: 11px 'Segoe UI', 'Microsoft YaHei', 'PingFang SC';
+    color: rgb(96, 96, 96);
+}
+
+/* QLabel#valueLabel {
+    color: rgb(72, 72, 72);
+} */
+
+QLabel:disabled,
+QLabel#contentLabel:disabled,
+QLabel#valueLabel:disabled {
+    color: rgba(0, 0, 0, 0.36);
+}
