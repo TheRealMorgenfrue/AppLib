@@ -8,7 +8,7 @@ from .tools.search.search_index import SearchIndex
 
 class MappingBase:
     def __init__(self, d: dict):
-        self._rebuild_mapping(d)
+        self.rebuild_mapping(d)
 
     def __iter__(self):
         # Breadth-first search
@@ -22,7 +22,33 @@ class MappingBase:
     def __str__(self):
         return f"{self._dict}"
 
-    def _rebuild_mapping(self, d: dict):
+    def __or__(self, other):
+        if not isinstance(other, (MappingBase)):
+            return NotImplemented
+        d = {}
+        for instance in [self, other]:
+            for k, v, path in instance.options():
+                NestedDictSearch.insert(d, k, v, path, create_missing=True)
+        return MappingBase(d)
+
+    def __ror__(self, other):
+        if not isinstance(other, MappingBase):
+            return NotImplemented
+        d = {}
+        for instance in [other, self]:
+            for k, v, path in instance.options():
+                NestedDictSearch.insert(d, k, v, path, create_missing=True)
+        return MappingBase(d)
+
+    def __ior__(self, other):
+        if not isinstance(other, (MappingBase)):
+            return NotImplemented
+        for k, v, path in other.options():
+            NestedDictSearch.insert(self._dict, k, v, path, create_missing=True)
+        return self
+
+    def rebuild_mapping(self, d: dict):
+        """Replaces the key/value pairs of this mapping with `d`"""
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
 
