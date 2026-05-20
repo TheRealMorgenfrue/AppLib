@@ -18,7 +18,6 @@ from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
-from ...module.tools.utilities import iter_to_str
 from ..components.settings.checkbox import CoreCheckBox
 from ..components.settings.color_picker import CoreColorPicker
 from ..components.settings.combobox import CoreComboBox
@@ -235,7 +234,7 @@ class GeneratorBase:
         else:
             err_msg = (
                 f"{self._prefix_msg()} Invalid ui_type '{card_type}' for setting '{key}'. "
-                + f"Expected one of '{iter_to_str(UITypes._member_names_, separator=', ')}'"
+                + f"Expected one of '{', '.join(UITypes._member_names_)}'"
             )
             raise TypeError(err_msg)
         return widget
