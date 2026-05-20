@@ -1,8 +1,0 @@
-#view, #settingInterface {
-    background-color: transparent;
-}
-
-QScrollArea {
-    border: none;
-    background-color: rgb(249, 249, 249);
-}
