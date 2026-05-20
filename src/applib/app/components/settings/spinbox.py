@@ -62,8 +62,10 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
         )
         self._defineRange(num_range)
         try:
-            if type(self.current_value) == int:
+            if isinstance(self.current_value, int):
                 self.setting = SpinBox(self)
+                self.min_value = int(self.min_value)
+                self.max_value = int(self.max_value)
             else:
                 self.setting = DoubleSpinBox(self)
                 self.min_value = float(self.min_value)
