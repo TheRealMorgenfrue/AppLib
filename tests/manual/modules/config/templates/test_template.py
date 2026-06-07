@@ -32,7 +32,7 @@ from applib.module.configuration.tools.template_utils.template_enums import (
 )
 from applib.module.logging import LoggingManager
 
-from ..runners.validators.encoding_validator import compatible_bit_depth
+from ..runners.compatibility.encoding_compatibility import compatible_bit_depth
 
 
 class TestTemplate(BaseTemplate):
