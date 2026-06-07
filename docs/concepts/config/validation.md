@@ -10,7 +10,7 @@ AppLib performs config validation in multiple stages:
     Usually, you don't have to worry about validation due
     to the automatic type inference employed by AppLib.
 
-This page describes how to configure the validation stages validation of a [Template](applib.BaseTemplate) class.
+This page describes how to configure the validation stages of a [Template](applib.BaseTemplate) class.
 
 ## Stage 1: Internal Pydantic validation
 
@@ -45,8 +45,7 @@ from pathlib import Path
 
 def validate_path(path: str) -> str:
     if not Path(path).exists() and not Path(path).resolve().exists():
-        err_msg = f"'{path}' does not exist on the filesystem"
-        raise ValueError(err_msg)
+        raise ValueError(f"'{path}' does not exist on the filesystem")
     return path
 ```
 
@@ -56,12 +55,16 @@ A validator can be assigned to an Option like this:
 Option(
     validators=validate_path,
 )
-
-# Multiple validators works too!
-Option(
-    validators=[validate_path, validate_ip_address],
-)
 ```
+
+???+ tip
+
+    Multiple validators works too!
+    ```py
+    Option(
+        validators=[validate_path, validate_ip_address],
+    )
+    ```
 
 ## Stage 3: Missing or superfluous Options
 
@@ -69,6 +72,64 @@ check_missing_fields
 
 ## Stage 4: Option compatibility validation
 
-The fourth stage ensures all values of the Template are compatible with each other.
+The fourth validation stage ensures all values of a [Template](applib.BaseTemplate) are compatible with each other.
 
-Sometimes, the value of an [Option](applib.Option) is incompatible with the value of another.
+For instance, imagine you have two [Option](applib.Option)s, `segment` and `bit_depth`.
+The `bit_depth` can be 8 bit or 16 bit, but `segment` does not support 16 bit encoding.
+This relationship is captured as follows:
+
+```python
+from applib import (
+    ComboBoxOption,
+    CompatilityValidator,
+    GUIMessage,
+    Option,
+)
+
+from ..runners.compatibility.encoding_compatibility import compatible_bit_depth
+
+"segment": Option(
+    default=False,
+    ui_info=GUIMessage("Segment the video (background removal)"),
+    validators=[
+        CompatilityValidator(
+            compatible_bit_depth, # <-- Your function, which tests segment and bit_depth
+            ["bit_depth"] # <-- Enter the dependencies of `segment`
+        )
+    ],
+),
+"bit_depth": ComboBoxOption(
+    default="8bit",
+    values=["8bit", "16bit"],
+    ui_info=GUIMessage("Bit Depth of the raw pipe input to FFmpeg"),
+)
+```
+
+???+ tip
+
+    You can mix and match any type of validator:
+
+    ```python
+    "segment": Option(
+        validators=[
+            validate_path,
+            CompatilityValidator(
+                compatible_bit_depth,
+                ["bit_depth"]
+            ),
+            validate_ip_address,
+        ],
+    ),
+    ```
+
+The function `compatible_bit_depth` is one you need to define. It takes as many arguments as there are dependencies in the relationship.
+The first argument is the one the function is attached to (in this example `segment`). The function must raise a ValueError if the [Option](applib.Option)s
+checked are incompatible.
+
+Here's an example of how `compatible_bit_depth` can look like:
+
+```python
+def compatible_bit_depth(segment: bool, bit_depth: str):
+    if segment and bit_depth.lower() == "16bit":
+        raise ValueError("16bit input is not supported with segmentation")
+```
