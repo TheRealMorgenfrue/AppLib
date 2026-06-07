@@ -29,6 +29,8 @@ from ..tools.config_utils.config_enums import ConfigLoadOptions
 from ..tools.ini_file_parser import IniFileParser
 from ..tools.validation_model import CoreValidationModel
 
+type ConfigData = dict | Mapping | argparse.Namespace | str | Path
+
 
 class ConfigBase(MappingBase):
     def __init__(
@@ -36,7 +38,8 @@ class ConfigBase(MappingBase):
         name: str,
         template: AnyTemplate,
         validation_model: type[CoreValidationModel] | None,
-        file_path: str | Path,
+        input_data: ConfigData | None,
+        save_path: str | Path | None,
         save_interval: int = 1,
     ) -> None:
         """Base class for all configs.
@@ -47,14 +50,19 @@ class ConfigBase(MappingBase):
             The name of the config to create.
         template : AnyTemplate
             The template used to create `validation_model`.
-        validation_model : CoreValidationModel | None
+        validation_model : type[CoreValidationModel] | None
             The Pydantic model used to validate the config.
 
             If None, no validation is performed.
-        file_path : str | Path
-            The config's location on disk.
+        input_data : ConfigData | None
+            Initialize the config with values from `data`.
+
+            If None, the config is initialized empty and must be populated with data later.
+        save_path : str | Path | None
+            File path where the config is stored.
+            If None, the config is in-memory only.
         save_interval : int, optional
-            Time between config saves in seconds.
+            Time between on-disk config saves in seconds.
             By default 1.
         """
         # Break circular import
@@ -73,12 +81,16 @@ class ConfigBase(MappingBase):
             validation_model.model_construct() if validation_model else None
         )
         self.name = name
-        self.file_path = file_path
+        self.file_path = save_path
         self.failure = False
         self.__connectSignalToSlot()
 
         # Initialize config after everything is set up
-        raw_config, self.failure = self._load(self.file_path)
+        if input_data is None:
+            raw_config = {}
+        else:
+            raw_config, self.failure = self._load(input_data)
+
         super().__init__(raw_config)
 
     def __connectSignalToSlot(self) -> None:
@@ -91,20 +103,20 @@ class ConfigBase(MappingBase):
     def _prefix_msg(self) -> str:
         return f"Config '{self.name}':"
 
-    def update_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
+    def update_config(self, data: ConfigData):
         """Update the config with values from `data`."""
         raw_config, self.failure = self._load(data)
         config = MappingBase(raw_config)
         self |= config
 
-    def replace_config(self, data: dict | Mapping | argparse.Namespace | str | Path):
+    def replace_config(self, data: ConfigData):
         """Replaces the config with values form `data`."""
         config, self.failure = self._load(data)
         self.rebuild_mapping(config)
 
     def _load(
         self,
-        data: dict | Mapping | argparse.Namespace | str | Path,
+        data: ConfigData,
         load_options: (
             ConfigLoadOptions | list[ConfigLoadOptions]
         ) = ConfigLoadOptions.WRITE_CONFIG,
@@ -115,7 +127,7 @@ class ConfigBase(MappingBase):
 
         Parameters
         ----------
-        data : str | dict
+        data : ConfigData
             The input to load.
         load_options : ConfigLoadOptions | list[ConfigLoadOptions], optional
             Manipulate with files on the file system to recover from soft errors.
@@ -152,7 +164,11 @@ class ConfigBase(MappingBase):
                 raw_config = self._load_file(f"{data}")
             elif isinstance(data, (dict, Mapping, argparse.Namespace)):
                 input_name = f"{type(data).__name__}"
-                raw_config = data
+                raw_config = (
+                    dict(data.items())
+                    if isinstance(data, (Mapping, argparse.Namespace))
+                    else data
+                )
             else:
                 not_implemented_msg = (
                     f"{self._prefix_msg()} Cannot load unsupported input '{input_name}'"
@@ -195,7 +211,7 @@ class ConfigBase(MappingBase):
                             raw_config, self.validation_model.model_dump()
                         )
                         self.backup_config()
-                        ConfigUtils.writeConfig(repaired_config, self.file_path)
+                        self._write_config(repaired_config)
                     except Exception:
                         self._logger.error(
                             "Config repair failed:\n"
@@ -244,7 +260,6 @@ class ConfigBase(MappingBase):
                     )
                     if self.validation_model is not None:
                         load_failure_msg += ". Loading template as config"
-                        # Use the model_dict as config if all else fails
                         config = self.validation_model.model_dump()
                         self._logger.warning(load_failure_msg)
                     else:
@@ -267,13 +282,30 @@ class ConfigBase(MappingBase):
                 not_implemented_msg = f"{self._prefix_msg()} File extension '{extension}' is not supported"
                 raise NotImplementedError(not_implemented_msg)
 
-    def _write_config(self):
-        if self.validation_model is None:
-            self._logger.warning(
-                f"{self._prefix_msg()} Cannot write config. The config's validation model has invalid type '{type(self.validation_model)}'"
-            )
-        else:
-            ConfigUtils.writeConfig(self.validation_model.model_dump(), self.file_path)
+    def _write_config(self, config: dict | None = None):
+        """Writes the config to disk.
+
+        Parameters
+        ----------
+        config : dict | None, optional
+            If given and not None, this config is written to disk.
+
+            If None, use the config's validation model as the config written to disk.
+
+            By default None.
+        """
+        if self.file_path is not None:
+            if self.validation_model is None:
+                self._logger.warning(
+                    f"{self._prefix_msg()} Cannot write config. The config's validation model has invalid type '{type(self.validation_model)}'"
+                )
+            else:
+                ConfigUtils.writeConfig(
+                    config
+                    if config is not None
+                    else self.validation_model.model_dump(),
+                    self.file_path,
+                )
 
     def _repair_config(self, config: dict, model_dict: dict) -> dict:
         """
@@ -328,7 +360,7 @@ class ConfigBase(MappingBase):
                     raise e
                 no_old_value = True
             super().set_value(key, value, path, create_missing)
-            if self.validation_model:
+            if self.validation_model is not None:
                 self.validation_model.core_model_validate(
                     self._dict, self._model_validation_info
                 )
@@ -359,31 +391,33 @@ class ConfigBase(MappingBase):
 
     def save_config(self) -> None:
         """Write config to disk"""
-        try:
-            if (
-                self._is_modified
-                and (self._last_save_time + self._save_interval) < time()
-            ):
-                self._last_save_time = time()
-                ConfigUtils.writeConfig(self._dict, self.file_path)
-                self._is_modified = False
-        except Exception:
-            self._logger.error(
-                f"{self._prefix_msg()} Failed to save config\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
-                gui=True,
-            )
+        if self.file_path is not None:
+            try:
+                if (
+                    self._is_modified
+                    and (self._last_save_time + self._save_interval) < time()
+                ):
+                    self._last_save_time = time()
+                    ConfigUtils.writeConfig(self._dict, self.file_path)
+                    self._is_modified = False
+            except Exception:
+                self._logger.error(
+                    f"{self._prefix_msg()} Failed to save config\n"
+                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                    gui=True,
+                )
 
     def backup_config(self) -> None:
         """Creates a backup of the config file on disk, overwriting any existing backup."""
-        try:
-            file = os.path.split(self.file_path)[1]
-            backup_file = Path(f"{self.file_path}.bak")
-            self._logger.debug(f"Creating backup of '{file}' to '{backup_file}'")
-            shutil.copyfile(self.file_path, backup_file)
-        except Exception:
-            self._logger.error(
-                f"Failed to create backup of '{self.file_path}'\n"
-                + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
-                gui=True,
-            )
+        if self.file_path is not None:
+            try:
+                file = os.path.split(self.file_path)[1]
+                backup_file = Path(f"{self.file_path}.bak")
+                self._logger.debug(f"Creating backup of '{file}' to '{backup_file}'")
+                shutil.copyfile(self.file_path, backup_file)
+            except Exception:
+                self._logger.error(
+                    f"Failed to create backup of '{self.file_path}'\n"
+                    + traceback.format_exc(limit=CoreArgs._core_traceback_limit),
+                    gui=True,
+                )
