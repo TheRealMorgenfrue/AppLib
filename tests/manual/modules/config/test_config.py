@@ -31,6 +31,7 @@ class TestConfig(ConfigBase):
                 name=TestArgs.main_config_name,
                 template=template,
                 validation_model=validation_model,
-                file_path=TestArgs.main_config_path,
+                input_data=TestArgs.main_config_path,
+                save_path=TestArgs.main_config_path,
             )
             self._created = True
