@@ -90,7 +90,6 @@ from .module.concurrency.process.process_gui import CoreProcessGUI
 from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from .module.configuration.config.config_base import ConfigBase
-from .module.configuration.config.core_config import CoreConfig
 from .module.configuration.internal.core_args import CoreArgs
 from .module.configuration.runners.actions.theme_actions import (
     change_theme,
@@ -109,7 +108,6 @@ from .module.configuration.runners.validators.generic_validator import (
     validate_proxy_address,
 )
 from .module.configuration.templates.base_template import BaseTemplate
-from .module.configuration.templates.core_template import CoreTemplate
 from .module.configuration.tools.cli_arguments import CLIArguments
 from .module.configuration.tools.config_tools import ConfigUtils
 from .module.configuration.tools.config_utils.config_enums import ConfigLoadOptions
@@ -195,8 +193,6 @@ __all__ = [
     "ConfigLoadOptions",
     "ConfigUtils",
     "CoreArgs",
-    "CoreConfig",
-    "CoreTemplate",
     "ConsoleView",
     "CoreApp",
     "CoreHomeInterface",

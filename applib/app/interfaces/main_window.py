@@ -25,11 +25,6 @@ from qfluentwidgets import (
     setTheme,
 )
 
-from applib.app.interfaces.process.process_interface import CoreProcessInterface
-from applib.module.logging import LoggingManager
-from applib.module.logging.logger_utils import create_main_logger, write_header_to_log
-
-from ...module.configuration.config.core_config import CoreConfig
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.runners.actions.theme_actions import (
     change_theme,
@@ -52,7 +47,7 @@ class CoreMainWindow(MSFluentWindow):
     def __init__(
         self,
         MainArgs,
-        MainConfig: type[AnyConfig] | None = None,
+        MainConfig: type[AnyConfig],
         subinterfaces: (
             list[tuple[type[QWidget], str | QIcon | FluentIconBase, str]] | None
         ) = None,
@@ -80,7 +75,7 @@ class CoreMainWindow(MSFluentWindow):
 
         try:
             # Initialize the main config
-            self.main_config = CoreConfig() if MainConfig is None else MainConfig()
+            self.main_config = MainConfig()  # type: ignore
 
             self._connectSignalToSlot()
             self._initNavigation()
