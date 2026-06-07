@@ -9,6 +9,7 @@ from applib.module.configuration.runners.actions.theme_actions import (
     change_theme_color,
 )
 from applib.module.configuration.runners.validators.app_validator import (
+    validate_background,
     validate_loglevel,
     validate_theme,
 )
@@ -82,7 +83,7 @@ class TestTemplate(BaseTemplate):
                     default="",
                     ui_file_filter="Images (*.jpg *.jpeg *.png *.bmp)",
                     ui_info=GUIMessage("Select background image"),
-                    validators=[validate_path],
+                    validators=[validate_path, validate_background],
                 ),
                 "backgroundOpacity": NumberOption(
                     default=50,

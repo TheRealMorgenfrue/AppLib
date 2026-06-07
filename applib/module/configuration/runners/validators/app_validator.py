@@ -54,3 +54,10 @@ def validate_theme(theme: str) -> str:
         err_msg = f"Invalid theme '{theme}'. Expected one of '{CoreArgs._core_template_themes}'"
         raise ValueError(err_msg)
     return theme
+
+
+def validate_background(image_path: str) -> str:
+    if not os.path.isfile(image_path):
+        err_msg = f"Invalid background '{image_path}'. A background must be a file."
+        raise ValueError(err_msg)
+    return image_path
