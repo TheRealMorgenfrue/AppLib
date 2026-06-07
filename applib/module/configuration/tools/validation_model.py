@@ -159,7 +159,6 @@ class CoreValidationModel(BaseModel):
                     errors.append(details)
         err_len = len(errors)
         if err_len > 0:
-            # raise CoreValidationError("config compatibility check", errors)
             raise CoreValidationError(f"{type(self).__name__}", errors)
 
     def core_model_validate(
@@ -171,7 +170,7 @@ class CoreValidationModel(BaseModel):
         Parameters
         ----------
         obj : Any
-            The object to validate.
+            The object to validate. Must be some kind of mapping, i.e., key/value pairs.
         validation_info : ModelValidationInfo
             Validation information required to perform model validation.
             Gathered by the template parser.

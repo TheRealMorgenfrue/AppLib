@@ -1,4 +1,3 @@
-import os
 import traceback
 from typing import Any
 
@@ -36,6 +35,7 @@ from ...module.tools.types.config import AnyConfig
 from ..common.core_signalbus import core_signalbus
 from ..common.core_stylesheet import CoreStyleSheet
 from ..components.infobar import InfoBar, InfoBarPosition
+from .process.process_interface import CoreProcessInterface
 
 
 class CoreMainWindow(MSFluentWindow):
@@ -64,8 +64,7 @@ class CoreMainWindow(MSFluentWindow):
         super().__init__()
         self._subinterfaces = subinterfaces
         self._settings_tuple = settings_interface
-        self._default_logmsg = "Please check the log for details"
-        self.background = None  # type: QPixmap | None
+        self.background: QPixmap | None = None
         self.background_opacity = 0.0
         self.background_blur_radius = 0.0
 

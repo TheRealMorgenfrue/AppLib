@@ -1,7 +1,6 @@
 from abc import abstractmethod
 
-from applib.module.configuration.tools.search.nested_dict_search import NestedDictSearch
-
+from ...configuration.tools.search.nested_dict_search import NestedDictSearch
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
 
