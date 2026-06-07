@@ -5,7 +5,7 @@ from enum import Enum
 from PyQt6.QtCore import QObject, QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 from ..process.process_generator import ProcessGeneratorBase
 from ..process.process_gui import CoreProcessGUI
 

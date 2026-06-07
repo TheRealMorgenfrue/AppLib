@@ -10,7 +10,7 @@ from ....module.concurrency.process.process_generator import ProcessGeneratorBas
 from ....module.concurrency.thread.thread_manager import ThreadManager
 from ....module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from ....module.configuration.internal.core_args import CoreArgs
-from ....module.logging import LoggingManager
+from ....module.logging.logging_manager import LoggingManager
 from ....module.tools.types.config import AnyConfig
 from ....module.tools.types.templates import AnyTemplate
 from ...common.core_signalbus import core_signalbus

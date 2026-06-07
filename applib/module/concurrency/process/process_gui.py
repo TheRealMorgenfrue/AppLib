@@ -2,7 +2,7 @@ from typing import override
 
 from applib.module.concurrency.process.process_logger import CoreProcessLogger
 
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 
 
 class CoreProcessGUI(CoreProcessLogger):

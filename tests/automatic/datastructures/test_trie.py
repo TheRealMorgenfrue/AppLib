@@ -1,7 +1,7 @@
 from typing import Any
 
 from applib.module.datastructures.trie import Trie
-from applib.module.logging import LoggingManager
+from applib.module.logging.logging_manager import LoggingManager
 
 
 def test_trie():

@@ -3,7 +3,7 @@ from typing import IO, Any, override
 
 from applib.module.concurrency.process.process_base import CoreProcess
 
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 
 
 class CoreProcessLogger(CoreProcess):

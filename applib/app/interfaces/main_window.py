@@ -35,6 +35,7 @@ from ...module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
+from ...module.logging.logging_manager import LoggingManager
 from ...module.tools.decorators import make_setup_args
 from ...module.tools.types.config import AnyConfig
 from ..common.core_signalbus import core_signalbus
@@ -64,8 +65,6 @@ class CoreMainWindow(MSFluentWindow):
 
         # Initialize logger after MainArgs is read
         self._logger = LoggingManager()
-        create_main_logger()
-        write_header_to_log()
 
         super().__init__()
         self._subinterfaces = subinterfaces

@@ -1,6 +1,6 @@
 from typing import Any, override
 
-from ....logging import LoggingManager
+from ....logging.logging_manager import LoggingManager
 from .converter import Converter
 
 

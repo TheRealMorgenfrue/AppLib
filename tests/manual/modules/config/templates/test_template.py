@@ -30,7 +30,7 @@ from applib.module.configuration.tools.template_utils.template_enums import (
     UIFlags,
     UIGroups,
 )
-from applib.module.logging import LoggingManager
+from applib.module.logging.logging_manager import LoggingManager
 
 from ..runners.compatibility.encoding_compatibility import compatible_bit_depth
 

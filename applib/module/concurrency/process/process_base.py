@@ -12,7 +12,7 @@ import qasync
 from PyQt6.QtCore import QThread, pyqtSignal
 
 from ...configuration.internal.core_args import CoreArgs
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 
 
 class ProcessStatus(Enum):

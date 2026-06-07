@@ -3,7 +3,7 @@ from typing import Self
 
 from applib.app.common.auto_wrap import AutoTextWrap
 
-from ....logging import LoggingManager
+from ....logging.logging_manager import LoggingManager
 from ....tools.types.gui_cardgroups import AnyCardGroup
 from ....tools.types.gui_cards import AnyCard, AnyParentCard
 from .template_enums import UIGroups

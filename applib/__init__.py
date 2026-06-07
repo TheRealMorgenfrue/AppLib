@@ -141,7 +141,7 @@ from .module.configuration.tools.validation_model_gen import (
 )
 from .module.datastructures.trie import Trie
 from .module.exceptions import IniParseError, InvalidMasterKeyError, MissingFieldError
-from .module.logging import LoggingManager
+from .module.logging.logging_manager import LoggingManager
 from .module.tools.types.config import AnyConfig
 from .module.tools.types.general import StrPath, iconDict
 from .module.tools.types.gui_cardgroups import AnyCardGroup

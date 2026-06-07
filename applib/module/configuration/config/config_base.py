@@ -19,7 +19,7 @@ from ...exceptions import (
     InvalidMasterKeyError,
     MissingFieldError,
 )
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ...tools.utilities import format_validation_error
 from ..internal.core_args import CoreArgs

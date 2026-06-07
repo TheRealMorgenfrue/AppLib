@@ -5,7 +5,7 @@ from typing import Any, Self
 from pydantic import Field
 
 from ...exceptions import OrphanGroupWarning
-from ...logging import LoggingManager
+from ...logging.logging_manager import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ..runners.actions.action_manager import Actions
 from ..tools.template_utils.options import CompatilityValidator, Option

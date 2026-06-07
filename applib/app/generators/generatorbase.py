@@ -12,7 +12,7 @@ from ...module.configuration.tools.template_utils.groups import Group
 from ...module.configuration.tools.template_utils.options import Option
 from ...module.configuration.tools.template_utils.template_enums import UIFlags, UITypes
 from ...module.exceptions import OrphanGroupWarning
-from ...module.logging import LoggingManager
+from ...module.logging.logging_manager import LoggingManager
 from ...module.tools.types.config import AnyConfig
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard

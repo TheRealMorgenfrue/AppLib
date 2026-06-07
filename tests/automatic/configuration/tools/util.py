@@ -11,13 +11,11 @@ from applib.module.configuration.tools.template_utils.options import (
     GUIMessage,
     TextEditOption,
 )
-from applib.module.logging import LoggingManager
-from applib.module.logging.logger_utils import create_main_logger
+from applib.module.logging.logging_manager import LoggingManager
 
 
 def setup_logger():
     logger = LoggingManager()
-    create_main_logger()
     return logger
 
 

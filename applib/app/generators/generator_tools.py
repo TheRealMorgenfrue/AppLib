@@ -11,7 +11,7 @@ from ...module.configuration.tools.template_utils.template_enums import (
     UIGroups,
     UITypes,
 )
-from ...module.logging import LoggingManager
+from ...module.logging.logging_manager import LoggingManager
 from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard, AnyParentCard
 from ...module.tools.types.gui_settings import AnyBoolSetting

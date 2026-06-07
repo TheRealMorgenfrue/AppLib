@@ -5,7 +5,7 @@ from qfluentwidgets import LineEdit
 
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import GUIMessage, Option
-from ....module.logging import LoggingManager
+from ....module.logging.logging_manager import LoggingManager
 from ....module.tools.types.config import AnyConfig
 from .base_setting import BaseSetting
 
