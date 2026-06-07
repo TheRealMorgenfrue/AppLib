@@ -107,7 +107,7 @@ nav:
                 - Actions: concepts/config/actions.md
                 - Converters: concepts/config/converters.md
                 - Core Attributes: concepts/config/core_attributes.md
-                - Option: concepts/config/option.md
+                - Options: concepts/config/options.md
                 - Templates: concepts/config/templates.md
                 - Validation: concepts/config/validation.md
           - Logging: concepts/logging.md
