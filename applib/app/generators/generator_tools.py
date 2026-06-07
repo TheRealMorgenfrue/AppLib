@@ -238,6 +238,8 @@ class GeneratorUtils:
             card_type = UITypes.SWITCH
         elif isinstance(option.default, int):
             card_type = UITypes.SLIDER
+        elif isinstance(option.default, float):
+            card_type = UITypes.SPINBOX
         elif isinstance(option.default, str):
             card_type = UITypes.LINE_EDIT  # FIXME: Temporary
         else:
