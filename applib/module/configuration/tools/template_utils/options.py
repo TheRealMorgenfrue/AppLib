@@ -1,4 +1,5 @@
 from collections.abc import Callable, Hashable
+from types import UnionType
 from typing import Any, Self, final
 
 from ....tools.types.general import floatOrInt
@@ -45,13 +46,13 @@ class CompatilityValidator:
 class Option:
     def __init__(
         self,
-        default,
+        default: Any,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         hide_in_cli: bool = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
-        type: type = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -98,7 +99,7 @@ class Option:
             If None, there is no limit. Although lower limit is -2147483648 (-2.1 billion) in the GUI.
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
-        type : type, optional
+        type : type | UnionType, optional
             The Python type for the value of this setting. For instance, 3 has type 'int'.
 
             The final type is a union of:
@@ -223,7 +224,7 @@ class FileSelectorOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         hide_in_cli: bool = AppLibUndefined,
-        type: type = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -268,7 +269,7 @@ class ColorPickerOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = COLOR_CONVERTER,
         hide_in_cli: bool = AppLibUndefined,
-        type: type = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -309,7 +310,7 @@ class ComboBoxOption(Option):
         hide_in_cli: bool = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
-        type: type = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -350,7 +351,7 @@ class TextEditOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         hide_in_cli: bool = AppLibUndefined,
-        type: type = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -390,9 +391,9 @@ class NumberOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         hide_in_cli: bool = AppLibUndefined,
-        min: floatOrInt | None = AppLibUndefined,
-        max: floatOrInt | None = AppLibUndefined,
-        type: type = AppLibUndefined,
+        min: floatOrInt | None = None,
+        max: floatOrInt | None = None,
+        type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
