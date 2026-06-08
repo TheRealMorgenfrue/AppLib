@@ -65,6 +65,7 @@ def format_validation_error(
     err: ValidationError | CoreValidationError,
     include_url: bool = False,
     include_input: bool = True,
+    verbose: bool = True,
 ) -> str:
     """
     Format a validation error.
@@ -82,33 +83,41 @@ def format_validation_error(
         Include the user input which caused this error.
         By default True.
 
+    verbose : bool, optional
+        Include verbose info.
+        By default True.
+
     Returns
     -------
     str
         A formatted string of the `err` instance.
     """
-    if isinstance(err, CoreValidationError):
-        return str(err)
-
-    if not isinstance(err, ValidationError):
+    if not isinstance(err, (ValidationError, CoreValidationError)):
         raise TypeError(
             f"must be an instance of {ValidationError.__name__}. Got {type(err).__name__!r}"
         )
 
     errors = err.errors(include_url=include_url, include_input=include_input)
     error_count = err.error_count()
-    msg = f"{error_count} validation error{'s' if error_count > 1 else ''} for {err.title!r}\n"
+    msg = (
+        f"{error_count} validation error{'s' if error_count > 1 else ''} for {err.title!r}\n"
+        if verbose
+        else ""
+    )
     for error in errors:
-        section = error.get("loc")[0]
-        setting = error.get("loc")[1]
-        msg += f"{section}.{setting}\n"
+        if verbose:
+            section = error.get("loc")[0]
+            setting = error.get("loc")[1]
+            msg += f"{section}.{setting}\n"
 
-        error_type = f"type={error.get('type')}"
-        input_value = f"input_value={error.get('input')}" if include_input else ""
-        input_type = f"input_type={type(error.get('input')).__name__}"
-        details = [error_type, input_value, input_type]
+            error_type = f"type={error.get('type')}"
+            input_value = f"input_value={error.get('input')}" if include_input else ""
+            input_type = f"input_type={type(error.get('input')).__name__}"
+            details = [error_type, input_value, input_type]
 
-        msg += f"  {error.get('msg')} [{', '.join(details)}]\n"
+            msg += f"  {error.get('msg')} [{', '.join(details)}]\n"
+        else:
+            msg += f"{error.get('msg')}\n"
         msg += (
             f"    For further information visit {error.get('url')}\n"
             if include_url
