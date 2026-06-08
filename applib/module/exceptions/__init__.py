@@ -50,9 +50,18 @@ class CoreValidationError(ValueError):
         """Returns the number of errors in the validation error."""
         return len(self._errors)
 
-    def errors(self) -> list[CoreValidationErrorDetails]:
+    def errors(
+        self,
+        include_url: bool = True,
+        include_context: bool = True,
+        include_input: bool = True,
+    ) -> list[CoreValidationErrorDetails]:
         """
         Details about each error in the validation error.
+
+        Note
+        ----
+        The arguments are only present to match those of `Pydantic.ValidationError`. They are not used.
 
         Returns:
             A list of [`CoreValidationErrorDetails`][applib.CoreValidationErrorDetails] for each error in the validation error.
