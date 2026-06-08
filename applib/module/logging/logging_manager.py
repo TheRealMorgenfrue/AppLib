@@ -11,7 +11,6 @@ from typing import Any, Self
 from PyQt6.QtCore import Qt, pyqtBoundSignal
 
 from ..configuration.internal.core_args import CoreArgs
-from .logger_utils import maybe_write_header_to_log
 
 # Logger names for lookup. They must be placed here to prevent the name from being overridden
 APPLIB_LOGGER_NAME = CoreArgs._core_app_name
@@ -32,10 +31,10 @@ class LoggingManager:
     _level = LogLevel.DEBUG
     _cache_max_size = 50  # This many messages before the oldest get deleted
 
-    _gui_msg_buffer = deque()  # type: deque[Callable]
-    _process_msg_buffer = deque()  # type: deque[Callable]
-    _gui_msg_signal = None  # type: pyqtBoundSignal | None
-    _process_msg_signal = None  # type: pyqtBoundSignal | None
+    _gui_msg_buffer: deque[Callable] = deque()
+    _process_msg_buffer: deque[Callable] = deque()
+    _gui_msg_signal: pyqtBoundSignal | None = None
+    _process_msg_signal: pyqtBoundSignal | None = None
 
     def __new__(cls) -> Self:
         if cls._instance is None:
@@ -50,7 +49,36 @@ class LoggingManager:
                 log_dir=CoreArgs._core_log_dir,
                 log_filename=CoreArgs._core_log_filename,
             )
-            maybe_write_header_to_log()
+            self.__maybe_write_header_to_log()
+            self._created = True
+
+    def __maybe_write_header_to_log(self) -> None:
+        """Write startup header, if enabled"""
+        if not CoreArgs._core_log_disable_header:
+            logger_nocolor = self.create_logger(
+                name=f"{CoreArgs._core_log_name}_HEADER",
+                level="INFO",
+                use_color=False,
+                log_dir=CoreArgs._core_log_dir,
+                log_filename=CoreArgs._core_log_filename,
+            )
+
+            padding = 90
+            header = (
+                "┌"
+                + "─" * padding
+                + "┐"
+                + "\n"
+                + "│"
+                + "Starting application".center(padding, " ")
+                + "│"
+                + "\n"
+                + "└"
+                + "─" * padding
+                + "┘"
+            )
+            logger_nocolor.info(f"\n{header}")
+            self.delete_logger(logger_nocolor.name)
 
     def _add_to_process_buffer(self, msg: Callable):
         size = len(self._process_msg_buffer)
