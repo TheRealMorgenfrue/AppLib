@@ -364,11 +364,17 @@ class ConfigBase(MappingBase):
                 self.validation_model.core_model_validate(
                     self._dict, self._model_validation_info
                 )
-        except ValidationError as err:
+        except (ValidationError, CoreValidationError) as err:
             success = False
             self._logger.warning(
                 f"{self._prefix_msg()} Unable to validate value '{value}' for key '{key}': "
-                + format_validation_error(err)
+                + format_validation_error(err),
+            )
+            self._logger.warning(
+                format_validation_error(err, include_input=False, verbose=False),
+                title="Failed to validate value",
+                log=False,
+                gui=True,
             )
             if no_old_value:
                 self.remove_value(key, path)
