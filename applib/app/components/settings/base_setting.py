@@ -220,6 +220,9 @@ class BaseSetting(QWidget):
             self.maybeDisableParent(value)
             if self.reload_required:
                 self._onReloadRequired()
+        else:
+            # Revert value to the last valid value
+            self.setWidgetValue(self.current_value)
         return success
 
     def resetValue(self):
