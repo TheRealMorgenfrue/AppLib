@@ -57,7 +57,7 @@ def validate_theme(theme: str) -> str:
 
 
 def validate_background(image_path: str) -> str:
-    if not os.path.isfile(image_path):
+    if image_path and not os.path.isfile(image_path):
         err_msg = f"Invalid background '{image_path}'. A background must be a file."
         raise ValueError(err_msg)
     return image_path
