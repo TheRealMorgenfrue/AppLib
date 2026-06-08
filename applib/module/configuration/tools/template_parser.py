@@ -16,14 +16,13 @@ from .template_utils.validation_info import FieldValidationInfo, ModelValidation
 
 class TemplateParser:
     _instance = None
-    _logger = None
     _current_template_name = ""
 
     _parsed_templates: set[str] = set()
     _field_validation_infos: dict[str, FieldValidationInfo] = {}
     _model_validation_infos: dict[str, ModelValidationInfo] = {}
     # These groups have no parent assigned to them (which is an error)
-    _orphan_groups: dict[str, list[str]] = {}
+    _orphan_groups: dict[str, list[Hashable]] = {}
     group: Group | None = None
     actions = Actions()
 
@@ -109,7 +108,7 @@ class TemplateParser:
         setting: str,
         option: Option,
         group: Group,
-        group_name: str,
+        group_name: Hashable,
         template_name: str,
     ) -> None:
         # Convert the value of ui_group_parent to a list if it isn't one already
@@ -139,7 +138,7 @@ class TemplateParser:
         setting: str,
         option: Option,
         group: Group,
-        group_name: str,
+        group_name: Hashable,
         template_name: str,
     ) -> None:
         group.add_child_name(setting)

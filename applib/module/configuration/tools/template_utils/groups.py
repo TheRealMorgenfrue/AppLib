@@ -2,6 +2,7 @@ from collections.abc import Hashable
 from typing import Self
 
 from applib.app.common.auto_wrap import AutoTextWrap
+from applib.module.tools.utilities import iter_to_str
 
 from ....logging.logging_manager import LoggingManager
 from ....tools.types.gui_cardgroups import AnyCardGroup
@@ -10,10 +11,9 @@ from .template_enums import UIGroups
 
 
 class Group:
-    _instances = {}  # type: dict[str, dict[Hashable, Self]]
-    _logger = None
+    _instances: dict[str, dict[Hashable, Self]] = {}
 
-    def __new__(cls, template_name: str, group_name: str) -> Self:
+    def __new__(cls, template_name: str, group_name: Hashable) -> Self:
         """
         Specifies a relationship between parent and child settings.
 
@@ -25,7 +25,7 @@ class Group:
         template_name : str
             The name of the template this group belongs to.
 
-        group_name : str
+        group_name : Hashable
             The name of the group.
 
         Returns
@@ -33,8 +33,10 @@ class Group:
         Self
             An instance (new or existing) of Group matching the template name and group name.
         """
-        if cls._logger is None:
-            # Lazy load the logger
+        # Lazy load the logger globally
+        try:
+            _ = cls._logger
+        except AttributeError:
             cls._logger = LoggingManager()
 
         if template_name not in cls._instances:
@@ -46,12 +48,12 @@ class Group:
             cls._instances[template_name][group_name] = instance
         return cls._instances[template_name][group_name]
 
-    def __init__(self, template_name: str, group_name: str):
+    def __init__(self, template_name: str, group_name: Hashable):
         if not self._created:
             self._template_name = template_name
             self._group_name = group_name
-            self._parent = {}  # type: dict[str, AnyParentCard]
-            self._children = {}  # type: dict[str, AnyCard]
+            self._parent: dict[str, AnyParentCard] = {}
+            self._children: dict[str, AnyCard] = {}
             self._ui_group_parent: set[UIGroups] = set()
 
             # The card group which this parent could be a child of - if its nesting level is 0
@@ -102,11 +104,11 @@ class Group:
         return groups.values() if groups else None
 
     @classmethod
-    def remove_group(cls, template_name: str, ui_group: str) -> None:
+    def remove_group(cls, template_name: str, group_name: Hashable) -> None:
         """
-        Remove `ui_group` from all Group instances in `template_name`.
+        Remove `group_name` from all Group instances in `template_name`.
         """
-        group = cls._instances[template_name].pop(ui_group)
+        group = cls._instances[template_name].pop(group_name)
         # Remove group from any parent groups as well
         for parent in group._parent_group_names:
             parent_group = cls.get_group(template_name, parent)
@@ -138,7 +140,7 @@ class Group:
             if self._nesting_level > 1:
                 self._logger.warning(
                     f"Group '{self.get_group_name()}': Multiple parents want to nest this UI group. "
-                    + f"Only the first parent in the list [{', '.join(self._parent_group_names)}] "
+                    + f"Only the first parent in the list [{iter_to_str(self._parent_group_names, ', ')}] "
                     + "will be allowed nesting"
                 )
                 # Only the first parent is allowed to nest - all other parent groups have their reference to this child group deleted.
@@ -178,10 +180,10 @@ class Group:
                         child.remove_child(self.get_parent_card())
                         child.get_parent_group_names().remove(group_name)
 
-    def set_parent_group_names(self, parent_groups: list[str]) -> None:
+    def set_parent_group_names(self, parent_groups: list[Hashable]) -> None:
         self._parent_group_names = parent_groups
 
-    def get_parent_group_names(self) -> list[str]:
+    def get_parent_group_names(self) -> list[Hashable]:
         return self._parent_group_names
 
     def is_nested_child(self) -> bool:
@@ -193,7 +195,7 @@ class Group:
         """Returns True if this group is nesting children"""
         return self._is_nesting_children
 
-    def get_group_name(self) -> str:
+    def get_group_name(self) -> Hashable:
         return self._group_name
 
     def get_template_name(self) -> str:
