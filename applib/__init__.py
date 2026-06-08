@@ -99,6 +99,7 @@ from .module.configuration.runners.converters.color_converter import ColorConver
 from .module.configuration.runners.converters.converter import Converter
 from .module.configuration.runners.converters.generic_converter import GenericConverter
 from .module.configuration.runners.validators.app_validator import (
+    validate_background,
     validate_loglevel,
     validate_theme,
 )
@@ -276,6 +277,7 @@ __all__ = [
     "format_list_for_display",
     "format_validation_error",
     "iter_to_str",
+    "validate_background",
     "validate_ip_address",
     "validate_loglevel",
     "validate_path",
