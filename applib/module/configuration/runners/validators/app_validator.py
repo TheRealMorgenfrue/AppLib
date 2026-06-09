@@ -19,7 +19,7 @@ def validate_loglevel(loglevel: str) -> str:
 
     Raises
     ------
-    AssertionError
+    ValueError
         The loglevel is invalid.
     """
     loglevel = loglevel.upper()
@@ -28,7 +28,7 @@ def validate_loglevel(loglevel: str) -> str:
             f"Invalid log level '{loglevel}'. "
             + f"Expected one of '{LoggingManager.LogLevel._member_names_}'"
         )
-        raise AssertionError(err_msg)
+        raise ValueError(err_msg)
     return loglevel
 
 
