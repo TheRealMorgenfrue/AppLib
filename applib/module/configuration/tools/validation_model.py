@@ -162,7 +162,7 @@ class CoreValidationModel(BaseModel):
             raise CoreValidationError(f"{type(self).__name__}", errors)
 
     def core_model_validate(
-        self, obj: Any, validation_info: ModelValidationInfo
+        self, obj: Any, validation_info: ModelValidationInfo, check_missing_fields=True
     ) -> Self:
         """
         Validates an AppLib Pydantic model instance.
@@ -174,6 +174,9 @@ class CoreValidationModel(BaseModel):
         validation_info : ModelValidationInfo
             Validation information required to perform model validation.
             Gathered by the template parser.
+        check_missing_fields : bool, optional
+            If True, stage 3 validation is performed.
+            That is, missing or superfluous Options raise an error.
 
         Returns
         -------
@@ -187,12 +190,13 @@ class CoreValidationModel(BaseModel):
 
             If the model has incompatible Option/value pairs.
         MissingFieldError
-            If any missing or unknown sections/settings are found.
+            If `check_missing_fields` is True and any missing or unknown sections/settings are found.
         """
         # Stage 1 & 2: Standard Pydantic validation with field validators
         out = self.model_validate(obj)
         # Stage 3: Missing or superfluous Options
-        self._core_check_missing_fields(obj, self.model_dump())
+        if check_missing_fields:
+            self._core_check_missing_fields(obj, self.model_dump())
         # Stage 4: Option compatibility validation
         self._core_validate_compatibility(out.model_dump(), validation_info)
 
