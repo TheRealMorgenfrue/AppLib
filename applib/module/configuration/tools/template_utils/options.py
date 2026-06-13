@@ -212,6 +212,12 @@ class Option:
         """
         return AppLibUndefined
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__} {{default={self.default}, type={self.type}, values={self.values}}}"
+
+    def __str___(self) -> str:
+        return repr(self)
+
     def defined(self, attr_value) -> bool:
         """Returns True if the given attribute is defined."""
         return attr_value != AppLibUndefined
