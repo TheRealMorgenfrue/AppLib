@@ -1,6 +1,8 @@
 import shlex
-from argparse import ArgumentParser, Namespace, _ArgumentGroup
-from typing import overload
+from argparse import ArgumentParser, Namespace, RawTextHelpFormatter, _ArgumentGroup
+from typing import Any, overload
+
+from applib.module.configuration.internal.core_args import CoreArgs
 
 from ...configuration.tools.search import SEARCH_SEP, SearchMode
 from ...tools.types.config import AnyConfig
@@ -29,11 +31,23 @@ class CLIArguments:
         pass
 
     @overload
-    def create_argparser(self, from_value: AnyTemplate) -> ArgumentParser: ...
+    def create_argparser(
+        self,
+        from_value: AnyTemplate,
+        name: str | None = None,
+        version: str = "UNKNOWN VERSION",
+    ) -> ArgumentParser: ...
     @overload
-    def create_argparser(self, from_value: AnyConfig) -> ArgumentParser: ...
+    def create_argparser(
+        self,
+        from_value: AnyConfig,
+        name: str | None = None,
+        version: str = "UNKNOWN VERSION",
+    ) -> ArgumentParser: ...
 
-    def create_argparser(self, from_value) -> ArgumentParser:
+    def create_argparser(
+        self, from_value, name: str | None = None, version: str = "UNKNOWN VERSION"
+    ) -> ArgumentParser:
         """
         Create an argument parser from a template.
 
@@ -43,6 +57,11 @@ class CLIArguments:
         ----------
         from_value
             The value to create an argument parser from.
+        name
+            The program name. If None, the name is automatically inferred. By default None.
+
+        version
+            The program version. By default None.
 
         Returns
         -------
@@ -58,29 +77,89 @@ class CLIArguments:
                 f"cannot create an argument parser from input '{from_value}'. Expected one of: {', '.join([f'{type(AnyTemplate).__name__}', f'{type(AnyConfig).__name__}'])}"
             )
 
-        parser = ArgumentParser()
+        # TODO: Enable "suggest_on_error=True" in Python 3.14
+        # TODO: Add proper "usage" message
+        parser = ArgumentParser(
+            prog=name,
+            usage="%(prog)s [options]",
+            formatter_class=RawTextHelpFormatter,
+        )
+
+        parser.add_argument(
+            "--version", action="version", version=f"%(prog)s {version}"
+        )
 
         arg_groups: dict[str, _ArgumentGroup] = {}
 
         for k, _, path in template.options():
             groups = path.split(SEARCH_SEP)
             if len(groups) > 1 and groups[-1] not in arg_groups:
-                arg_groups[groups[-1]] = parser.add_argument_group(title=groups[-1])
+                arg_groups[groups[-1]] = parser.add_argument_group(groups[-1])
 
             option: Option = template.get_value(k, path, mode=SearchMode.STRICT)
 
             if option.defined(option.hide_in_cli) and option.hide_in_cli:
                 continue
 
+            # Add help
+            if option.defined(option.ui_info):
+                help = f"{option.ui_info.title} (default: %(default)s)\n{option.ui_info.description}"
+            else:
+                help = "(default: %(default)s)"
+
+            # Add multiple choices
+            choices = None
+            if option.defined(option.values):
+                choices = option.values
+
+            # Add formatting
+            metavar = None
+            if choices:
+                if len(choices) > 3:
+                    f = f"\n\t{'\n\t'.join([f'{c}' for c in choices])}"
+                    metavar = f"{{{f}\n  }}"
+                else:
+                    f = ", ".join([f"{c}" for c in choices])
+                    metavar = f"{{{f}}}"
+            elif option.defined(option.type):
+                metavar = f"{type(option.default) | option.type}"
+            else:
+                metavar = f"{type(option.default).__name__}"
+
+            # Add actions
+            action = None
+            if (
+                option.defined(option.type)
+                and option.type is bool
+                or isinstance(option.default, bool)
+            ):
+                action = "store_true"
+
+            # Assembly argument list
+            arguments = {
+                "dest": k,
+                "default": option.default,
+                "metavar": metavar,
+                "help": help,
+            }
+            if action:
+                arguments["action"] = action
+                arguments.pop("metavar")
+            if choices:
+                arguments["choices"] = choices
+
+            # FIXME: This argument handler cannot handle duplicate keys across sections
             try:
                 group = arg_groups[groups[-1]]
                 # TODO: Add help
                 group.add_argument(
-                    f"--{k}", dest=k, type=option.type, default=option.default
+                    f"--{k}",
+                    **arguments,
                 )
             except (KeyError, IndexError):
                 parser.add_argument(
-                    f"--{k}", dest=k, type=option.type, default=option.default
+                    f"--{k}",
+                    **arguments,
                 )
         return parser
 
