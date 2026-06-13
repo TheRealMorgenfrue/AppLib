@@ -101,11 +101,13 @@ class ConfigBase(MappingBase):
             self.name = new_name
 
     def _prefix_msg(self) -> str:
-        return f"Config '{self.name}':"
+        return f"{self.name}:"
 
     def update_config(self, data: ConfigData):
         """Update the config with values from `data`."""
-        raw_config, self.failure = self._load(data)
+        raw_config, self.failure = self._load(
+            data, load_options=ConfigLoadOptions.MERGE_INPUT_DATA
+        )
         config = MappingBase(raw_config)
         self |= config
 
@@ -113,6 +115,18 @@ class ConfigBase(MappingBase):
         """Replaces the config with values form `data`."""
         config, self.failure = self._load(data)
         self.rebuild_mapping(config)
+
+    def _map_namspace_to_config(self, namespace: argparse.Namespace) -> dict[str, Any]:
+        mapped = MappingBase({})
+        for k, v in vars(namespace).items():
+            try:
+                path = self.template.get_path(k)
+                mapped.set_value(k, v, path, create_missing=True)
+            except KeyError:
+                self._logger.warning(
+                    f"{self._prefix_msg()} Failed to map namespace key '{k}' to the config"
+                )
+        return mapped.get_raw()
 
     def _load(
         self,
@@ -162,13 +176,15 @@ class ConfigBase(MappingBase):
                 raw_config = self._load_file(data)
             elif isinstance(data, Path):
                 raw_config = self._load_file(f"{data}")
-            elif isinstance(data, (dict, Mapping, argparse.Namespace)):
+            elif isinstance(data, (dict)):
                 input_name = f"{type(data).__name__}"
-                raw_config = (
-                    dict(data.items())
-                    if isinstance(data, (Mapping, argparse.Namespace))
-                    else data
-                )
+                raw_config = data
+            elif isinstance(data, Mapping):
+                input_name = f"{type(data).__name__}"
+                raw_config = dict(data)
+            elif isinstance(data, argparse.Namespace):
+                input_name = "CLI arguments"
+                raw_config = self._map_namspace_to_config(data)
             else:
                 not_implemented_msg = (
                     f"{self._prefix_msg()} Cannot load unsupported input '{input_name}'"
@@ -179,7 +195,10 @@ class ConfigBase(MappingBase):
                 raw_config
                 if self.validation_model is None
                 else self.validation_model.core_model_validate(
-                    raw_config, self._model_validation_info
+                    raw_config,
+                    self._model_validation_info,
+                    check_missing_fields=ConfigLoadOptions.MERGE_INPUT_DATA
+                    not in load_options,
                 ).model_dump()
             )
         except (ValidationError, CoreValidationError) as err:
@@ -348,7 +367,7 @@ class ConfigBase(MappingBase):
         self,
         key: str,
         value: Any,
-        path: str,
+        path: str = "",
         create_missing=False,
     ):
         success, no_old_value = True, False
