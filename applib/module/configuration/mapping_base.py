@@ -159,7 +159,7 @@ class MappingBase:
         self,
         key: str,
         value: Any,
-        path: str,
+        path: str = "",
         create_missing=False,
     ):
         """Insert a new key/value pair or update an existing.
@@ -170,7 +170,7 @@ class MappingBase:
             The key to search for.
         value : Any
             The value to insert.
-        path : str
+        path : str | None, optional
             The path used to guide search in case of duplicate keys.
             May be relative or absolute depending on `search_mode`. However, if
             inserting a new key/value pair the path must be absolute.
