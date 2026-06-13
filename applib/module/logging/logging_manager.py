@@ -130,6 +130,7 @@ class LoggingManager:
             for enum in LoggingManager.LogLevel._member_map_.values():
                 if enum.value == level:
                     self._level = enum
+                    break
             else:
                 error = True
         elif isinstance(level, str):
