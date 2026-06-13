@@ -157,7 +157,7 @@ class NestedDictSearch:
             try:
                 return kwargs["default"]
             except KeyError:
-                raise KeyError from e
+                raise KeyError(e.args[0]) from None
         return d[key]
 
     @classmethod
@@ -257,9 +257,14 @@ class NestedDictSearch:
             The search index of `d`.
         mode : SearchMode, optional
             How to search the dict. By default SearchMode.FUZZY.
+
+        Raises
+        ------
+        KeyError
+            If `key` isn't found.
         """
         try:
             d_ = cls._search(d, key, search_path, idx, mode)
             return d_.pop(key)
         except IndexError as e:
-            raise KeyError from e
+            raise KeyError(e.args[0]) from None
