@@ -23,7 +23,7 @@
     license={file="LICENSE"}
     name="AppLib"
     readme="README.md"
-    requires-python="==3.13.*"
+    requires-python=">=3.12"
 
     [project.urls]
         Documentation="https://example.com"
