@@ -1,8 +1,6 @@
 import shlex
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter, _ArgumentGroup
-from typing import Any, overload
-
-from applib.module.configuration.internal.core_args import CoreArgs
+from typing import overload
 
 from ...configuration.tools.search import SEARCH_SEP, SearchMode
 from ...tools.types.config import AnyConfig
