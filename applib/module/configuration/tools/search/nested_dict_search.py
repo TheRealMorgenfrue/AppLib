@@ -58,6 +58,8 @@ class NestedDictSearch:
         """Traverse `d` and generate key/value pairs for any missing keys in `p`.
         Generated keys are taken from `p` and values are empty mappings.
 
+        If the key to generate is already present, it is returned instead.
+
         Parameters
         ----------
         d : dict
