@@ -20,10 +20,11 @@ class MappingBase:
                     queue.append(v)
                 yield k, v
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self._dict}"
 
     def __or__(self, other):
+        """self | other"""
         if not isinstance(other, (MappingBase)):
             return NotImplemented
         d = {}
@@ -33,6 +34,7 @@ class MappingBase:
         return MappingBase(d)
 
     def __ror__(self, other):
+        """other | self"""
         if not isinstance(other, MappingBase):
             return NotImplemented
         d = {}
@@ -42,11 +44,31 @@ class MappingBase:
         return MappingBase(d)
 
     def __ior__(self, other):
+        """self |= other"""
         if not isinstance(other, (MappingBase)):
             return NotImplemented
         for k, v, path in other.options():
             NestedDictSearch.insert(self._dict, k, v, path, create_missing=True)
         return self
+
+    def __contains__(self, item: str) -> bool:
+        try:
+            self.get_path(item)
+        except KeyError:
+            return False
+        return True
+
+    def __len__(self):
+        return len(self._dict)
+
+    def __getitem__(self, key: str):
+        return self.get_value(key)
+
+    def __setitem__(self, key: str, value: tuple[Any, str]):
+        self.set_value(key, value=value[0], path=value[1], create_missing=True)
+
+    def __delitem__(self, key: str):
+        self.remove_value(key)
 
     def rebuild_mapping(self, d: dict):
         """Replaces the key/value pairs of this mapping with `d`"""
@@ -198,7 +220,7 @@ class MappingBase:
     def remove_value(
         self,
         key: str,
-        path: str,
+        path: str = "",
         mode=SearchMode.FUZZY,
     ):
         """Remove a key/value pair.
