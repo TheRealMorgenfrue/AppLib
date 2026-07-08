@@ -10,7 +10,7 @@ from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.configuration.tools.template_utils.groups import Group
 from ...module.configuration.tools.template_utils.options import Option
-from ...module.configuration.tools.template_utils.template_enums import UIFlags, UITypes
+from ...module.configuration.tools.template_utils.template_enums import Flags, UITypes
 from ...module.exceptions import OrphanGroupWarning
 from ...module.logging.logging_manager import LoggingManager
 from ...module.tools.types.config import AnyConfig
@@ -240,7 +240,7 @@ class GeneratorBase:
         return widget
 
     def _exclude_setting(self, setting: str, option: Option) -> bool:
-        exclude = option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore # option.ui_flags is a list after being parsed.
+        exclude = option.defined(option.flags) and Flags.HIDE_IN_GUI in option.flags  # type: ignore # option.flags is a list after being parsed.
         if exclude:
             self._logger.debug(
                 f"{self._prefix_msg()} Excluding setting '{setting}' from GUI"

@@ -2,6 +2,8 @@ import shlex
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter, _ArgumentGroup
 from typing import overload
 
+from applib.module.configuration.tools.template_utils.template_enums import Flags
+
 from ...configuration.tools.search import SEARCH_SEP, SearchMode
 from ...tools.types.config import AnyConfig
 from ...tools.types.templates import AnyTemplate
@@ -96,7 +98,7 @@ class CLIArguments:
 
             option: Option = template.get_value(k, path, mode=SearchMode.STRICT)
 
-            if option.defined(option.hide_in_cli) and option.hide_in_cli:
+            if option.defined(option.flags) and Flags.HIDE_IN_CLI in option.flags:  # type: ignore
                 continue
 
             # Add help

@@ -10,7 +10,7 @@ from ...tools.types.templates import AnyTemplate
 from ..runners.actions.action_manager import Actions
 from ..tools.template_utils.options import CompatilityValidator, Option
 from .template_utils.groups import Group
-from .template_utils.template_enums import UIFlags, UIGroups
+from .template_utils.template_enums import Flags, UIGroups
 from .template_utils.validation_info import FieldValidationInfo, ModelValidationInfo
 
 
@@ -36,9 +36,9 @@ class TemplateParser:
         return f"Template '{self._current_template_name}':"
 
     def _group_is_included(self, option: Option) -> bool:
-        # option.ui_flags is a list after parsing flags
+        # option.flags is a list after parsing flags
         return not (
-            option.defined(option.ui_flags) and UIFlags.EXCLUDE in option.ui_flags  # type: ignore
+            option.defined(option.flags) and Flags.HIDE_IN_GUI in option.flags  # type: ignore
         )
 
     def _parse_group(self, setting: str, option: Option, template_name: str) -> None:
@@ -150,18 +150,18 @@ class TemplateParser:
             self._orphan_groups[template_name].append(group_name)
 
     def _parse_flags(self, setting: str, option: Option):
-        if option.defined(option.ui_flags):
-            if not isinstance(option.ui_flags, list):
-                option.ui_flags = [option.ui_flags]
+        if option.defined(option.flags):
+            if not isinstance(option.flags, list):
+                option.flags = [option.flags]
 
-            for i, flag in enumerate(deepcopy(option.ui_flags)):
-                if flag.name not in UIFlags._member_names_:
+            for i, flag in enumerate(deepcopy(option.flags)):
+                if flag.name not in Flags._member_names_:
                     self._logger.error(
                         f"{self._prefix_msg()} Setting '{setting}' has invalid flag '{flag}'. "
-                        + f"Expected one of '{', '.join(UIFlags._member_names_)}'. "
+                        + f"Expected one of '{', '.join(Flags._member_names_)}'. "
                         + "Removing value"
                     )
-                    option.ui_flags.pop(i)
+                    option.flags.pop(i)
 
     def _parse_actions(
         self,

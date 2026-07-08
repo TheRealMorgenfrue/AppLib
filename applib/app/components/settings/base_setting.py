@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QHBoxLayout, QWidget
 
 from ....module.configuration.runners.converters.converter import Converter
 from ....module.configuration.tools.template_utils.options import Option
-from ....module.configuration.tools.template_utils.template_enums import UIFlags
+from ....module.configuration.tools.template_utils.template_enums import Flags
 from ....module.tools.types.config import AnyConfig
 from ...common.core_signalbus import core_signalbus
 from ..infobar import InfoBar, InfoBarPosition
@@ -82,8 +82,7 @@ class BaseSetting(QWidget):
 
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
-            option.defined(option.ui_flags)
-            and UIFlags.REQUIRES_RELOAD in option.ui_flags  # type: ignore # option.ui_flags is a list after parsing
+            option.defined(option.flags) and Flags.REQUIRES_RELOAD in option.flags  # type: ignore # option.flags is a list after parsing
         )
 
         self.buttonlayout = QHBoxLayout(self)

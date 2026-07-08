@@ -5,7 +5,7 @@ from typing import Any, Self, final
 from ....tools.types.general import floatOrInt
 from ...runners.converters.color_converter import ColorConverter
 from ...runners.converters.converter import Converter
-from .template_enums import UIFlags, UIGroups, UITypes
+from .template_enums import Flags, UIGroups, UITypes
 
 
 @final
@@ -49,7 +49,7 @@ class Option:
         default: Any,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
         type: type | UnionType = AppLibUndefined,
@@ -57,7 +57,6 @@ class Option:
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
         ui_file_filter: str | None = AppLibUndefined,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Hashable | list[Hashable] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -85,9 +84,8 @@ class Option:
         converter : Converter, optional
             The value converter used to convert values between config and GUI representation.
             ##### Applicable settings: All
-        hide_in_cli : bool, optional
-            If True, this setting is excluded by the CLI generator.
-            Thus, it cannot be used by a CLI application.
+        flags : Flags | list[Flags], optional
+            Special flags that apply to this setting.
             ##### Applicable settings: All
         max : floatOrInt, optional
             The maximum value for this setting.
@@ -134,9 +132,6 @@ class Option:
             "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
             ```
             ##### Applicable settings: File Selectors
-        ui_flags : UIFlags | list[UIFlags], optional
-            Special flags that apply to this setting.
-            ##### Applicable settings: All
         ui_group : Hashable | list[Hashable], optional
             Designate a group ID (GID) which all options with this GID belongs to.
             This makes various actions possible for settings, e.g., they can be visually grouped in the GUI.
@@ -185,7 +180,6 @@ class Option:
         self.actions = actions
         self.converter = converter
         self.default = default
-        self.hide_in_cli = hide_in_cli
         self.max = max
         self.min = min
         self.type = type
@@ -193,7 +187,7 @@ class Option:
         self.ui_disable_other = ui_disable_other
         self.ui_disable_self = ui_disable_self
         self.ui_file_filter = ui_file_filter
-        self.ui_flags = ui_flags
+        self.flags = flags
         self.ui_group = ui_group
         self.ui_group_parent = ui_group_parent
         self.ui_info = ui_info
@@ -229,13 +223,12 @@ class FileSelectorOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
         ui_file_filter: str | None = None,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Any | list[Any] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -248,13 +241,12 @@ class FileSelectorOption(Option):
             default=default,
             actions=actions,
             converter=converter,
-            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
             ui_disable_self=ui_disable_self,
             ui_file_filter=ui_file_filter,
-            ui_flags=ui_flags,
+            flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,
@@ -274,12 +266,11 @@ class ColorPickerOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = COLOR_CONVERTER,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Hashable | list[Hashable] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -291,12 +282,11 @@ class ColorPickerOption(Option):
             default=default,
             actions=actions,
             converter=converter,
-            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
             ui_disable_self=ui_disable_self,
-            ui_flags=ui_flags,
+            flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,
@@ -313,14 +303,13 @@ class ComboBoxOption(Option):
         values: list | dict,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
         type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Any | list[Any] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -333,14 +322,13 @@ class ComboBoxOption(Option):
             values=values,
             actions=actions,
             converter=converter,
-            hide_in_cli=hide_in_cli,
             min=min,
             max=max,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
             ui_disable_self=ui_disable_self,
-            ui_flags=ui_flags,
+            flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,
@@ -356,12 +344,11 @@ class TextEditOption(Option):
         default: str,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Any | list[Any] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -374,12 +361,11 @@ class TextEditOption(Option):
             default=default,
             actions=actions,
             converter=converter,
-            hide_in_cli=hide_in_cli,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
             ui_disable_self=ui_disable_self,
-            ui_flags=ui_flags,
+            flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,
@@ -396,14 +382,13 @@ class NumberOption(Option):
         default: floatOrInt,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
-        hide_in_cli: bool = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
         min: floatOrInt | None = None,
         max: floatOrInt | None = None,
         type: type | UnionType = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_other: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
-        ui_flags: UIFlags | list[UIFlags] = AppLibUndefined,
         ui_group: Any | list[Any] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -416,14 +401,13 @@ class NumberOption(Option):
             default=default,
             actions=actions,
             converter=converter,
-            hide_in_cli=hide_in_cli,
             max=max,
             min=min,
             type=type,
             ui_disable_button=ui_disable_button,
             ui_disable_other=ui_disable_other,
             ui_disable_self=ui_disable_self,
-            ui_flags=ui_flags,
+            flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,
             ui_info=ui_info,

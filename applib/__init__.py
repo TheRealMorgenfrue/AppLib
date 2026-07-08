@@ -130,7 +130,7 @@ from .module.configuration.tools.template_utils.options import (
     TextEditOption,
 )
 from .module.configuration.tools.template_utils.template_enums import (
-    UIFlags,
+    Flags,
     UIGroups,
     UITypes,
 )
@@ -270,7 +270,7 @@ __all__ = [
     "ThreadManager",
     "ThreadManagerGui",
     "Trie",
-    "UIFlags",
+    "Flags",
     "UIGroups",
     "UITypes",
     "FieldValidationInfo",

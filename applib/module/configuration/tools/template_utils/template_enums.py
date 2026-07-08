@@ -141,8 +141,8 @@ class UITypes(Enum):
     """
 
 
-class UIFlags(Enum):
-    """Special GUI flags that apply to individual settings"""
+class Flags(Enum):
+    """Special flags that apply to individual settings"""
 
     REQUIRES_RELOAD = 0
     """
@@ -151,9 +151,16 @@ class UIFlags(Enum):
     The user is informed of this in the GUI.
     """
 
-    EXCLUDE = 1
+    HIDE_IN_GUI = 1
     """
     Exclude this setting from the GUI.
 
     No GUI element will be created for this setting.
+    """
+
+    HIDE_IN_CLI = 2
+    """
+    Exclude this setting from the CLI.
+    
+    Thus, it cannot be used by a CLI application.
     """
