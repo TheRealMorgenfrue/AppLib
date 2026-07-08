@@ -178,7 +178,7 @@ class BaseSetting(QWidget):
     def _setDisableWidget(self, is_disabled: bool, save: bool):
         if self.is_disabled != is_disabled:
             self.is_disabled = is_disabled
-            self.setting.setDisabled(self.is_disabled)  # type: ignore # Is defined in subclasses
+            self.setDisabled(self.is_disabled)
 
             if self.is_disabled:
                 self.backup_value = self.current_value
