@@ -96,6 +96,7 @@ from .module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
+from .module.configuration.runners.converters.case_converter import Case, CaseConverter
 from .module.configuration.runners.converters.color_converter import ColorConverter
 from .module.configuration.runners.converters.converter import Converter
 from .module.configuration.runners.converters.generic_converter import GenericConverter
@@ -184,6 +185,8 @@ __all__ = [
     "CardBase",
     "CardGenerator",
     "CardWidgetGenerator",
+    "Case",
+    "CaseConverter",
     "ColorConverter",
     "CheckListOption",
     "ColorPickerOption",
