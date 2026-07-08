@@ -370,7 +370,7 @@ class GeneratorBase:
             self._logger.error(
                 AutoTextWrap.text_format(
                     f"""
-                    Failed to create {failed_cards} {setting_grammar}n/
+                    Failed to create {failed_cards} {setting_grammar}/n
                     See log for details
                     """
                 ),
