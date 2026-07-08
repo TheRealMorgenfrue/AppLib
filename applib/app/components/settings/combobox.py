@@ -1,4 +1,4 @@
-from typing import override
+from typing import Any, override
 
 from PyQt6.QtWidgets import QWidget
 from qfluentwidgets import ComboBox
@@ -15,7 +15,7 @@ class CoreComboBox(BaseSetting):
         config: AnyConfig,
         config_key: str,
         option: Option,
-        texts: list[str] | dict[str, str],
+        texts: list[str] | dict[str, Any],
         converter: Converter | None = None,
         path="",
         parent: QWidget | None = None,
@@ -34,7 +34,7 @@ class CoreComboBox(BaseSetting):
         option : Option
             The option associated with `config_key`.
 
-        texts : list | dict
+        texts : list[str] | dict[str, Any]
             All possible values this option can have.
 
         converter : Converter | None, optional
