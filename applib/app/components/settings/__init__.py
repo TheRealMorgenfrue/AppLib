@@ -1,4 +1,5 @@
 from .checkbox import CoreCheckBox
+from .checklist import CoreCheckList
 from .color_picker import CoreColorPicker
 from .combobox import CoreComboBox
 from .file_selection import CoreFileSelect
@@ -16,4 +17,5 @@ __all__ = [
     "CoreSlider",
     "CoreSpinBox",
     "CoreSwitch",
+    "CoreCheckList",
 ]

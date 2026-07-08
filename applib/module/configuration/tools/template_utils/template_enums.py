@@ -98,6 +98,11 @@ class UITypes(Enum):
     Select a boolean value (True/False).
     """
 
+    CHECKLIST = 1
+    """
+    Select one or more items from a list.
+    """
+
     COLOR_PICKER = 3
     """
     Select color from RGB color space.

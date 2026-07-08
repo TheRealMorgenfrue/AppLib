@@ -67,6 +67,7 @@ from .app.components.settingcards.widgets.parent_settingwidgets import (
 from .app.components.settingcards.widgets.settingwidget import SettingWidget
 from .app.components.settings import (
     CoreCheckBox,
+    CoreCheckList,
     CoreColorPicker,
     CoreComboBox,
     CoreFileSelect,
@@ -118,6 +119,7 @@ from .module.configuration.tools.search.search_index import SEARCH_SEP
 from .module.configuration.tools.template_parser import TemplateParser
 from .module.configuration.tools.template_utils.groups import Group
 from .module.configuration.tools.template_utils.options import (
+    CheckListOption,
     ColorPickerOption,
     ComboBoxOption,
     CompatilityValidator,
@@ -183,6 +185,7 @@ __all__ = [
     "CardGenerator",
     "CardWidgetGenerator",
     "ColorConverter",
+    "CheckListOption",
     "ColorPickerOption",
     "Converter",
     "ComboBoxOption",
@@ -203,6 +206,7 @@ __all__ = [
     "CoreSettingsSubInterface",
     "CoreStyleSheet",
     "CoreCheckBox",
+    "CoreCheckList",
     "CoreColorPicker",
     "CoreComboBox",
     "CoreFileSelect",

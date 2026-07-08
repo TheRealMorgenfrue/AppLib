@@ -1,5 +1,7 @@
 from typing import TypeAlias
 
+from applib.app.components.settings.checklist import CoreCheckList
+
 from ....app.components.settings.checkbox import CoreCheckBox
 from ....app.components.settings.color_picker import CoreColorPicker
 from ....app.components.settings.combobox import CoreComboBox
@@ -18,6 +20,7 @@ AnySetting: TypeAlias = (
     | CoreSpinBox
     | CoreSwitch
     | CoreCheckBox
+    | CoreCheckList
 )
 
 AnyBoolSetting: TypeAlias = CoreSwitch | CoreCheckBox
