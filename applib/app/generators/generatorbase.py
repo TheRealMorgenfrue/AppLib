@@ -3,6 +3,7 @@ from abc import abstractmethod
 
 from PyQt6.QtWidgets import QWidget
 
+from applib.app.components.settings.checklist import CoreCheckList
 from applib.module.configuration.tools.search import SEARCH_SEP
 
 from ...app.common.auto_wrap import AutoTextWrap
@@ -149,6 +150,15 @@ class GeneratorBase:
         converter = option.converter if option.defined(option.converter) else None
         if card_type == UITypes.CHECKBOX:
             widget = CoreCheckBox(
+                config=self._config,
+                config_key=key,
+                option=option,
+                converter=converter,
+                path=path,
+                parent=parent,
+            )
+        elif card_type == UITypes.CHECKLIST:
+            widget = CoreCheckList(
                 config=self._config,
                 config_key=key,
                 option=option,
