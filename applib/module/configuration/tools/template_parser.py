@@ -255,8 +255,8 @@ class TemplateParser:
             min_values.append(option.min)
             if option.defined(option.ui_disable_self):
                 min_values.append(option.ui_disable_self)
-            if option.defined(option.ui_disable_other):
-                min_values.append(option.ui_disable_other)
+            if option.defined(option.ui_disable_children):
+                min_values.append(option.ui_disable_children)
             if field_default is not None:
                 min_values.append(field_default)
 

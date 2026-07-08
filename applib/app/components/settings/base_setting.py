@@ -77,8 +77,8 @@ class BaseSetting(QWidget):
         self.disable_self_value = option.ui_disable_self
         self.can_get_disabled = option.defined(option.ui_disable_self)
         # The value which disables children of this setting
-        self.disable_other_value = option.ui_disable_other
-        self.can_disable_other = option.defined(option.ui_disable_other)
+        self.disable_other_value = option.ui_disable_children
+        self.can_disable_other = option.defined(option.ui_disable_children)
 
         # Notify user that the application must be reloaded for the setting to apply.
         self.reload_required = (
