@@ -34,7 +34,7 @@ class CoreLineEdit(BaseSetting):
             The option key in the config which should be associated with this setting.
 
         option : Option
-            The options associated with `config_key`.
+            The option associated with `config_key`.
 
         is_tight : bool, optional
             Use a smaller version of the line edit.

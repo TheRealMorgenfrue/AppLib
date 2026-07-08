@@ -34,7 +34,7 @@ class CoreSpinBox(BaseSetting, RangeSettingMixin):
             The key in the config which should be associated with this setting.
 
         option : Option
-            The options associated with `config_key`.
+            The option associated with `config_key`.
 
         num_range : tuple[floatOrInt | None, floatOrInt | None]
             - num_range[0] == min

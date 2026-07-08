@@ -32,7 +32,7 @@ class CoreComboBox(BaseSetting):
             The option key in the config which should be associated with this setting.
 
         option : Option
-            The options associated with `config_key`.
+            The option associated with `config_key`.
 
         texts : list | dict
             All possible values this option can have.

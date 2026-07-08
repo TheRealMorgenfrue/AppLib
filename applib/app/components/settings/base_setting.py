@@ -46,7 +46,7 @@ class BaseSetting(QWidget):
             The option key in the config which should be associated with this setting.
 
         option : Option
-            The options associated with `config_key`.
+            The option associated with `config_key`.
 
         converter : Converter | None, optional
             The value converter used to convert values between config and GUI representation.
