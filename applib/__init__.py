@@ -92,6 +92,7 @@ from .module.concurrency.thread.thread_manager import ThreadManager
 from .module.concurrency.thread.thread_manager_gui import ThreadManagerGui
 from .module.configuration.config.config_base import ConfigBase
 from .module.configuration.internal.core_args import CoreArgs
+from .module.configuration.mapping_base import MappingBase
 from .module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
@@ -232,6 +233,7 @@ __all__ = [
     "GenericSettingCard",
     "Group",
     "GUIMessage",
+    "MappingBase",
     "Option",
     "iconDict",
     "IndeterminateProgressBarCard",
