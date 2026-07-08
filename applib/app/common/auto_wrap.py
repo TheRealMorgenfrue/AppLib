@@ -6,24 +6,30 @@ from qfluentwidgets import TextWrap
 class AutoTextWrap(TextWrap):
     @classmethod
     def text_format(
-        cls, text: str, newline_repl: str = "/n", newline: str = "\n"
+        cls,
+        text: str,
+        control_chars_repl: str | tuple[str, ...] = ("/n", "/t", "/r"),
+        control_chars: str | tuple[str, ...] = ("\n", "\t", "\r"),
     ) -> str:
         """
         Strip whitespace and newlines in strings.
 
-        Has support for defining newlines which should be kept using ``newline_repl`.
+        Has support for defining control characters to keep when formatting, e.g., `\\t` or `\\n`.
 
         Parameters
         ----------
         text : str
             Text to process.
-        newline_repl : str, optional
-            Character which represents a newline character.
-            Use in text to force a linebreak, as the newline character `\\n`
-            is removed during processing.
+        control_chars_repl : str | tuple[str, ...], optional
+            Control characters to keep when formatting.
+            Use in text to declare a control character encoding.
+
+            Note that the original control characters, e.g. the newline character `\\n`,
+            are removed during processing.
+
             By default "/n".
-        newline : str, optional
-            Character to insert when `newline_repl` is encountered.
+        control_chars : str | tuple[str, ...], optional
+            Character to insert when a control character encoding is encountered.
             By default "\\n".
 
             NOTE: Use `<br>` to create a linebreak in the GUI.
@@ -34,7 +40,16 @@ class AutoTextWrap(TextWrap):
             The string processed for whitespace characters and newlines.
         """
         clean_str = sub(pattern=r"\s+", repl=" ", string=text).strip()
-        return sub(pattern=newline_repl, repl=newline, string=clean_str)
+
+        if not isinstance(control_chars, tuple):
+            control_chars = (control_chars,)
+        if not isinstance(control_chars_repl, tuple):
+            control_chars_repl = (control_chars_repl,)
+
+        for char, char_repl in zip(control_chars, control_chars_repl, strict=False):
+            clean_str = sub(pattern=char_repl, repl=char, string=clean_str)
+
+        return clean_str
 
     @classmethod
     def _wrap_line(
