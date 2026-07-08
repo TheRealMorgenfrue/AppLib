@@ -8,7 +8,7 @@ from ...exceptions import OrphanGroupWarning
 from ...logging.logging_manager import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ..runners.actions.action_manager import Actions
-from ..tools.template_utils.options import CompatilityValidator, Option
+from ..tools.template_utils.options import CompatilityValidator, GUIMessage, Option
 from .template_utils.groups import Group
 from .template_utils.template_enums import Flags, UIGroups
 from .template_utils.validation_info import FieldValidationInfo, ModelValidationInfo
@@ -268,6 +268,29 @@ class TemplateParser:
         )
         field_validation_info.add_field(setting, field, path)
 
+    def _validate_setting(
+        self,
+        setting: str,
+        option: Option,
+        template_name: str,
+    ):
+        """Validates a template setting and corrects any errors.
+
+        Parameters
+        ----------
+        setting : str
+            The name of the `option` in the template.
+        option : Option
+            The object describing this setting.
+        template_name : str
+            The name of the template this setting is defined in.
+        """
+        if not option.defined(option.ui_info):
+            self._logger.warning(
+                f"Setting '{setting}' is missing a title. You can specify one using \"ui_info\" in the template '{template_name}'"
+            )
+            option.ui_info = GUIMessage("")
+
     def parse(self, template: AnyTemplate, force: bool = False):
         """Parse the supplied template.
 
@@ -302,6 +325,7 @@ class TemplateParser:
                     path,
                     template_name,
                 )
+                self._validate_setting(setting, option, template_name)
             self._check_groups(template_name)
             self._field_validation_infos[template_name] = field_validation_info
             self._model_validation_infos[template_name] = model_validation_info
