@@ -8,6 +8,9 @@ from applib.module.configuration.runners.actions.theme_actions import (
     change_theme,
     change_theme_color,
 )
+from applib.module.configuration.runners.converters.generic_converter import (
+    GenericConverter,
+)
 from applib.module.configuration.runners.validators.app_validator import (
     validate_background,
     validate_loglevel,
@@ -18,6 +21,7 @@ from applib.module.configuration.runners.validators.generic_validator import (
 )
 from applib.module.configuration.templates.base_template import BaseTemplate
 from applib.module.configuration.tools.template_utils.options import (
+    CheckListOption,
     ColorPickerOption,
     ComboBoxOption,
     CompatilityValidator,
@@ -28,7 +32,7 @@ from applib.module.configuration.tools.template_utils.options import (
     TextEditOption,
 )
 from applib.module.configuration.tools.template_utils.template_enums import (
-    UIFlags,
+    Flags,
     UIGroups,
 )
 from applib.module.logging.logging_manager import LoggingManager
@@ -107,7 +111,7 @@ class TestTemplate(BaseTemplate):
             "PixivUtil2": {
                 "partialCompat": Option(
                     default=False,
-                    ui_flags=UIFlags.REQUIRES_RELOAD,
+                    flags=Flags.REQUIRES_RELOAD,
                     ui_group_parent=[
                         UIGroups.DESYNC_FALSE_CHILDREN,
                         UIGroups.UNDIRECTED_SYNC,
@@ -126,7 +130,7 @@ class TestTemplate(BaseTemplate):
                 ),
                 "fullCompat": Option(
                     default=False,
-                    ui_flags=UIFlags.REQUIRES_RELOAD,
+                    flags=Flags.REQUIRES_RELOAD,
                     ui_group="pu_compat",
                     ui_info=GUIMessage(
                         "Use full compatibility mode",
