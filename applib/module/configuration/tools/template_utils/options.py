@@ -416,3 +416,45 @@ class NumberOption(Option):
             validators=validators,
             **kwargs,
         )
+
+
+class CheckListOption(Option):
+    def __init__(
+        self,
+        default: list[Hashable],
+        values: list | dict,
+        actions: Callable | list[Callable] = AppLibUndefined,
+        converter: Converter = AppLibUndefined,
+        flags: Flags | list[Flags] = AppLibUndefined,
+        max: floatOrInt | None = AppLibUndefined,
+        min: floatOrInt | None = AppLibUndefined,
+        type: type | UnionType = AppLibUndefined,
+        ui_disable_button: bool = AppLibUndefined,
+        ui_disable_children: Any = AppLibUndefined,
+        ui_disable_self: Any = AppLibUndefined,
+        ui_group: Any | list[Any] = AppLibUndefined,
+        ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
+        ui_info: GUIMessage = AppLibUndefined,
+        ui_type: UITypes = UITypes.CHECKLIST,
+        validators: Validator | list[Validator] = AppLibUndefined,
+        **kwargs,
+    ):
+        super().__init__(
+            default=default,
+            values=values,
+            actions=actions,
+            converter=converter,
+            min=min,
+            max=max,
+            type=type,
+            ui_disable_button=ui_disable_button,
+            ui_disable_children=ui_disable_children,
+            ui_disable_self=ui_disable_self,
+            flags=flags,
+            ui_group=ui_group,
+            ui_group_parent=ui_group_parent,
+            ui_info=ui_info,
+            ui_type=ui_type,
+            validators=validators,
+            **kwargs,
+        )

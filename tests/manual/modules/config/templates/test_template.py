@@ -229,5 +229,25 @@ class TestTemplate(BaseTemplate):
                     values=["8bit", "16bit"],
                     ui_info=GUIMessage("Bit Depth of the raw pipe input to FFmpeg"),
                 ),
+                "execution_providers": CheckListOption(
+                    default=["CPUExecutionProvider"],
+                    converter=GenericConverter(
+                        [
+                            "CPUExecutionProvider",
+                            "CUDAExecutionProvider",
+                            "TensorrtExecutionProvider",
+                            "OpenVINOExecutionProvider",
+                            "MIGraphXExecutionProvider",
+                        ],
+                        ["CPU", "CUDA", "TensorRT", "OpenVINO", "MIGraphX"],
+                    ),
+                    values=[
+                        "CPUExecutionProvider",
+                        "CUDAExecutionProvider",
+                        "TensorrtExecutionProvider",
+                        "OpenVINOExecutionProvider",
+                        "MIGraphXExecutionProvider",
+                    ],
+                ),
             },
         }
