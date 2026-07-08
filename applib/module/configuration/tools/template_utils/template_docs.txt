@@ -77,7 +77,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 ───────────────────────────────────────────────────────────────────────────
 
-- ui_disable_other    (GUI)
+- ui_disable_children    (GUI)
     The value which disables children of this setting.
     This value is used in validation if it is the smallest of all other values (e.g. default, min)
 
@@ -85,7 +85,7 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
     Required: False
 
     *********************
-    For further information, please see the corresponding ui_disable_other option under GUI elements.
+    For further information, please see the corresponding ui_disable_children option under GUI elements.
 
 ───────────────────────────────────────────────────────────────────────────
 
@@ -230,13 +230,13 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 ───────────────────────────────────────────────────────────────────────────
 
-- ui_disable_other
+- ui_disable_children
     The value which disables children of this setting.
     Please ensure that the backend using this setting respects this value - otherwise it has no effect.
 
     *********************
     Syntax:
-    "ui_disable_other": Any
+    "ui_disable_children": Any
 
     *********************
     Required: False
@@ -435,13 +435,13 @@ If multiple syntaxes are present for an option, it means they are interchangeabl
 
 ───────────────────────────────────────────────────────────────────────────
 
-- ui_flags
+- flags
     Special flags that apply to individual settings
 
     *********************
     Syntax:
-    "ui_flags": <UIFlags>
-    "ui_flags": [<UIFlags>, <UIFlags>, ...]
+    "flags": <Flags>
+    "flags": [<Flags>, <Flags>, ...]
 
     *********************
     Required: False
@@ -537,7 +537,7 @@ return {
             "default": f"{AppArgs.download_list_dir}",
             "validators": [validate_path],
             "ui_group": "downloadListFolder",
-            "ui_flags": UIFlags.REQUIRES_RELOAD
+            "flags": Flags.REQUIRES_RELOAD
         }
     }
 }
