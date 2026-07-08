@@ -34,7 +34,7 @@ class GenericConverter(Converter):
             try:
                 idx = target.index(value)
             except ValueError:
-                self._logger.warning(
+                self._logger.debug(
                     f"Failed to convert value '{value}'. No mapping provided for value"
                 )
                 return value  # No mapping provided for value
@@ -46,4 +46,8 @@ class GenericConverter(Converter):
             src, tgt = self.config_values, self.gui_values
         else:
             src, tgt = self.gui_values, self.config_values
-        return self._convert_value(value, src, tgt)
+
+        if isinstance(value, list):
+            return [self._convert_value(item, src, tgt) for item in value]
+        else:
+            return self._convert_value(value, src, tgt)
