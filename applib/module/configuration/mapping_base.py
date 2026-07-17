@@ -2,6 +2,8 @@ from collections import deque
 from collections.abc import Generator
 from typing import Any
 
+from applib.module.configuration.tools.template_utils.options import Option
+
 from .tools.search import SEARCH_SEP, SearchMode
 from .tools.search.nested_dict_search import NestedDictSearch
 from .tools.search.search_index import SearchIndex
@@ -75,12 +77,12 @@ class MappingBase:
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
 
-    def options(self) -> Generator[tuple[str, Any, str], Any]:
+    def options(self) -> Generator[tuple[str, Option, str], Any]:
         """Returns the Options of the mapping.
 
         Yields
         ------
-        tuple[str, Any, str]
+        tuple[str, Option, str]
             A key, its associated value, and its path in the mapping.
         """
         path = []
@@ -96,7 +98,8 @@ class MappingBase:
                         stack.append(v)
                         break
                     visited.add(str_path)
-                    yield k, v, f"{SEARCH_SEP}".join(path)
+                    if isinstance(v, Option):
+                        yield k, v, f"{SEARCH_SEP}".join(path)
             else:
                 visited.add(f"{SEARCH_SEP}".join(path))
                 stack.pop()
