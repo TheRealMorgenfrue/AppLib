@@ -119,7 +119,7 @@ class TemplateParser:
         for i, value in enumerate(option.ui_group_parent):
             if value.name not in UIGroups._member_names_:
                 self._logger.error(
-                    f"{self._prefix_msg()} Group parent setting '{setting}' has invalid value '{value}'. "
+                    f"{self._prefix_msg()} Invalid value '{value}' for group parent setting '{setting}'. "
                     + f"Expected one of '{', '.join(UIGroups._member_names_)}'. "
                     + "Removing value"
                 )
@@ -157,7 +157,7 @@ class TemplateParser:
             for i, flag in enumerate(deepcopy(option.flags)):
                 if flag.name not in Flags._member_names_:
                     self._logger.error(
-                        f"{self._prefix_msg()} Setting '{setting}' has invalid flag '{flag}'. "
+                        f"{self._prefix_msg()} Invalid flag '{flag}' for setting '{setting}'. "
                         + f"Expected one of '{', '.join(Flags._member_names_)}'. "
                         + "Removing value"
                     )
@@ -179,7 +179,7 @@ class TemplateParser:
                     self.actions.add_action(setting, action, path, template_name)
                 else:
                     self._logger.error(
-                        f"{self._prefix_msg()} Setting '{setting}' has invalid action '{action}'. "
+                        f"{self._prefix_msg()} Invalid action '{action}' for setting '{setting}'. "
                         + "An action must be callable. Removing value"
                     )
                     option.actions.pop(i)
@@ -287,7 +287,7 @@ class TemplateParser:
         """
         if not option.defined(option.ui_info):
             self._logger.warning(
-                f"Setting '{setting}' is missing a title. You can specify one using \"ui_info\" in the template '{template_name}'"
+                f"{self._prefix_msg()} Missing title for setting '{setting}'. You can specify one using \"ui_info\" in the template"
             )
             option.ui_info = GUIMessage("")
 
