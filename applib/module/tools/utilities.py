@@ -107,8 +107,13 @@ def format_validation_error(
     for error in errors:
         if verbose:
             section = error.get("loc")[0]
-            setting = error.get("loc")[1]
-            msg += f"{section}.{setting}\n"
+
+            try:
+                setting = error.get("loc")[1]
+                msg += f"{section}.{setting}\n"
+            except IndexError:
+                # Config is root-level
+                msg += f"{section}\n"
 
             error_type = f"type={error.get('type')}"
             input_value = f"input_value={error.get('input')}" if include_input else ""
