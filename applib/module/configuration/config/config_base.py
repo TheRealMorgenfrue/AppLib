@@ -219,7 +219,7 @@ class ConfigBase(MappingBase):
                 err_msg += f"  {item}\n"
             self._logger.warning(err_msg)
             if write_config:
-                self._logger.info(f"{self._prefix_msg()} Repairing config")
+                self._logger.debug(f"{self._prefix_msg()} Repairing config")
                 if self.validation_model is None:
                     self._logger.warning(
                         f"{self._prefix_msg()} Cannot repair config. The config's validation model has invalid type '{type(self.validation_model)}'"
@@ -253,7 +253,7 @@ class ConfigBase(MappingBase):
                 self._write_config()
         except FileNotFoundError:
             is_error, is_recoverable = True, True
-            self._logger.info(f"{self._prefix_msg()} Creating '{input_name}'")
+            self._logger.debug(f"{self._prefix_msg()} Creating '{input_name}'")
             if write_config:
                 self._write_config()
         except Exception:
@@ -266,7 +266,7 @@ class ConfigBase(MappingBase):
             if is_error:
                 if retries > 0 and is_recoverable:
                     reload_msg = f"{self._prefix_msg()} Reloading '{input_name}'"
-                    self._logger.info(reload_msg)
+                    self._logger.debug(reload_msg)
                     config, failure = self._load(
                         data=data,
                         load_options=load_options,
@@ -284,7 +284,7 @@ class ConfigBase(MappingBase):
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.info(f"{self._prefix_msg()} '{input_name}' loaded!")
+                self._logger.debug(f"{self._prefix_msg()} Loaded '{input_name}'")
         return config, failure
 
     def _load_file(self, file_path: str):
