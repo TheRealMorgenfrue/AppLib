@@ -4,7 +4,7 @@ import traceback
 from collections import deque
 from pathlib import Path
 
-import tomlkit
+import toml
 
 from ...logging.logging_manager import LoggingManager
 from ...tools.types.general import StrPath
@@ -53,7 +53,6 @@ class ConfigUtils:
             )
             raise
 
-    # TODO: Make recursive
     @classmethod
     def _generateTOMLconfig(cls, config: dict, dstPath: StrPath) -> None:
         """Convert a Python config object to the '.toml'-format and write it to a '.toml' file.
@@ -68,16 +67,9 @@ class ConfigUtils:
             Note: the file does not have to exist.
         """
         fileName = os.path.split(dstPath)[1]
-        doc = tomlkit.document()
-        for section, keys in config.items():
-            table = tomlkit.table()
-            for key in keys:
-                table.append(key, keys[key])
-            doc.append(section, table)
-
         with open(dstPath, "w", encoding="utf-8") as file:
             LoggingManager().debug(f"Writing '{fileName}' to '{dstPath}'")
-            tomlkit.dump(doc, file)
+            toml.dump(config, file)
 
     @classmethod
     def _generateINIconfig(cls, config: dict, dstPath: StrPath) -> None:

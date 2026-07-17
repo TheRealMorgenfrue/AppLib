@@ -13,11 +13,11 @@
         "PyQt6-Fluent-Widgets==1.7.4",
         "PyQt6==6.8.1",
         "qasync>=0.28.0",
-        "tomlkit",
         "pydantic==2.9.2",
         "pydantic-settings==2.13",
         "colorama",
-    ]
+        "toml>=0.10.2",
+]
     description="An Application Component Library (short AppLib) which makes it easy to create fancy GUIs"
     dynamic=["version"]
     keywords=["fluent-design", "PyQt6"]

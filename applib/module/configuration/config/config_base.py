@@ -8,8 +8,7 @@ from pathlib import Path
 from time import time
 from typing import Any, override
 
-import tomlkit
-import tomlkit.exceptions
+import toml
 from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
@@ -242,12 +241,20 @@ class ConfigBase(MappingBase):
             if write_config:
                 self.backup_config()
                 self._write_config()
-        # TODO: Add separate except with JSONDecodeError
-        except (tomlkit.exceptions.ParseError, IniParseError) as err:
+        except (toml.TomlDecodeError, IniParseError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
                 f"{self._prefix_msg()} Failed to parse '{input_name}':\n  {err.args[0]}\n"
             )
+            if write_config:
+                self.backup_config()
+                self._write_config()
+        except json.JSONDecodeError as err:
+            is_error, is_recoverable = True, True
+            self._logger.warning(
+                f"{self._prefix_msg()} Failed to parse '{input_name}':\n  {err}\n"
+            )
+
             if write_config:
                 self.backup_config()
                 self._write_config()
@@ -290,9 +297,9 @@ class ConfigBase(MappingBase):
     def _load_file(self, file_path: str):
         input_name = os.path.split(file_path)[1]
         extension = os.path.splitext(input_name)[1].strip(".")
-        with open(file_path, "rb") as file:
+        with open(file_path) as file:
             if extension.lower() == "toml":
-                return tomlkit.load(file)
+                return toml.load(file)
             elif extension.lower() == "ini":
                 return IniFileParser.load(file)
             elif extension.lower() == "json":
