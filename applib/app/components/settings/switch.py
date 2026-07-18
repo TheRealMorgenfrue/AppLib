@@ -12,7 +12,7 @@ from .base_setting import BaseSetting
 from .bool_setting import BoolSettingMixin
 
 
-class CoreSwitch(BaseSetting, BoolSettingMixin):
+class CoreSwitch(BoolSettingMixin, BaseSetting):
     def __init__(
         self,
         config: AnyConfig,
