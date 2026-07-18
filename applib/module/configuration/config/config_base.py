@@ -291,7 +291,7 @@ class ConfigBase(MappingBase):
                     else:
                         self._logger.error(load_failure_msg)
             else:
-                self._logger.debug(f"{self._prefix_msg()} Loaded '{input_name}'")
+                self._logger.info(f"{self._prefix_msg()} Loaded '{input_name}'")
         return config, failure
 
     def _load_file(self, file_path: str):
