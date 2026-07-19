@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from typing import Any
 
 from ...configuration.tools.search.nested_dict_search import NestedDictSearch
 from ...tools.types.general import iconDict
@@ -83,4 +84,4 @@ class BaseTemplate(MappingBase):
         return f"Template '{self.name}':"
 
     @abstractmethod
-    def _create_template(self) -> dict: ...
+    def _create_template(self) -> dict[str, Any]: ...

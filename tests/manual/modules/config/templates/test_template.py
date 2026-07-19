@@ -1,4 +1,4 @@
-from typing import Self, override
+from typing import Any, Self, override
 
 from modules.config.test_args import TestArgs
 
@@ -59,7 +59,7 @@ class TestTemplate(BaseTemplate):
             self._created = True
 
     @override
-    def _create_template(self) -> dict:
+    def _create_template(self) -> dict[str, Any]:
         return {
             "General": {
                 "loglevel": ComboBoxOption(
