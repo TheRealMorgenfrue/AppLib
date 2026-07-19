@@ -57,9 +57,9 @@ Option(
 )
 ```
 
-???+ tip
+??? tip "Multiple validators"
 
-    Multiple validators works too!
+    Having multiple validators works too!
     ```py
     Option(
         validators=[validate_path, validate_ip_address],
@@ -74,7 +74,7 @@ check_missing_fields
 
 The fourth validation stage ensures all values of a [Template](applib.BaseTemplate) are compatible with each other.
 
-For instance, imagine you have two [Option](applib.Option)s, `segment` and `bit_depth`.
+For instance, imagine you have two [Options](applib.Option), `segment` and `bit_depth`.
 The `bit_depth` can be 8 bit or 16 bit, but `segment` does not support 16 bit encoding.
 This relationship is captured as follows:
 
@@ -105,7 +105,7 @@ from ..runners.compatibility.encoding_compatibility import compatible_bit_depth
 )
 ```
 
-???+ tip
+??? tip "Combining validators"
 
     You can mix and match any type of validator:
 
@@ -123,7 +123,7 @@ from ..runners.compatibility.encoding_compatibility import compatible_bit_depth
     ```
 
 The function `compatible_bit_depth` is one you need to define. It takes as many arguments as there are dependencies in the relationship.
-The first argument is the one the function is attached to (in this example `segment`). The function must raise a ValueError if the [Option](applib.Option)s
+The first argument is the one the function is attached to (in this example `segment`). The function must raise a ValueError if the [Options](applib.Option)
 checked are incompatible.
 
 Here's an example of how `compatible_bit_depth` can look like:
