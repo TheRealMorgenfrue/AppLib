@@ -228,6 +228,9 @@ class ConfigBase(MappingBase):
                         repaired_config = self._repair_config(
                             raw_config, self.validation_model.model_dump()
                         )
+                        if not isinstance(data, (str, Path)):
+                            # Handle in-memory repairs
+                            data = repaired_config
                         self.backup_config()
                         self._write_config(repaired_config)
                     except Exception:
