@@ -1,4 +1,3 @@
-from collections import deque
 from collections.abc import Generator
 from typing import Any
 
@@ -14,13 +13,26 @@ class MappingBase:
         self.rebuild_mapping(d)
 
     def __iter__(self):
-        # Breadth-first search
-        queue = deque([self._dict])
-        while queue:
-            for k, v in queue.popleft().items():
-                if isinstance(v, dict):
-                    queue.append(v)
-                yield k, v
+        # Depth-first search
+        path = []
+        stack = [self._dict]
+        visited = set()
+        while stack:
+            _dict = stack[-1]
+            for k, v in _dict.items():
+                str_path = f"{f'{SEARCH_SEP}'.join([*path, k])}"
+                if str_path not in visited:
+                    if isinstance(v, dict):
+                        path.append(k)
+                        stack.append(v)
+                        break
+                    visited.add(str_path)
+                    yield k, v, f"{SEARCH_SEP}".join(path)
+            else:
+                visited.add(f"{SEARCH_SEP}".join(path))
+                stack.pop()
+                if path:
+                    path.pop()
 
     def __str__(self) -> str:
         return f"{self._dict}"
@@ -31,7 +43,7 @@ class MappingBase:
             return NotImplemented
         d = {}
         for instance in [self, other]:
-            for k, v, path in instance.options():
+            for k, v, path in instance:
                 NestedDictSearch.insert(d, k, v, path, create_missing=True)
         return MappingBase(d)
 
@@ -41,7 +53,7 @@ class MappingBase:
             return NotImplemented
         d = {}
         for instance in [other, self]:
-            for k, v, path in instance.options():
+            for k, v, path in instance:
                 NestedDictSearch.insert(d, k, v, path, create_missing=True)
         return MappingBase(d)
 
@@ -49,7 +61,7 @@ class MappingBase:
         """self |= other"""
         if not isinstance(other, (MappingBase)):
             return NotImplemented
-        for k, v, path in other.options():
+        for k, v, path in other:
             NestedDictSearch.insert(self._dict, k, v, path, create_missing=True)
         return self
 
@@ -83,28 +95,11 @@ class MappingBase:
         Yields
         ------
         tuple[str, Option, str]
-            A key, its associated value, and its path in the mapping.
+            A key, its associated Option, and its path in the mapping.
         """
-        path = []
-        stack = [self._dict]
-        visited = set()
-        while stack:
-            _dict = stack[-1]
-            for k, v in _dict.items():
-                str_path = f"{f'{SEARCH_SEP}'.join([*path, k])}"
-                if str_path not in visited:
-                    if isinstance(v, dict):
-                        path.append(k)
-                        stack.append(v)
-                        break
-                    visited.add(str_path)
-                    if isinstance(v, Option):
-                        yield k, v, f"{SEARCH_SEP}".join(path)
-            else:
-                visited.add(f"{SEARCH_SEP}".join(path))
-                stack.pop()
-                if path:
-                    path.pop()
+        for k, v, path in self:
+            if isinstance(v, Option):
+                yield k, v, path
 
     def get_raw(self) -> dict:
         """Get raw access to the underlying dict"""
