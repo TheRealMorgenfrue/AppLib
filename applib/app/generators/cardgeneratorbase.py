@@ -6,7 +6,6 @@ from PyQt6.QtWidgets import QWidget
 from applib.app.components.settings.checklist import CoreCheckList
 from applib.module.configuration.tools.search import SEARCH_SEP
 
-from ...app.common.auto_wrap import AutoTextWrap
 from ...module.configuration.internal.core_args import CoreArgs
 from ...module.configuration.tools.template_parser import TemplateParser
 from ...module.configuration.tools.template_utils.groups import Group
@@ -19,6 +18,7 @@ from ...module.tools.types.gui_cardgroups import AnyCardGroup
 from ...module.tools.types.gui_cards import AnyCard
 from ...module.tools.types.gui_settings import AnySetting
 from ...module.tools.types.templates import AnyTemplate
+from ..common.auto_wrap import AutoTextWrap
 from ..components.settings.checkbox import CoreCheckBox
 from ..components.settings.color_picker import CoreColorPicker
 from ..components.settings.combobox import CoreComboBox
@@ -30,7 +30,7 @@ from ..components.settings.switch import CoreSwitch
 from .generator_tools import GeneratorUtils
 
 
-class GeneratorBase:
+class CardGeneratorBase:
     def __init__(
         self,
         config: AnyConfig,

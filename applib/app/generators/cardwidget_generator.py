@@ -17,7 +17,7 @@ from ..components.settingcards.widgets.parent_settingwidgets import (
     NestedSettingWidget,
 )
 from ..components.settingcards.widgets.settingwidget import SettingWidget
-from .generatorbase import GeneratorBase
+from .cardgeneratorbase import CardGeneratorBase
 
 """
 Explanation of terms:
@@ -31,7 +31,7 @@ Explanation of terms:
 """
 
 
-class CardWidgetGenerator(GeneratorBase):
+class CardWidgetGenerator(CardGeneratorBase):
     def __init__(
         self,
         config: AnyConfig,

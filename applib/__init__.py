@@ -78,9 +78,9 @@ from .app.components.settings import (
 )
 from .app.core_app import CoreApp
 from .app.generators.card_generator import CardGenerator
+from .app.generators.cardgeneratorbase import CardGeneratorBase
 from .app.generators.cardwidget_generator import CardWidgetGenerator
 from .app.generators.generator_tools import GeneratorUtils
-from .app.generators.generatorbase import GeneratorBase
 from .app.interfaces.home_interface import CoreHomeInterface
 from .app.interfaces.main_window import CoreMainWindow
 from .app.interfaces.process.process_interface import CoreProcessInterface
@@ -227,7 +227,7 @@ __all__ = [
     "FluentLabel",
     "FluentSettingCard",
     "FormSettingCard",
-    "GeneratorBase",
+    "CardGeneratorBase",
     "GeneratorUtils",
     "GenericConverter",
     "GenericSettingCard",

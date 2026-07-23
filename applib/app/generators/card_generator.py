@@ -20,7 +20,7 @@ from ..components.settingcards.cards.scroll_settingcardgroup import (
     ScrollSettingCardGroup,
 )
 from ..components.settingcards.cards.settingcard import FluentSettingCard
-from .generatorbase import GeneratorBase
+from .cardgeneratorbase import CardGeneratorBase
 
 """
 Explanation of terms:
@@ -34,7 +34,7 @@ Explanation of terms:
 """
 
 
-class CardGenerator(GeneratorBase):
+class CardGenerator(CardGeneratorBase):
     def __init__(
         self,
         config: AnyConfig,
