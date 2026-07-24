@@ -98,7 +98,7 @@ To build the documentation locally, run: `uv run mkdocs serve`.
     - Searchable settings page.
     - (more to come)
 
-- Investigate usability of including high-performance datastructures for common tasks, e.g., a trie. Preferably in C++ or Rust.
+- Investigate feasability of including high-performance datastructures for common tasks, e.g., a trie. Preferably in C++ or Rust.
 
 - Investigate feasability of using [codon](https://github.com/exaloop/codon) to compile AppLib to machine code.
     - If it proves infeasible, checkout [nuitka](https://nuitka.net/) instead.
