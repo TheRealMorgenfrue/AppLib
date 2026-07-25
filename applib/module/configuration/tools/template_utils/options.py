@@ -46,7 +46,7 @@ class CompatilityValidator:
 class Option:
     def __init__(
         self,
-        default: Any,
+        default: Any = AppLibUndefined,
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         flags: Flags | list[Flags] = AppLibUndefined,
@@ -74,7 +74,7 @@ class Option:
 
         Parameters
         ----------
-        default : Any
+        default : Any, optional
             The default value for this setting.
             ##### Applicable settings: All
         actions : Callable | list[Callable], optional
