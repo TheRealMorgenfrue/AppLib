@@ -27,8 +27,9 @@ def iter_to_str(arg: Iterable, separator: str = "") -> str:
         return f"{arg}"
 
     string = ""
+    arg_len = len(list(arg))
     for i, item in enumerate(arg):
-        if i == len(arg) - 1:
+        if i == arg_len - 1:
             string += f"{item}"
         else:
             string += f"{item}" + separator
@@ -106,14 +107,15 @@ def format_validation_error(
     )
     for error in errors:
         if verbose:
-            section = error.get("loc")[0]
-
-            try:
-                setting = error.get("loc")[1]
-                msg += f"{section}.{setting}\n"
-            except IndexError:
-                # Config is root-level
-                msg += f"{section}\n"
+            setting = f"{error.get('loc')[0]}"
+            i = 1
+            while True:
+                try:
+                    setting += f".{error.get('loc')[i]}"
+                except IndexError:
+                    msg += f"{setting}\n"
+                    break
+                i += 1
 
             error_type = f"type={error.get('type')}"
             input_value = f"input_value={error.get('input')}" if include_input else ""

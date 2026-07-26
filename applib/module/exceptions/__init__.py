@@ -72,9 +72,15 @@ class CoreValidationError(ValueError):
         error_count = self.error_count()
         msg = f"{error_count} validation error{'s' if error_count > 1 else ''} for {self.title!r}\n"
         for error in self._errors:
-            section = error.get("loc")[0]
-            setting = error.get("loc")[1]
-            msg += f"{section}.{setting}\n"
+            setting = f"{error.get('loc')[0]}"
+            i = 1
+            while True:
+                try:
+                    setting += f".{error.get('loc')[i]}"
+                except IndexError:
+                    msg += f"{setting}\n"
+                    break
+                i += 1
 
             error_type = f"type={error.get('type')}"
             input_value = f"input_value={error.get('input')}"
