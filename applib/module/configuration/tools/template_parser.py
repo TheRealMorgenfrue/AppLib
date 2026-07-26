@@ -241,7 +241,13 @@ class TemplateParser:
                 else:
                     field_validation_info.add_field_validator(setting, path, validator)
         field_type = self._get_field_type(setting, option)
-        field_default = option.default if option.defined(option.default) else None
+        field_default = (
+            option.default
+            if option.defined(option.default)
+            else self._logger.warning(
+                f"{self._prefix_msg()} Missing default value for setting '{setting}'"
+            )
+        )
 
         # The minimum value should be the smallest value available for a given setting
         min_values = []
@@ -258,9 +264,7 @@ class TemplateParser:
         field_max = option.max if option.defined(option.max) else None
         field = (
             field_type,
-            Field(ge=field_min, le=field_max)
-            if field_default is None
-            else Field(default=field_default, ge=field_min, le=field_max),
+            Field(default=field_default, ge=field_min, le=field_max),
         )
         field_validation_info.add_field(setting, field, path)
 
