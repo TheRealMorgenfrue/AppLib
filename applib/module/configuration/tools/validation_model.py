@@ -72,6 +72,14 @@ class CoreValidationModel(BaseModel):
             for key, value in search_dict.items():
                 # The model is still nested (mapping key/value pairs, i.e., sections)
                 if isinstance(value, Mapping):
+                    if (
+                        key in model
+                        and isinstance(model[key], Mapping)
+                        and len(model[key]) == 0
+                    ):
+                        # A user-populated mapping whose contents are not defined in the model.
+                        continue
+
                     if key in validation_dict:  # section exists
                         parents.append(key)
                         next_search = (
