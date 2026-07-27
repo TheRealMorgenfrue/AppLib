@@ -8,7 +8,11 @@ from ...exceptions import OrphanGroupWarning
 from ...logging.logging_manager import LoggingManager
 from ...tools.types.templates import AnyTemplate
 from ..runners.actions.action_manager import Actions
-from ..tools.template_utils.options import CompatilityValidator, GUIMessage, Option
+from ..tools.template_utils.options import (
+    CompatilityValidator,
+    GUIMessage,
+    Option,
+)
 from .template_utils.groups import Group
 from .template_utils.template_enums import Flags, UIGroups
 from .template_utils.validation_info import FieldValidationInfo, ModelValidationInfo
@@ -272,7 +276,7 @@ class TemplateParser:
         self,
         setting: str,
         option: Option,
-        template_name: str,
+        template,
     ):
         """Validates a template setting and corrects any errors.
 
@@ -282,13 +286,18 @@ class TemplateParser:
             The name of the `option` in the template.
         option : Option
             The object describing this setting.
-        template_name : str
-            The name of the template this setting is defined in.
+        template : BaseTemplate
+            The template this setting is defined in.
         """
         if not option.defined(option.ui_info):
-            self._logger.warning(
-                f"{self._prefix_msg()} Missing title for setting '{setting}'. You can specify one using \"ui_info\" in the template"
-            )
+            if hasattr(
+                template, "__applib_template_config__"
+            ) and not template.__applib_template_config__.get(
+                "disable_warnings", False
+            ):
+                self._logger.warning(
+                    f"{self._prefix_msg()} Missing title for setting '{setting}'. You can specify one using \"ui_info\" in the template"
+                )
             option.ui_info = GUIMessage("")
 
     def parse(self, template: AnyTemplate, force: bool = False):

@@ -1,12 +1,18 @@
 from abc import abstractmethod
 from typing import Any
 
+from applib.module.configuration.tools.template_utils.template_config import (
+    TemplateConfig,
+)
+
 from ...configuration.tools.search.nested_dict_search import NestedDictSearch
 from ...tools.types.general import iconDict
 from ..mapping_base import MappingBase
 
 
 class BaseTemplate(MappingBase):
+    __applib_template_config__ = TemplateConfig({"disable_warnings": "gui"})
+
     def __init__(
         self,
         name: str,

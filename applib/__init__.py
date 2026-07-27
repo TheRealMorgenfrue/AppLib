@@ -131,6 +131,7 @@ from .module.configuration.tools.template_utils.options import (
     Option,
     TextEditOption,
 )
+from .module.configuration.tools.template_utils.template_config import TemplateConfig
 from .module.configuration.tools.template_utils.template_enums import (
     Flags,
     UIGroups,
@@ -269,6 +270,7 @@ __all__ = [
     "SettingWidget",
     "SEARCH_SEP",
     "StrPath",
+    "TemplateConfig",
     "TemplateParser",
     "TextEditOption",
     "TextMessageBox",
