@@ -1,4 +1,4 @@
-from collections.abc import Generator
+from collections.abc import Generator, Mapping
 from typing import Any
 
 from applib.module.configuration.tools.template_utils.options import Option
@@ -9,8 +9,8 @@ from .tools.search.search_index import SearchIndex
 
 
 class MappingBase:
-    def __init__(self, d: dict):
-        self.rebuild_mapping(d)
+    def __init__(self, m: Mapping):
+        self.rebuild_mapping(m)
 
     def __iter__(self):
         # Depth-first search
@@ -84,8 +84,9 @@ class MappingBase:
     def __delitem__(self, key: str):
         self.remove_value(key)
 
-    def rebuild_mapping(self, d: dict):
-        """Replaces the key/value pairs of this mapping with `d`"""
+    def rebuild_mapping(self, m: Mapping):
+        """Replaces the key/value pairs of this mapping with `m`"""
+        d = m if isinstance(m, dict) else dict(m)
         self._idx = SearchIndex(d)
         self._dict: dict[str, Any] = d
 
