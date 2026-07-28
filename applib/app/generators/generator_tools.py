@@ -1,5 +1,6 @@
 import traceback
 from collections.abc import Callable, Iterable
+from typing import get_args
 
 from PyQt6.QtCore import pyqtBoundSignal
 
@@ -234,6 +235,17 @@ class GeneratorUtils:
             and option.defined(option.min)
         ):
             card_type = UITypes.SPINBOX
+        elif option.default is None and option.defined(option.type):
+            # TODO: Refactor to remove duplicate code
+            types = get_args(option.type)
+            if bool in types:
+                card_type = UITypes.SWITCH
+            elif float in types:
+                card_type = UITypes.SPINBOX
+            elif int in types:
+                card_type = UITypes.SLIDER
+            elif str in types:
+                card_type = UITypes.LINE_EDIT  # FIXME: Temporary
         elif isinstance(option.default, bool):
             card_type = UITypes.SWITCH
         elif isinstance(option.default, int):
@@ -242,7 +254,8 @@ class GeneratorUtils:
             card_type = UITypes.SPINBOX
         elif isinstance(option.default, str):
             card_type = UITypes.LINE_EDIT  # FIXME: Temporary
-        else:
+
+        if card_type is None:
             LoggingManager().warning(
                 AutoTextWrap.text_format(
                     f"""
