@@ -8,7 +8,7 @@ from pathlib import Path
 from time import time
 from typing import Any, override
 
-import toml
+import rtoml
 from pydantic import ValidationError
 
 from ....app.common.core_signalbus import core_signalbus
@@ -189,7 +189,6 @@ class ConfigBase(MappingBase):
                     f"{self._prefix_msg()} Cannot load unsupported input '{input_name}'"
                 )
                 raise NotImplementedError(not_implemented_msg)
-
             config = (
                 raw_config
                 if self.validation_model is None
@@ -244,7 +243,7 @@ class ConfigBase(MappingBase):
             if write_config:
                 self.backup_config()
                 self._write_config()
-        except (toml.TomlDecodeError, IniParseError) as err:
+        except (rtoml.TomlParsingError, IniParseError) as err:
             is_error, is_recoverable = True, True
             self._logger.warning(
                 f"{self._prefix_msg()} Failed to parse '{input_name}':\n  {err.args[0]}\n"
@@ -302,7 +301,7 @@ class ConfigBase(MappingBase):
         extension = os.path.splitext(input_name)[1].strip(".")
         with open(file_path) as file:
             if extension.lower() == "toml":
-                return toml.load(file)
+                return rtoml.load(file, none_value="None")
             elif extension.lower() == "ini":
                 return IniFileParser.load(file)
             elif extension.lower() == "json":

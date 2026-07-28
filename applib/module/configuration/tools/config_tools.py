@@ -4,7 +4,7 @@ import traceback
 from collections import deque
 from pathlib import Path
 
-import toml
+import rtoml
 
 from ...logging.logging_manager import LoggingManager
 from ...tools.types.general import StrPath
@@ -69,7 +69,7 @@ class ConfigUtils:
         fileName = os.path.split(dstPath)[1]
         with open(dstPath, "w", encoding="utf-8") as file:
             LoggingManager().debug(f"Writing '{fileName}' to '{dstPath}'")
-            toml.dump(config, file)
+            rtoml.dump(config, file, pretty=True, none_value="None")
 
     @classmethod
     def _generateINIconfig(cls, config: dict, dstPath: StrPath) -> None:

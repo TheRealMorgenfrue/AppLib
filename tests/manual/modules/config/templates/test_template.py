@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Self, override
 
 from modules.config.test_args import TestArgs
@@ -217,6 +218,14 @@ class TestTemplate(BaseTemplate):
                     ui_info=GUIMessage(
                         "Location of the main configuration file",
                         "Either the path to the config or its containing directory",
+                    ),
+                ),
+                "user_script": Option(
+                    default=None,
+                    type=Path | str,
+                    ui_info=GUIMessage(
+                        "Path to user script",
+                        "The values for other parameters which were assigned function or object names will be imported from this script.",
                     ),
                 ),
             },

@@ -16,7 +16,7 @@
         "pydantic==2.9.2",
         "pydantic-settings==2.13",
         "colorama",
-        "toml>=0.10.2",
+        "rtoml>=0.13.0",
 ]
     description="An Application Component Library (short AppLib) which makes it easy to create fancy GUIs"
     dynamic=["version"]
