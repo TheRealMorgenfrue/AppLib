@@ -57,6 +57,7 @@ class Option:
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any | Callable[..., bool] = AppLibUndefined,
         ui_file_filter: str | None = AppLibUndefined,
+        ui_directory: str = AppLibUndefined,
         ui_group: Hashable | list[Hashable] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -125,12 +126,16 @@ class Option:
         ui_file_filter : str, optional
             Only files matching this filter are shown.
             If None, all files are shown.
-            If you want multiple filters, seperate them with ;;
+            If you want multiple filters, separate them with ;;
 
             For instance:
             ```
             "Images (*.png *.xpm *.jpg);;Text files (*.txt);;XML files (*.xml)"
             ```
+            ##### Applicable settings: File Selectors
+        ui_directory : str, optional
+            Open file dialog in this directory.
+
             ##### Applicable settings: File Selectors
         ui_group : Hashable | list[Hashable], optional
             Designate a group ID (GID) which all options with this GID belongs to.
@@ -187,6 +192,7 @@ class Option:
         self.ui_disable_children = ui_disable_children
         self.ui_disable_self = ui_disable_self
         self.ui_file_filter = ui_file_filter
+        self.ui_directory = ui_directory
         self.flags = flags
         self.ui_group = ui_group
         self.ui_group_parent = ui_group_parent
@@ -229,6 +235,7 @@ class FileSelectorOption(Option):
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
         ui_file_filter: str | None = None,
+        ui_directory: str = AppLibUndefined,
         ui_group: Any | list[Any] = AppLibUndefined,
         ui_group_parent: UIGroups | list[UIGroups] = AppLibUndefined,
         ui_info: GUIMessage = AppLibUndefined,
@@ -246,6 +253,7 @@ class FileSelectorOption(Option):
             ui_disable_children=ui_disable_children,
             ui_disable_self=ui_disable_self,
             ui_file_filter=ui_file_filter,
+            ui_directory=ui_directory,
             flags=flags,
             ui_group=ui_group,
             ui_group_parent=ui_group_parent,

@@ -191,7 +191,9 @@ class CardGeneratorBase:
                 config_key=key,
                 option=option,
                 caption=option.ui_info.title,
-                directory=f"{CoreArgs._core_app_dir}",  # Starting directory
+                directory=option.ui_directory
+                if option.defined(option.ui_directory)
+                else f"{CoreArgs._core_app_dir}",  # Starting directory
                 show_dir_only=option.ui_show_dir_only,
                 filter=option.ui_file_filter,
                 selected_filter=option.ui_file_filter,
