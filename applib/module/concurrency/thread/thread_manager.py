@@ -256,18 +256,16 @@ class ThreadManager(QObject):
             Is True if `id` is not present in the thread pool and False otherwise.
             Is None if `id` is not in use.
         """
-        if (
-            not (
-                self._state == ThreadManager.State.Terminated
-                or self._state == ThreadManager.State.Killed
-            )
-            and self._current_progress < self._total_progress
+        if not (
+            self._state == ThreadManager.State.Terminated
+            or self._state == ThreadManager.State.Killed
         ):
             self._current_progress += 1  # TODO: CurrentProgress does not account for a process terminated manually (using its 'Terminate' button)
             self.current_progress.emit(self._current_progress)
 
-            if id not in self._deallocated_threads:
-                return self._create_thread(id)
+            if self._current_progress < self._total_progress:
+                if id not in self._deallocated_threads:
+                    return self._create_thread(id)
 
         self._remove_thread(id)
 
