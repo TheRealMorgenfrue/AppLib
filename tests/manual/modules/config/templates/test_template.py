@@ -177,6 +177,18 @@ class TestTemplate(BaseTemplate):
                         "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                     ),
                 ),
+                "precision": ComboBoxOption(
+                    default="bfloat16",
+                    values={  # Key is display value, value is config value
+                        "F32": "float32",
+                        "F16": "float16",
+                        "BF16": "bfloat16",
+                    },
+                    ui_info=GUIMessage(
+                        "Precision of inference",
+                        "Lower precision is significantly faster than higher precision, while potentially reducing quality.",
+                    ),
+                ),
             },
             "Settings": {
                 "downloadListDirectory": TextEditOption(
