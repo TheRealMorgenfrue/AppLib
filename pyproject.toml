@@ -8,16 +8,17 @@
         "Development Status :: 4 - Beta",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
     ]
     dependencies=[
         "PyQt6-Fluent-Widgets==1.7.4",
         "PyQt6==6.8.1",
         "qasync>=0.28.0",
-        "pydantic==2.9.2",
-        "pydantic-settings==2.13",
+        "pydantic>=2.0",
+        "pydantic-settings>=2.13",
         "colorama",
         "rtoml>=0.13.0",
-]
+    ]
     description="An Application Component Library (short AppLib) which makes it easy to create fancy GUIs"
     dynamic=["version"]
     keywords=["fluent-design", "PyQt6"]
