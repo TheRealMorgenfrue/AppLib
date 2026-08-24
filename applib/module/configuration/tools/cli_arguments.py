@@ -1,6 +1,6 @@
 import shlex
 from argparse import ArgumentParser, Namespace, RawTextHelpFormatter, _ArgumentGroup
-from typing import overload
+from collections.abc import Sequence
 
 from applib.module.configuration.tools.template_utils.template_enums import Flags
 
@@ -30,23 +30,12 @@ class CLIArguments:
     def __init__(self):
         pass
 
-    @overload
     def create_argparser(
         self,
         from_value: AnyTemplate,
+        sync_with_config: AnyConfig | None = None,
         name: str | None = None,
         version: str = "UNKNOWN VERSION",
-    ) -> ArgumentParser: ...
-    @overload
-    def create_argparser(
-        self,
-        from_value: AnyConfig,
-        name: str | None = None,
-        version: str = "UNKNOWN VERSION",
-    ) -> ArgumentParser: ...
-
-    def create_argparser(
-        self, from_value, name: str | None = None, version: str = "UNKNOWN VERSION"
     ) -> ArgumentParser:
         """
         Create an argument parser from a template.
@@ -57,6 +46,8 @@ class CLIArguments:
         ----------
         from_value
             The value to create an argument parser from.
+        sync_with_config, optional
+            Ensure the CLI is consistent with this config.
         name
             The program name. If None, the name is automatically inferred. By default None.
 
@@ -70,11 +61,9 @@ class CLIArguments:
         """
         if isinstance(from_value, AnyTemplate):
             template = from_value
-        elif isinstance(from_value, AnyConfig):
-            template = from_value.template
         else:
             raise TypeError(
-                f"cannot create an argument parser from input '{from_value}'. Expected one of: {', '.join([f'{type(AnyTemplate).__name__}', f'{type(AnyConfig).__name__}'])}"
+                f"cannot create an argument parser from input '{from_value}'. Expected an instance of: {type(AnyTemplate).__name__}"
             )
 
         # TODO: Enable "suggest_on_error=True" in Python 3.14
@@ -107,10 +96,29 @@ class CLIArguments:
             else:
                 help = "(default: %(default)s)"
 
+            nargs = None
+            if not isinstance(option.default, str) and isinstance(
+                option.default, Sequence
+            ):
+                nargs = "+"
+
             # Add multiple choices
             choices = None
-            if option.defined(option.values):
-                choices = option.values
+            if nargs is None and option.defined(option.values):
+                if isinstance(option.values, dict):
+                    choices = list(option.values.values())
+                else:
+                    choices = option.values
+
+            # Add type
+            arg_type = None
+            if not (
+                isinstance(option.default, bool)
+                or (option.defined(option.type) and isinstance(option.type, bool))
+            ):
+                arg_type = (
+                    option.type if option.defined(option.type) else type(option.default)
+                )
 
             # Add formatting
             metavar = None
@@ -135,10 +143,15 @@ class CLIArguments:
             ):
                 action = "store_true"
 
+            # Add default value
+            try:
+                default_value = sync_with_config[k]
+            except (KeyError, AttributeError):
+                default_value = option.default
             # Assembly argument list
             arguments = {
                 "dest": k,
-                "default": option.default,
+                "default": default_value,
                 "metavar": metavar,
                 "help": help,
             }
@@ -147,6 +160,10 @@ class CLIArguments:
                 arguments.pop("metavar")
             if choices:
                 arguments["choices"] = choices
+            if arg_type:
+                arguments["type"] = arg_type
+            if nargs:
+                arguments["nargs"] = nargs
 
             # FIXME: This argument handler cannot handle duplicate keys across sections
             try:
@@ -179,12 +196,15 @@ class CLIArguments:
         """
         args = []
 
-        for k, v, path in from_config.options():
-            option: Option = from_config.template.get_value(
-                k, path, mode=SearchMode.STRICT
-            )
+        for k, v, path in from_config:
+            try:
+                option: Option = from_config.template.get_value(
+                    k, path, mode=SearchMode.STRICT
+                )
+            except KeyError:
+                continue
 
-            if option.disable_self:
+            if option.defined(option.ui_disable_self) and option.ui_disable_self == v:
                 continue
 
             # Must be a bool (not truthy) and must be True
