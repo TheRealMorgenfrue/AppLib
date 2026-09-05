@@ -58,7 +58,8 @@ class CoreCheckList(BaseSetting):
 
         try:
             self.selected_values: dict[Hashable, None] = dict.fromkeys(
-                self.current_value, None
+                self.current_value,
+                None,  # Filler value
             )
 
             for value in option.values:
@@ -80,14 +81,13 @@ class CoreCheckList(BaseSetting):
 
     def _updateState(self, state: bool, value: Hashable):
         if state:
-            v = self.selected_values[value] = None
+            self.selected_values[value] = None
         else:
-            v = self.selected_values.pop(value)
-
-        self.setConfigValue(v)
+            self.selected_values.pop(value)
+        self.setConfigValue(list(self.selected_values.keys()))
 
     @override
     def _setWidgetValue(self, value: list[Hashable]) -> None:
-        v_set = set(value)
+        v_set = {self._convert_value(v) for v in value}
         for k, v in self.settings.items():
             v.setChecked(k in v_set)
