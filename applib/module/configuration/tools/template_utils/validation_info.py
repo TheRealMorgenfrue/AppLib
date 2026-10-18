@@ -1,14 +1,32 @@
 from collections.abc import Callable
-from typing import Any
+from typing import Any, Literal
 
 from ..search.nested_dict_search import NestedDictSearch
 from ..template_utils.options import CompatilityValidator
 
 
 class FieldValidatorContainer:
-    def __init__(self, setting: str, validator: Callable) -> None:
+    def __init__(
+        self,
+        setting: str,
+        validator: Callable,
+        mode: Literal["before", "after", "plain"] = "after",
+    ) -> None:
+        """Stores validation information for a single field.
+
+        Parameters
+        ----------
+        setting : str
+            The name of the field/setting.
+        validator : Callable
+            The validator to apply to this field.
+        mode : Literal['before', 'after', 'plain']
+            Specify the order the field_validator is applied in relation to standard Pydantic validation.
+            By default 'after'.
+        """
         self.settings = [setting]
         self.validator = validator
+        self.mode = mode
 
     def add(self, setting: str):
         self.settings.append(setting)
@@ -40,6 +58,7 @@ class FieldValidationInfo:
         setting: str,
         path: str,
         validator: Callable,
+        mode: Literal["before", "after", "plain"] = "after",
     ):
         if path not in self.raw_validators:
             self.raw_validators[path] = {}
@@ -47,7 +66,7 @@ class FieldValidationInfo:
             self.raw_validators[path][f"{validator}"].add(setting)
         except KeyError:
             self.raw_validators[path][f"{validator}"] = FieldValidatorContainer(
-                setting, validator
+                setting, validator, mode
             )
 
 

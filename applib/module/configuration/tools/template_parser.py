@@ -238,12 +238,21 @@ class TemplateParser:
             if not isinstance(option.validators, list):
                 option.validators = [option.validators]
             for validator in option.validators:
+                mode = "after"
+                if isinstance(validator, tuple):
+                    mode = validator[0]
+                    validator = validator[1]
                 if isinstance(validator, CompatilityValidator):
                     if setting != validator.fields[0]:
                         validator.fields.insert(0, setting)
                     model_validation_info.add_model_validator(validator)
                 else:
-                    field_validation_info.add_field_validator(setting, path, validator)
+                    field_validation_info.add_field_validator(
+                        setting,
+                        path,
+                        validator,
+                        mode,  # type: ignore
+                    )
         field_type = self._get_field_type(setting, option)
         field_default = (
             option.default

@@ -23,7 +23,6 @@ class CoreValidationModelGenerator:
     def _create_field_validators(
         self,
         validation_info: FieldValidationInfo,
-        mode: Literal["before", "after", "plain"] = "after",
         check_fields: bool = True,
     ):
         """
@@ -33,9 +32,6 @@ class CoreValidationModelGenerator:
         ----------
         validation_info : ValidationInfo
             The object containing all the information necessary to create field validators.
-        mode : Literal['before', 'after', 'plain'], optional
-            Specify the order the field_validator is applied in relation to standard Pydantic validation.
-            By default 'after'.
         check_fields : bool, optional
             Whether to check that the fields actually exist on the model.
             By default True.
@@ -57,7 +53,7 @@ class CoreValidationModelGenerator:
                 fv = field_validator(
                     pre_validator.get_first_field(),
                     *pre_validator.get_other_fields(),
-                    mode=mode,
+                    mode=pre_validator.mode,  # type: ignore
                     check_fields=check_fields,
                 )(pre_validator.validator)
 
