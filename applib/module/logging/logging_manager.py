@@ -81,22 +81,30 @@ class LoggingManager:
             self.delete_logger(logger_nocolor.name)
 
     def _add_to_process_buffer(self, msg: Callable):
-        size = len(self._process_msg_buffer)
-        if size > self._cache_max_size:
-            self.warning(
-                f"Process message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
-            )
-            self._process_msg_buffer.popleft()
-        self._process_msg_buffer.append(msg)
+        cli_mode = os.environ.get("APPLIB_CLIMODE")
+        if cli_mode and cli_mode == "1":
+            self._process_msg_buffer.clear()
+        else:
+            size = len(self._process_msg_buffer)
+            if size > self._cache_max_size:
+                self.warning(
+                    f"Process message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
+                )
+                self._process_msg_buffer.popleft()
+            self._process_msg_buffer.append(msg)
 
     def _add_to_gui_buffer(self, msg: Callable):
-        size = len(self._gui_msg_buffer)
-        if size > self._cache_max_size:
-            self.warning(
-                f"GUI message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
-            )
-            self._gui_msg_buffer.popleft()
-        self._gui_msg_buffer.append(msg)
+        cli_mode = os.environ.get("APPLIB_CLIMODE")
+        if cli_mode and cli_mode == "1":
+            self._gui_msg_buffer.clear()
+        else:
+            size = len(self._gui_msg_buffer)
+            if size > self._cache_max_size:
+                self.warning(
+                    f"GUI message buffer size ({size}) has exceeded max size ({self._cache_max_size}). Removing oldest messages"
+                )
+                self._gui_msg_buffer.popleft()
+            self._gui_msg_buffer.append(msg)
 
     def _get_gui_orient(self, msg: str):
         return Qt.Orientation.Horizontal if len(msg) < 50 else Qt.Orientation.Vertical
