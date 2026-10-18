@@ -78,8 +78,8 @@ class MappingBase:
     def __getitem__(self, key: str):
         return self.get_value(key)
 
-    def __setitem__(self, key: str, value: tuple[Any, str]):
-        self.set_value(key, value=value[0], path=value[1], create_missing=True)
+    def __setitem__(self, key: str, value: Any):
+        self.set_value(key, value=value, create_missing=True)
 
     def __delitem__(self, key: str):
         self.remove_value(key)
