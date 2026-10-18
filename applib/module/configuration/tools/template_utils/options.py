@@ -1,5 +1,4 @@
 from collections.abc import Callable, Hashable
-from types import UnionType
 from typing import Any, Self, final
 
 from ....tools.types.general import floatOrInt
@@ -17,7 +16,9 @@ class AppLibUndefinedType:
 
 
 type AppLibUndefined = AppLibUndefinedType
-type Validator = Callable | CompatilityValidator
+type Validator = (
+    Callable | CompatilityValidator | tuple[str, Callable | CompatilityValidator]
+)
 
 
 class GUIMessage:
@@ -52,7 +53,7 @@ class Option:
         flags: Flags | list[Flags] = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any | Callable[..., bool] = AppLibUndefined,
@@ -98,7 +99,7 @@ class Option:
             If None, there is no limit. Although lower limit is -2147483648 (-2.1 billion) in the GUI.
             ##### Applicable settings: Any number ranges (e.g. slider or spinbox)
             NOTE: Sliders do not support floats currently.
-        type : type | UnionType, optional
+        type : type, optional
             The Python type for the value of this setting. For instance, 3 has type 'int'.
 
             The final type is a union of:
@@ -178,6 +179,9 @@ class Option:
             Functions used to validate the value of this setting (in addition to default Pydantic validation).
             Each function must take one argument, which is the value of this Option.
             If the value is invalid, they must raise a ValueError.
+            Validators can be configured to apply before or after Pydantic validation by wrapping the function
+            in a tuple with the first value being either `"before"` or `"after"`, e.g. `("before", function)`.
+            By default, all functions are applied *after* Pydantic validation.
         values : list | dict, optional
             Possible values for this setting.
             ##### Applicable settings: Combobox
@@ -230,7 +234,7 @@ class FileSelectorOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         flags: Flags | list[Flags] = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -275,7 +279,7 @@ class ColorPickerOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = COLOR_CONVERTER,
         flags: Flags | list[Flags] = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -314,7 +318,7 @@ class ComboBoxOption(Option):
         flags: Flags | list[Flags] = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -353,7 +357,7 @@ class TextEditOption(Option):
         actions: Callable | list[Callable] = AppLibUndefined,
         converter: Converter = AppLibUndefined,
         flags: Flags | list[Flags] = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -393,7 +397,7 @@ class NumberOption(Option):
         flags: Flags | list[Flags] = AppLibUndefined,
         min: floatOrInt | None = None,
         max: floatOrInt | None = None,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
@@ -436,7 +440,7 @@ class CheckListOption(Option):
         flags: Flags | list[Flags] = AppLibUndefined,
         max: floatOrInt | None = AppLibUndefined,
         min: floatOrInt | None = AppLibUndefined,
-        type: type | UnionType = AppLibUndefined,
+        type: type = AppLibUndefined,
         ui_disable_button: bool = AppLibUndefined,
         ui_disable_children: Any = AppLibUndefined,
         ui_disable_self: Any = AppLibUndefined,
